@@ -99,19 +99,32 @@
         
         /* Mobile Mini Player Layout */
         @media (max-width: 767px) {
+            /* 72px height for mini player (h-18 equivalent) */
             #miniPlayer {
                 padding: 8px 16px;
-                height: 72px; /* Slightly shorter, more compact */
+                height: 72px; 
                 grid-template-columns: 1fr auto;
-                display: flex; /* Override md:grid for mobile */
+                display: flex; 
                 justify-content: space-between;
                 align-items: center;
+                /* Z-index 60 to ensure it's above both nav and content */
+                z-index: 60 !important;
             }
-            #miniPlayer > div:nth-child(2) { /* Controls column */
-                display: none; /* Hide controls on mobile mini player */
+            #miniPlayer > div:nth-child(2), #miniPlayer > div:nth-child(3) { 
+                display: none; /* Hide desktop controls */
             }
-            #miniPlayer > div:nth-child(3) { /* Volume column */
-                display: none;
+
+            /* Mobile Nav (h-16 = 64px) */
+            #mobileNav {
+                height: 64px;
+                /* Positioned above the miniPlayer (72px) */
+                bottom: 72px; 
+                z-index: 50; /* Above content, below mini player */
+            }
+
+            /* Adjust main content padding to accommodate both bars */
+            .pb-mobile-bars {
+                padding-bottom: calc(72px + 64px + 10px); /* Mini Player + Nav + Margin */
             }
         }
     </style>
@@ -170,7 +183,7 @@
             </header>
 
             <!-- Views Container -->
-            <div id="views" class="overflow-y-auto h-full pb-40 md:pb-32 scroll-smooth">
+            <div id="views" class="overflow-y-auto h-full pb-40 md:pb-32 scroll-smooth pb-mobile-bars">
                 
                 <!-- HOME VIEW -->
                 <div id="view-home" class="p-6 md:p-8 space-y-10 animate-fade-in">
@@ -308,7 +321,7 @@
                          <button id="releasePlayBtn" class="btn-press w-14 h-14 bg-green-500 text-black rounded-full flex items-center justify-center text-xl shadow-lg hover:scale-105 transition">
                              <i class="fa-solid fa-play"></i>
                          </button>
-                         <button class="btn-press text-3xl text-gray-400 hover:text-white ml-4">
+                         <button onclick="app.toggleLikeSong(State.currentViewedSongId, State.currentArtistId)" id="releaseLikeBtn" class="btn-press text-3xl text-gray-400 hover:text-white ml-4">
                              <i class="fa-regular fa-heart"></i>
                          </button>
                          <button class="btn-press text-3xl text-gray-400 hover:text-white ml-4">
@@ -329,14 +342,44 @@
                     <div class="flex gap-4 mb-6 text-sm font-bold hidden md:flex">
                         <button class="bg-white text-black px-4 py-1.5 rounded-full">All</button>
                         <button class="bg-white/10 text-white px-4 py-1.5 rounded-full hover:bg-white/20">Artists</button>
-                        <button class="bg-white/10 text-white px-4 py-1.5 rounded-full hover:bg-white/20">Playlists</button>
+                        <button class="bg-white/10 text-white px-4 py-1.5 rounded-full hover:bg-white/20">Songs</button>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" id="libraryList"></div>
+
+                    <!-- Followed Artists Section -->
+                    <section class="mb-10" id="libraryFollowedArtists">
+                        <h3 class="text-xl font-bold mb-4">Followed Artists</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" id="followedArtistList">
+                            <!-- Injected Followed Artists -->
+                        </div>
+                        <p id="noFollowedArtists" class="text-gray-400 mt-4 hidden">You are not following any artists yet.</p>
+                    </section>
+
+                    <!-- Liked Songs Section -->
+                    <section id="libraryLikedSongs">
+                         <h3 class="text-xl font-bold mb-4">Liked Songs</h3>
+                         <div class="flex flex-col gap-1" id="likedSongsList">
+                            <!-- Injected Liked Songs -->
+                         </div>
+                         <p id="noLikedSongs" class="text-gray-400 mt-4 hidden">You haven't liked any songs yet.</p>
+                    </section>
                 </div>
 
             </div>
         </main>
     </div>
+
+    <!-- MOBILE NAV -->
+    <nav id="mobileNav" class="md:hidden fixed left-0 w-full bg-[#181818]/95 backdrop-blur-md border-t border-[#282828] h-16 flex items-center justify-around text-xs font-semibold z-40">
+        <button onclick="app.navigate('home')" class="btn-press flex flex-col items-center gap-1 text-white">
+            <i class="fa-solid fa-house text-xl"></i> Home
+        </button>
+        <button class="btn-press flex flex-col items-center gap-1 text-gray-400">
+            <i class="fa-solid fa-magnifying-glass text-xl"></i> Search
+        </button>
+        <button onclick="app.navigate('library')" class="btn-press flex flex-col items-center gap-1 text-gray-400">
+            <i class="fa-solid fa-book-open text-xl"></i> Library
+        </button>
+    </nav>
 
     <!-- MINI PLAYER BAR -->
     <footer id="miniPlayer" class="bg-[#181818]/90 backdrop-blur-lg border-t border-[#282828] fixed bottom-0 w-full z-50 px-4 md:h-24 md:grid md:grid-cols-3 transition-transform duration-300">
@@ -394,7 +437,7 @@
     </footer>
 
     <!-- FULL SCREEN PLAYER OVERLAY -->
-    <div id="fullPlayer" class="fixed inset-0 z-[60] bg-[#121212] flex flex-col hidden animate-slide-up">
+    <div id="fullPlayer" class="fixed inset-0 z-[70] bg-[#121212] flex flex-col hidden animate-slide-up">
         <!-- Full Player Background -->
         <div id="fullPlayerBg" class="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl scale-125 transition-all duration-1000"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/50 to-transparent"></div>
@@ -424,7 +467,8 @@
                     <h2 id="fullPlayerTitle" onclick="app.viewCurrentSongRelease()" class="text-3xl md:text-4xl font-black mb-2 hover:underline cursor-pointer">Song Title</h2>
                     <p id="fullPlayerArtist" class="text-lg text-gray-400 hover:text-white cursor-pointer">Artist Name</p>
                 </div>
-                <button class="text-3xl text-green-500 btn-press"><i class="fa-solid fa-heart"></i></button>
+                <!-- Heart icon in full screen player -->
+                <button onclick="app.toggleLikeCurrentSong()" class="text-3xl text-green-500 btn-press" id="fullPlayerLikeBtn"><i class="fa-regular fa-heart"></i></button>
             </div>
 
             <!-- Progress -->
@@ -455,21 +499,8 @@
         </div>
     </div>
 
-    <!-- MOBILE NAV -->
-    <nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#181818] border-t border-[#282828] h-16 flex items-center justify-around text-xs font-semibold z-40">
-        <button onclick="app.navigate('home')" class="btn-press flex flex-col items-center gap-1 text-white">
-            <i class="fa-solid fa-house text-xl"></i> Home
-        </button>
-        <button class="btn-press flex flex-col items-center gap-1 text-gray-400">
-            <i class="fa-solid fa-magnifying-glass text-xl"></i> Search
-        </button>
-        <button onclick="app.navigate('library')" class="btn-press flex flex-col items-center gap-1 text-gray-400">
-            <i class="fa-solid fa-book-open text-xl"></i> Library
-        </button>
-    </nav>
-
     <!-- MODALS -->
-    <div id="modalOverlay" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+    <div id="modalOverlay" class="fixed inset-0 bg-black/80 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
         
         <!-- Create Artist Modal -->
         <div id="modalCreateArtist" class="modal-content hidden glass-panel w-full max-w-md p-6 rounded-xl shadow-2xl">
@@ -550,6 +581,13 @@
             <h2 class="text-xl font-bold mb-4">Edit Song Streams</h2>
             <p id="editSongNameDisplay" class="text-gray-400 mb-4 text-sm"></p>
             <input type="number" id="editSongStreamCount" class="w-full bg-[#333] border border-transparent focus:border-white rounded p-3 text-white outline-none">
+            
+            <div class="mt-4">
+                 <button onclick="app.generateRealisticStreams()" class="btn-press px-4 py-2 bg-indigo-500 text-white rounded-full font-bold text-sm hover:bg-indigo-400 w-full">
+                     Generate Realistic Streams
+                 </button>
+            </div>
+            
             <div class="flex justify-end gap-3 mt-6">
                 <button onclick="app.closeModals()" class="px-4 py-2 font-bold hover:text-white text-gray-400">Cancel</button>
                 <button onclick="app.saveSongStats()" class="btn-press px-6 py-2 bg-white text-black rounded-full font-bold">Update</button>
@@ -617,22 +655,41 @@
             currentArtistId: null,
             editingSongId: null,
             currentViewedSongId: null,
-            
+            followedArtists: [], // NEW: Array of artist IDs
+            likedSongs: [],      // NEW: Array of song IDs
+
             init() {
                 const saved = localStorage.getItem('peyzaData');
                 if (saved) {
-                    this.artists = JSON.parse(saved);
+                    const data = JSON.parse(saved);
+                    this.artists = data.artists || [];
+                    this.followedArtists = data.followedArtists || [];
+                    this.likedSongs = data.likedSongs || [];
                 } else {
                     this.artists = [];
+                    this.followedArtists = [];
+                    this.likedSongs = [];
                 }
             },
             save() {
-                localStorage.setItem('peyzaData', JSON.stringify(this.artists));
+                const dataToSave = {
+                    artists: this.artists,
+                    followedArtists: this.followedArtists,
+                    likedSongs: this.likedSongs
+                };
+                localStorage.setItem('peyzaData', JSON.stringify(dataToSave));
             },
             getArtist(id) { return this.artists.find(a => a.id === id); },
             getSong(artistId, songId) {
                 const artist = this.getArtist(artistId);
                 return artist ? artist.songs.find(s => s.id === songId) : null;
+            },
+            getSongById(songId) {
+                for (const artist of this.artists) {
+                    const song = artist.songs.find(s => s.id === songId);
+                    if (song) return { ...song, artistName: artist.name, artistId: artist.id };
+                }
+                return null;
             },
             getAllSongs() {
                 let all = [];
@@ -640,7 +697,9 @@
                     a.songs.forEach(s => all.push({ ...s, artistName: a.name, artistId: a.id }));
                 });
                 return all;
-            }
+            },
+            isFollowing(artistId) { return this.followedArtists.includes(artistId); },
+            isLiked(songId) { return this.likedSongs.includes(songId); }
         };
 
         // --- AUDIO PLAYER CONTROLLER ---
@@ -685,6 +744,9 @@
             async loadAndPlay() {
                 const song = this.playlist[this.currentIndex];
                 if (!song) return;
+                
+                // Update full player like button state
+                app.updateLikeBtn(document.getElementById('fullPlayerLikeBtn'), song.id);
 
                 // Sync UI
                 ['playerTitle', 'fullPlayerTitle'].forEach(id => document.getElementById(id).innerText = song.title);
@@ -753,10 +815,15 @@
                     this.updateRepeatBtn();
                 }
 
+                // Loop playlist if at end
                 if (this.currentIndex < this.playlist.length - 1) {
                     this.currentIndex++;
-                    this.loadAndPlay();
+                } else if (this.playlist.length > 0) {
+                    this.currentIndex = 0; // Wrap around
+                } else {
+                    return; // No songs
                 }
+                this.loadAndPlay();
             },
 
             prev(resetRepeat = true) {
@@ -769,8 +836,12 @@
                     this.audio.currentTime = 0;
                 } else if (this.currentIndex > 0) {
                     this.currentIndex--;
-                    this.loadAndPlay();
+                } else if (this.playlist.length > 0) {
+                    this.currentIndex = this.playlist.length - 1; // Wrap around
+                } else {
+                    return;
                 }
+                this.loadAndPlay();
             },
             
             toggleRepeat() {
@@ -815,8 +886,10 @@
                 
                 // Pulse effect on full player btn
                 const fp = document.getElementById('fullPlayPauseBtn');
-                if(this.isPlaying) fp.classList.add('animate-pulse');
-                else fp.classList.remove('animate-pulse');
+                if(fp) {
+                    if(this.isPlaying) fp.classList.add('animate-pulse');
+                    else fp.classList.remove('animate-pulse');
+                }
             },
 
             updateProgress() {
@@ -880,15 +953,72 @@
             
             formatNumber(num) { return new Intl.NumberFormat('en-US').format(num); },
             formatTime(seconds) {
-                if(!seconds) return "0:00";
+                if(!seconds || isNaN(seconds)) return "0:00";
                 const m = Math.floor(seconds / 60);
                 const s = Math.floor(seconds % 60);
                 return `${m}:${s < 10 ? '0' : ''}${s}`;
+            },
+            
+            // --- LIKE/FOLLOW LOGIC ---
+            toggleLikeSong(songId, artistId) {
+                if (!songId) return;
+                const index = State.likedSongs.indexOf(songId);
+                if (index > -1) {
+                    State.likedSongs.splice(index, 1);
+                } else {
+                    State.likedSongs.push(songId);
+                }
+                State.save();
+                this.updateLikeBtn(document.getElementById('releaseLikeBtn'), songId);
+                this.updateLikeBtn(document.getElementById('fullPlayerLikeBtn'), player.playlist[player.currentIndex]?.id);
+                this.goToArtist(artistId); // Re-render artist view to update heart icons
+                if (document.getElementById('view-library').classList.contains('hidden') === false) this.renderLibrary();
+            },
+            
+            toggleLikeCurrentSong() {
+                 const current = player.playlist[player.currentIndex];
+                 if (current) this.toggleLikeSong(current.id, current.artistId);
+            },
+            
+            updateLikeBtn(el, songId) {
+                if (!el) return;
+                const isLiked = State.isLiked(songId);
+                
+                el.className = el.className.replace(/fa-(solid|regular)-heart/g, '').trim();
+                if (isLiked) {
+                    el.classList.add('fa-solid', 'fa-heart', 'text-green-500');
+                } else {
+                    el.classList.add('fa-regular', 'fa-heart', 'text-gray-400');
+                    el.classList.remove('text-green-500');
+                }
+            },
+            
+            toggleFollow() {
+                const artistId = State.currentArtistId;
+                if (!artistId) return;
+
+                const btn = document.getElementById('followBtn');
+                const index = State.followedArtists.indexOf(artistId);
+                
+                if (index > -1) {
+                    State.followedArtists.splice(index, 1);
+                    btn.innerText = "FOLLOW";
+                    btn.classList.remove('bg-white', 'text-black', 'border-transparent');
+                } else {
+                    State.followedArtists.push(artistId);
+                    btn.innerText = "FOLLOWING";
+                    btn.classList.add('bg-white', 'text-black', 'border-transparent');
+                }
+                State.save();
+                if (document.getElementById('view-library').classList.contains('hidden') === false) this.renderLibrary();
             },
 
             // --- UI ACTIONS ---
             openFullPlayer() {
                 document.getElementById('fullPlayer').classList.remove('hidden');
+                // Ensure the like button reflects the current state
+                const current = player.playlist[player.currentIndex];
+                if (current) app.updateLikeBtn(document.getElementById('fullPlayerLikeBtn'), current.id);
             },
             closeFullPlayer() {
                 document.getElementById('fullPlayer').classList.add('hidden');
@@ -909,7 +1039,8 @@
                 document.getElementById('releaseTitle').innerText = song.title;
                 document.getElementById('releaseStreams').innerText = this.formatNumber(song.streams);
                 document.getElementById('releaseDate').innerText = new Date().getFullYear();
-                
+                this.updateLikeBtn(document.getElementById('releaseLikeBtn'), songId);
+
                 // Cover
                 const img = document.getElementById('releaseCover');
                 if(song.coverId) {
@@ -926,7 +1057,7 @@
                 const chipContainer = document.getElementById('releaseArtists');
                 chipContainer.innerHTML = '';
 
-                const createChip = async (aId, isMain) => {
+                const createChip = async (aId) => {
                     const a = State.getArtist(aId);
                     if(!a) return;
                     
@@ -944,16 +1075,15 @@
                 };
 
                 // Add Main Artist
-                await createChip(artistId, true);
+                await createChip(artistId);
 
                 // Add Collaborators
                 if (song.collaborators) {
-                    // Logic: Show first 2 collaborators, then +N
                     const collabsToShow = song.collaborators.slice(0, 2);
                     const remaining = song.collaborators.length - 2;
 
                     for(const cId of collabsToShow) {
-                        await createChip(cId, false);
+                        await createChip(cId);
                     }
 
                     if(remaining > 0) {
@@ -1002,6 +1132,7 @@
             },
 
             renderHome() {
+                // ... (Home rendering logic is the same) ...
                 const grid = document.getElementById('homeRecentArtists');
                 const links = document.getElementById('homeQuickLinks');
                 const mixes = document.getElementById('homeMixes');
@@ -1047,7 +1178,6 @@
                 });
 
                 // Generated Mixes & Radios (Randomized)
-                // Just create visual placeholders using existing artists for now as "Mixes"
                 if(State.artists.length > 0) {
                     for(let i=1; i<=5; i++) {
                         const randArtist = State.artists[Math.floor(Math.random() * State.artists.length)];
@@ -1063,13 +1193,11 @@
                             <h3 class="font-bold truncate text-gray-200">Made for You</h3>
                             <p class="text-xs text-gray-400 mt-1 line-clamp-2">Featuring ${randArtist.name} and more...</p>
                         `;
-                        // Mock functionality for mix
                         mixCard.onclick = () => {
                             if(randArtist.songs.length) player.playSong(randArtist.songs[0], randArtist, randArtist.songs.map(s => ({...s, artistName: randArtist.name, artistId: randArtist.id})));
                         }
                         mixes.appendChild(mixCard);
                         
-                        // Artist Radio
                         const radioCard = mixCard.cloneNode(true);
                         const rArtist = State.artists[Math.floor(Math.random() * State.artists.length)];
                         radioCard.querySelector('.bg-gradient-to-br').classList.remove('from-indigo-500', 'to-purple-600');
@@ -1086,21 +1214,75 @@
             },
             
             renderLibrary() {
-                 const grid = document.getElementById('libraryList');
+                 this.renderFollowedArtists();
+                 this.renderLikedSongs();
+            },
+            
+            renderFollowedArtists() {
+                 const grid = document.getElementById('followedArtistList');
                  grid.innerHTML = "";
-                 State.artists.forEach(artist => {
+                 const followed = State.artists.filter(a => State.isFollowing(a.id));
+
+                 if (followed.length === 0) {
+                     document.getElementById('noFollowedArtists').classList.remove('hidden');
+                     return;
+                 } else {
+                     document.getElementById('noFollowedArtists').classList.add('hidden');
+                 }
+
+                 followed.forEach(artist => {
                      const card = document.createElement('div');
                      card.className = "bg-[#181818] p-4 rounded-xl hover:bg-[#282828] cursor-pointer btn-press transition";
                      card.onclick = () => this.goToArtist(artist.id);
                      card.innerHTML = `
                         <div class="aspect-square w-full mb-3">
-                            <img id="lib-img-${artist.id}" src="https://ui-avatars.com/api/?name=${artist.name}" class="w-full h-full rounded-full object-cover shadow-lg">
+                            <img id="lib-followed-img-${artist.id}" src="https://ui-avatars.com/api/?name=${artist.name}" class="w-full h-full rounded-full object-cover shadow-lg">
                         </div>
                         <div class="font-bold text-base truncate">${artist.name}</div>
                         <div class="text-gray-400 text-xs uppercase font-bold mt-1">Artist</div>
                      `;
                      grid.appendChild(card);
-                     this.loadImageInto(artist.pfpId, `lib-img-${artist.id}`);
+                     this.loadImageInto(artist.pfpId, `lib-followed-img-${artist.id}`);
+                 });
+            },
+
+            renderLikedSongs() {
+                 const list = document.getElementById('likedSongsList');
+                 list.innerHTML = "";
+                 const likedSongsData = State.likedSongs.map(songId => State.getSongById(songId)).filter(s => s !== null);
+                 
+                 if (likedSongsData.length === 0) {
+                     document.getElementById('noLikedSongs').classList.remove('hidden');
+                     return;
+                 } else {
+                     document.getElementById('noLikedSongs').classList.add('hidden');
+                 }
+                 
+                 likedSongsData.forEach((song, idx) => {
+                    const row = document.createElement('div');
+                    row.className = "group flex items-center gap-4 p-3 rounded-md hover:bg-white/10 transition cursor-pointer";
+                    
+                    const thumbId = `lib-thumb-${song.id}`;
+                    
+                    row.innerHTML = `
+                        <div class="w-6 text-center text-gray-400 font-mono text-sm">${idx + 1}</div>
+                        <div class="w-10 h-10 rounded bg-gray-700 flex-shrink-0">
+                            <img id="${thumbId}" class="w-full h-full object-cover rounded">
+                        </div>
+
+                        <div class="flex-1 min-w-0" onclick="player.playSong(State.getSong(song.artistId, song.id), State.getArtist(song.artistId), likedSongsData)">
+                            <div class="font-medium text-white truncate">${song.title}</div>
+                            <div class="text-xs text-gray-400 truncate">${song.artistName}</div>
+                        </div>
+                        <div class="text-sm text-gray-400 font-mono w-16 text-right">${this.formatNumber(song.streams)}</div>
+                        <button onclick="event.stopPropagation(); app.toggleLikeSong('${song.id}', '${song.artistId}')" class="text-green-500 hover:text-white ml-2 btn-press">
+                            <i class="fa-solid fa-heart"></i>
+                        </button>
+                    `;
+                    list.appendChild(row);
+
+                    if(song.coverId) this.loadImageInto(song.coverId, thumbId);
+                    else this.loadImageInto(State.getArtist(song.artistId)?.pfpId, thumbId);
                  });
             },
 
@@ -1116,6 +1298,16 @@
                 document.getElementById('artistFollowers').innerText = this.formatNumber(artist.followers || 0);
                 document.getElementById('artistBio').innerText = artist.bio || "No biography yet. Click to add one.";
                 
+                // Update Follow Button State
+                const followBtn = document.getElementById('followBtn');
+                if (State.isFollowing(id)) {
+                    followBtn.innerText = "FOLLOWING";
+                    followBtn.classList.add('bg-white', 'text-black', 'border-transparent');
+                } else {
+                    followBtn.innerText = "FOLLOW";
+                    followBtn.classList.remove('bg-white', 'text-black', 'border-transparent');
+                }
+
                 this.loadImageInto(artist.pfpId, 'artistPfp');
                 this.loadImageInto(artist.bannerId, 'artistBanner', true);
 
@@ -1126,9 +1318,9 @@
 
                 sortedSongs.forEach((song, idx) => {
                     const row = document.createElement('div');
-                    row.className = "group flex items-center gap-4 p-3 rounded-md hover:bg-white/10 transition cursor-pointer";
+                    const isCurrent = player.playlist[player.currentIndex]?.id === song.id;
+                    row.className = `group flex items-center gap-4 p-3 rounded-md hover:bg-white/10 transition cursor-pointer ${isCurrent ? 'bg-green-500/10' : ''}`;
                     
-                    // Collab Text
                     let artistText = artist.name;
                     if(song.collaborators && song.collaborators.length > 0) {
                         const colNames = song.collaborators.map(cid => {
@@ -1138,11 +1330,12 @@
                         if(colNames) artistText += ` ft. ${colNames}`;
                     }
                     
-                    // Async load thumbnail for list
                     const thumbId = `list-thumb-${song.id}`;
+                    
+                    const heartIconClass = State.isLiked(song.id) ? 'fa-solid text-green-500' : 'fa-regular text-gray-400 group-hover:text-white';
 
                     row.innerHTML = `
-                        <div class="w-6 text-center text-gray-400 group-hover:hidden font-mono text-sm">${idx + 1}</div>
+                        <div class="w-6 text-center text-gray-400 group-hover:hidden font-mono text-sm ${isCurrent ? 'text-green-300' : ''}">${idx + 1}</div>
                         <div class="w-6 text-center hidden group-hover:block text-white">
                             <button onclick="event.stopPropagation(); app.playArtistSong('${song.id}')"><i class="fa-solid fa-play"></i></button>
                         </div>
@@ -1152,9 +1345,12 @@
                         </div>
 
                         <div class="flex-1 min-w-0" onclick="app.viewSong('${song.id}', '${artist.id}')">
-                            <div class="font-medium text-white truncate ${player.playlist[player.currentIndex]?.id === song.id ? 'text-green-500' : ''}">${song.title}</div>
+                            <div class="font-medium text-white truncate ${isCurrent ? 'text-green-500' : ''}">${song.title}</div>
                             <div class="text-xs text-gray-400 truncate group-hover:text-white">${artistText}</div>
                         </div>
+                        <button onclick="event.stopPropagation(); app.toggleLikeSong('${song.id}', '${artist.id}')" class="text-xl ml-2 btn-press">
+                            <i class="fa-heart ${heartIconClass}" id="song-heart-${song.id}"></i>
+                        </button>
                         <div class="text-sm text-gray-400 hover:text-white cursor-pointer group/streams hidden md:block" onclick="event.stopPropagation(); app.showEditSongStats('${song.id}')">
                             ${this.formatNumber(song.streams)}
                         </div>
@@ -1165,7 +1361,6 @@
                     `;
                     list.appendChild(row);
 
-                    // Load tiny thumb
                     if(song.coverId) this.loadImageInto(song.coverId, thumbId);
                     else if(artist.pfpId) this.loadImageInto(artist.pfpId, thumbId);
                     else document.getElementById(thumbId).src = `https://ui-avatars.com/api/?name=${artist.name}&background=random`;
@@ -1197,12 +1392,11 @@
             async loadImageInto(fileId, imgElementId, isBackground = false) {
                 const el = document.getElementById(imgElementId);
                 
-                // Set default/placeholder based on type if no fileId
                 if (!fileId) {
                     if (isBackground) el.style.backgroundImage = 'none';
                     else {
-                        const name = imgElementId.includes('artistPfp') ? State.getArtist(State.currentArtistId)?.name : 'Music';
-                        el.src = `https://ui-avatars.com/api/?name=${name || 'Music'}&background=random`;
+                        const name = (imgElementId.includes('artistPfp') || imgElementId.includes('lib-followed-img') || imgElementId.includes('sidebar-img')) ? State.getArtist(State.currentArtistId)?.name : 'Music';
+                        if (el) el.src = `https://ui-avatars.com/api/?name=${name || 'Music'}&background=random`;
                     }
                     return;
                 }
@@ -1211,30 +1405,78 @@
                     const blob = await db.getFile(fileId);
                     if (blob) {
                         const url = URL.createObjectURL(blob);
-                        if (isBackground) el.style.backgroundImage = `url('${url}')`;
-                        else el.src = url;
+                        if (isBackground) {
+                            if (el) el.style.backgroundImage = `url('${url}')`;
+                        } else {
+                            if (el) el.src = url;
+                        }
                     } else {
-                        // If file not found in DB, use placeholder
                          if (isBackground) el.style.backgroundImage = 'none';
                          else {
-                            const name = imgElementId.includes('artistPfp') ? State.getArtist(State.currentArtistId)?.name : 'Music';
-                            el.src = `https://ui-avatars.com/api/?name=${name || 'Music'}&background=random`;
+                            const name = (imgElementId.includes('artistPfp') || imgElementId.includes('lib-followed-img') || imgElementId.includes('sidebar-img')) ? State.getArtist(State.currentArtistId)?.name : 'Music';
+                            if (el) el.src = `https://ui-avatars.com/api/?name=${name || 'Music'}&background=random`;
                          }
                     }
                 } catch (e) { console.log('Image load error', e); }
             },
 
             // --- ACTIONS ---
+            // ... (Other actions remain the same) ...
+
+            showEditSongStats(songId) {
+                State.editingSongId = songId;
+                const song = State.getSong(State.currentArtistId, songId);
+                document.getElementById('editSongNameDisplay').innerText = `Editing: ${song.title}`;
+                document.getElementById('editSongStreamCount').value = song.streams;
+                this.showModal('editSongStats');
+            },
+
+            // NEW: Realistic Streams
+            generateRealisticStreams() {
+                const artist = State.getArtist(State.currentArtistId);
+                if (!artist) return;
+                
+                const listeners = artist.monthlyListeners || 1000;
+                const followers = artist.followers || 500;
+                
+                // Formula: 0.1% to 1% of the total (listeners + followers) + a small random offset
+                const totalAudience = listeners + followers;
+                const minMultiplier = 0.001; // 0.1%
+                const maxMultiplier = 0.01;  // 1.0%
+                
+                const range = maxMultiplier - minMultiplier;
+                const multiplier = minMultiplier + (Math.random() * range);
+                
+                let streams = Math.floor(totalAudience * multiplier);
+                
+                // Add a floor and ceiling for very small/large artists
+                if (streams < 100) streams = 100 + Math.floor(Math.random() * 1000);
+                if (streams > 5000000) streams = 5000000 + Math.floor(Math.random() * 1000000);
+
+                document.getElementById('editSongStreamCount').value = streams;
+            },
+
+            saveSongStats() {
+                if(!State.editingSongId) return;
+                const song = State.getSong(State.currentArtistId, State.editingSongId);
+                song.streams = parseInt(document.getElementById('editSongStreamCount').value) || 0;
+                State.save();
+                this.closeModals();
+                this.goToArtist(State.currentArtistId);
+            },
+            
+            // ... (Modals, Follow, WipeData logic is the same) ...
+            
             createArtist() {
                 const name = document.getElementById('newArtistName').value;
-                if (!name) return alert("Name required");
+                if (!name) return console.error("Name required");
                 
                 const newArtist = {
                     id: crypto.randomUUID(),
                     name: name,
                     bio: "",
-                    monthlyListeners: 0,
-                    followers: 0,
+                    monthlyListeners: Math.floor(Math.random() * 5000) + 1000, // starting listeners
+                    followers: Math.floor(Math.random() * 2000) + 500, // starting followers
                     pfpId: null,
                     bannerId: null,
                     songs: []
@@ -1324,20 +1566,17 @@
                 const fileInput = document.getElementById('songFile');
                 const coverInput = document.getElementById('songCover');
                 
-                if(!title || !fileInput.files[0]) return alert("Title and Audio required");
+                if(!title || !fileInput.files[0]) return console.error("Title and Audio required");
 
-                // Save Audio
                 const fileId = `audio_${Date.now()}_${Math.random()}`;
                 await db.saveFile(fileId, fileInput.files[0]);
 
-                // Save Cover (Optional)
                 let coverId = null;
                 if(coverInput.files && coverInput.files[0]) {
                     coverId = `cover_${Date.now()}_${Math.random()}`;
                     await db.saveFile(coverId, coverInput.files[0]);
                 }
 
-                // Get Selected Collaborators
                 const selectedCollabs = Array.from(select.selectedOptions).map(opt => opt.value);
 
                 const newSong = {
@@ -1357,23 +1596,6 @@
                 this.goToArtist(artist.id);
             },
 
-            showEditSongStats(songId) {
-                State.editingSongId = songId;
-                const song = State.getSong(State.currentArtistId, songId);
-                document.getElementById('editSongNameDisplay').innerText = `Editing: ${song.title}`;
-                document.getElementById('editSongStreamCount').value = song.streams;
-                this.showModal('editSongStats');
-            },
-
-            saveSongStats() {
-                if(!State.editingSongId) return;
-                const song = State.getSong(State.currentArtistId, State.editingSongId);
-                song.streams = parseInt(document.getElementById('editSongStreamCount').value) || 0;
-                State.save();
-                this.closeModals();
-                this.goToArtist(State.currentArtistId);
-            },
-
             showModal(name) {
                 document.getElementById('modalOverlay').classList.remove('hidden');
                 document.querySelectorAll('.modal-content').forEach(el => el.classList.add('hidden'));
@@ -1387,17 +1609,6 @@
 
             closeModals() {
                 document.getElementById('modalOverlay').classList.add('hidden');
-            },
-
-            toggleFollow() {
-                const btn = document.getElementById('followBtn');
-                if(btn.innerText === "FOLLOW") {
-                    btn.innerText = "FOLLOWING";
-                    btn.classList.add('bg-white', 'text-black', 'border-transparent');
-                } else {
-                    btn.innerText = "FOLLOW";
-                    btn.classList.remove('bg-white', 'text-black', 'border-transparent');
-                }
             },
 
             wipeData() {
