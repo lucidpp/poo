@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peyza.org</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f0f0f;
+            color: #ffffff;
+            overflow: hidden;
+            user-select: none; /* App-like feel */
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .btn-press {
+            transition: transform 0.1s;
+        }
+        .btn-press:active {
+            transform: scale(0.92);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        .glass-panel {
+            background: rgba(30, 30, 30, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            margin-top: -4px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+        input[type=range]:active::-webkit-slider-thumb {
+            transform: scale(1.3);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #4b5563;
+            border-radius: 2px;
+        }
+        input[type=range]:focus { outline: none; }
+    </style>
+</head>
+<body class="h-screen flex flex-col text-gray-100">
+
+    <!-- APP LAYOUT -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- SIDEBAR (Desktop) -->
+        <aside class="hidden md:flex w-64 flex-col bg-black border-r border-gray-800 p-6 gap-6 z-20">
+            <div class="flex items-center gap-3 text-2xl font-black tracking-tighter text-white select-none">
+                <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-play text-xs text-white"></i>
+                </div>
+                <span>PEYZA</span>
+            </div>
+            
+            <nav class="flex flex-col gap-2">
+                <button onclick="app.navigate('home')" class="btn-press flex items-center gap-4 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition font-semibold">
+                    <i class="fa-solid fa-house"></i> Home
+                </button>
+                <button onclick="app.navigate('library')" class="btn-press flex items-center gap-4 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition font-semibold">
+                    <i class="fa-solid fa-book-open"></i> Library
+                </button>
+                <button onclick="app.showModal('createArtist')" class="btn-press flex items-center gap-4 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition font-semibold">
+                    <i class="fa-solid fa-plus-circle"></i> Create Artist
+                </button>
+            </nav>
+
+            <div class="mt-auto">
+                <div class="text-xs text-gray-500 uppercase font-bold mb-4">Your Artists</div>
+                <div id="sidebarArtistList" class="flex flex-col gap-2 overflow-y-auto max-h-48">
+                    <!-- JS Injected -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 bg-gradient-to-b from-[#1e1e1e] to-[#121212] relative overflow-hidden">
+            <!-- Top Bar -->
+            <header class="h-16 flex items-center justify-between px-6 md:px-8 bg-black/20 backdrop-blur-md sticky top-0 z-10 border-b border-white/5">
+                <div class="md:hidden text-xl font-black tracking-tighter flex items-center gap-2">
+                    <div class="w-6 h-6 bg-gradient-to-br from-green-400 to-blue-600 rounded flex items-center justify-center">
+                        <i class="fa-solid fa-play text-[10px] text-white"></i>
+                    </div>
+                    PEYZA
+                </div>
+                <div class="flex items-center gap-4 ml-auto">
+                    <div class="hidden md:flex items-center bg-white/10 rounded-full px-4 py-1.5 border border-white/5">
+                        <i class="fa-solid fa-search text-gray-400 text-sm mr-2"></i>
+                        <input type="text" placeholder="Search library..." class="bg-transparent border-none outline-none text-sm w-48 text-white placeholder-gray-400">
+                    </div>
+                   <button onclick="app.wipeData()" class="btn-press text-xs text-red-400 hover:text-red-300 font-bold px-3 py-1 rounded border border-red-400/30 hover:bg-red-400/10">RESET DATA</button>
+                </div>
+            </header>
+
+            <!-- Views Container -->
+            <div id="views" class="overflow-y-auto h-full pb-40 md:pb-32 scroll-smooth">
+                
+                <!-- HOME VIEW -->
+                <div id="view-home" class="p-6 md:p-8 space-y-10 animate-fade-in">
+                    <section>
+                        <h2 class="text-3xl font-bold mb-6 tracking-tight">Good <span id="timeGreeting">Evening</span></h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="homeQuickLinks">
+                            <!-- Quick Links -->
+                        </div>
+                    </section>
+                    
+                    <section>
+                        <h2 class="text-xl font-bold mb-4 text-gray-200">New Releases</h2>
+                        <div class="flex overflow-x-auto pb-4 gap-6 no-scrollbar" id="homeRecentArtists">
+                            <!-- Horizontal Scroll Cards -->
+                        </div>
+                    </section>
+
+                    <section id="sec-mixes">
+                        <h2 class="text-xl font-bold mb-4 text-gray-200">Made For You</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6" id="homeMixes">
+                            <!-- JS Injected Mixes -->
+                        </div>
+                    </section>
+
+                    <section id="sec-radios">
+                        <h2 class="text-xl font-bold mb-4 text-gray-200">Artist Radios</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6" id="homeRadios">
+                            <!-- JS Injected Radios -->
+                        </div>
+                    </section>
+                </div>
+
+                <!-- ARTIST VIEW -->
+                <div id="view-artist" class="hidden pb-10 animate-fade-in">
+                    <!-- Header -->
+                    <div class="relative h-64 md:h-80 group">
+                        <div id="artistBanner" class="absolute inset-0 bg-cover bg-center bg-no-repeat transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
+                        </div>
+                        <button onclick="app.showEditArtistBanner()" class="btn-press absolute top-4 right-4 bg-black/50 hover:bg-black/70 p-2 rounded-full opacity-0 group-hover:opacity-100 transition text-white backdrop-blur">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        
+                        <div class="absolute bottom-6 left-6 md:left-8 flex items-end gap-6">
+                            <div class="relative group/pfp">
+                                <img id="artistPfp" src="" class="w-32 h-32 md:w-48 md:h-48 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] object-cover bg-gray-800 border-4 border-[#121212]">
+                                <button onclick="app.showEditArtistPfp()" class="btn-press absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover/pfp:opacity-100 transition cursor-pointer backdrop-blur-sm">
+                                    <i class="fa-solid fa-camera text-2xl"></i>
+                                </button>
+                            </div>
+                            <div class="mb-2">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <i class="fa-solid fa-certificate text-blue-400 text-sm"></i>
+                                    <span class="text-sm font-medium">Verified Artist</span>
+                                </div>
+                                <h1 id="artistName" class="text-4xl md:text-7xl font-black tracking-tight mb-4 drop-shadow-lg">Artist Name</h1>
+                                <div class="flex items-center gap-2 text-sm md:text-base text-gray-300 font-medium">
+                                    <span id="artistListeners">0</span> monthly listeners
+                                    <span class="w-1 h-1 bg-white rounded-full mx-1"></span>
+                                    <button onclick="app.showEditStats()" class="hover:text-white underline text-xs text-gray-400">Edit Stats</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controls & Bio -->
+                    <div class="px-6 md:px-8 mt-6 flex flex-col md:flex-row gap-8">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-4 mb-8">
+                                <button onclick="app.playArtist()" class="btn-press w-14 h-14 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-400 transition shadow-lg text-black text-xl">
+                                    <i class="fa-solid fa-play"></i>
+                                </button>
+                                <button onclick="app.toggleFollow()" id="followBtn" class="btn-press px-6 py-2 border border-gray-500 rounded-full text-sm font-bold tracking-widest hover:border-white transition uppercase">
+                                    Follow
+                                </button>
+                                <button onclick="app.showAddSongModal()" class="btn-press text-gray-400 hover:text-white text-xl ml-2 p-2 hover:bg-white/10 rounded-full transition" title="Upload Song">
+                                    <i class="fa-solid fa-upload"></i>
+                                </button>
+                                <button onclick="app.showEditBio()" class="btn-press text-gray-400 hover:text-white text-xl ml-2 p-2 hover:bg-white/10 rounded-full transition" title="Edit Profile">
+                                    <i class="fa-solid fa-ellipsis"></i>
+                                </button>
+                            </div>
+
+                            <h2 class="text-2xl font-bold mb-4">Popular</h2>
+                            <div id="artistSongList" class="flex flex-col gap-1 mb-8">
+                                <!-- Song Rows -->
+                            </div>
+                        </div>
+
+                        <!-- Sidebar Info -->
+                        <div class="w-full md:w-80">
+                            <h3 class="font-bold text-xl mb-4">About</h3>
+                            <div class="bg-white/10 rounded-xl p-6 hover:bg-white/15 transition cursor-pointer relative group" onclick="app.showEditBio()">
+                                <div id="artistBio" class="line-clamp-6 text-gray-300 leading-relaxed text-sm">
+                                    No biography yet.
+                                </div>
+                                <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-gray-300">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-white/10 flex gap-4 text-sm font-bold">
+                                    <div>
+                                        <div id="artistFollowers" class="text-white text-lg">0</div>
+                                        <div class="text-gray-400 font-normal text-xs uppercase">Followers</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SONG RELEASE PROFILE -->
+                <div id="view-release" class="hidden p-6 md:p-8 animate-fade-in pb-32">
+                     <button onclick="app.goBackToArtist()" class="btn-press mb-6 flex items-center gap-2 text-gray-400 hover:text-white font-bold text-sm">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Artist
+                     </button>
+                     
+                     <div class="flex flex-col md:flex-row gap-8 items-end">
+                        <img id="releaseCover" src="" class="w-full md:w-64 aspect-square shadow-2xl rounded-lg object-cover bg-gray-800">
+                        <div class="mb-2">
+                            <span class="text-xs font-bold tracking-widest uppercase text-gray-400">Single</span>
+                            <h1 id="releaseTitle" class="text-4xl md:text-6xl font-black tracking-tight mb-4 mt-2">Song Title</h1>
+                            
+                            <!-- Artist Chips -->
+                            <div class="flex items-center gap-3 flex-wrap" id="releaseArtists">
+                                <!-- Injected -->
+                            </div>
+                            <div class="mt-6 text-sm text-gray-400 font-mono">
+                                <span id="releaseDate">2024</span> • <span id="releaseDuration">3:42</span> • <span id="releaseStreams">0</span> streams
+                            </div>
+                        </div>
+                     </div>
+                     
+                     <!-- Release Actions -->
+                     <div class="mt-8 border-t border-white/10 pt-8 flex gap-4">
+                         <button id="releasePlayBtn" class="btn-press w-14 h-14 bg-green-500 text-black rounded-full flex items-center justify-center text-xl shadow-lg hover:scale-105 transition">
+                             <i class="fa-solid fa-play"></i>
+                         </button>
+                         <button class="btn-press text-3xl text-gray-400 hover:text-white ml-4">
+                             <i class="fa-regular fa-heart"></i>
+                         </button>
+                         <button class="btn-press text-3xl text-gray-400 hover:text-white ml-4">
+                             <i class="fa-solid fa-ellipsis"></i>
+                         </button>
+                     </div>
+                </div>
+
+                 <!-- LIBRARY VIEW -->
+                 <div id="view-library" class="hidden p-6 md:p-8 animate-fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Your Library</h2>
+                    <div class="flex gap-4 mb-6 text-sm font-bold">
+                        <button class="bg-white text-black px-4 py-1.5 rounded-full">All</button>
+                        <button class="bg-white/10 text-white px-4 py-1.5 rounded-full hover:bg-white/20">Artists</button>
+                        <button class="bg-white/10 text-white px-4 py-1.5 rounded-full hover:bg-white/20">Playlists</button>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" id="libraryList"></div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MINI PLAYER BAR -->
+    <footer id="miniPlayer" class="h-24 bg-[#181818]/90 backdrop-blur-lg border-t border-[#282828] fixed bottom-0 w-full z-50 flex items-center px-4 justify-between md:grid md:grid-cols-3 transition-transform duration-300">
+        <!-- Track Info -->
+        <div class="flex items-center gap-4 w-full md:w-auto overflow-hidden group cursor-pointer" onclick="app.openFullPlayer()">
+            <div class="relative w-14 h-14 rounded overflow-hidden flex-shrink-0">
+                 <img id="playerImg" src="" class="w-full h-full object-cover bg-gray-800">
+                 <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center">
+                    <i class="fa-solid fa-chevron-up text-white"></i>
+                 </div>
+            </div>
+            <div class="overflow-hidden">
+                <div id="playerTitle" class="text-sm font-semibold hover:underline truncate text-white">Not Playing</div>
+                <div id="playerArtist" class="text-xs text-gray-400 hover:text-white hover:underline truncate">Select a song</div>
+            </div>
+            <button class="btn-press text-green-500 ml-2 hidden md:block" onclick="event.stopPropagation()"><i class="fa-regular fa-heart"></i></button>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-col items-center max-w-xl w-full px-2">
+            <div class="flex items-center gap-6 mb-1 text-gray-400">
+                <button class="btn-press hover:text-white transition"><i class="fa-solid fa-shuffle"></i></button>
+                <button onclick="player.prev()" class="btn-press hover:text-white transition text-lg"><i class="fa-solid fa-backward-step"></i></button>
+                <button onclick="player.togglePlay()" id="playPauseBtn" class="btn-press w-8 h-8 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+                <button onclick="player.next()" class="btn-press hover:text-white transition text-lg"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="btn-press hover:text-white transition"><i class="fa-solid fa-repeat"></i></button>
+            </div>
+            <div class="flex items-center gap-2 w-full text-xs text-gray-400 font-mono group">
+                <span id="currentTime">0:00</span>
+                <input type="range" id="progressBar" value="0" min="0" max="100" class="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer group-hover:h-1.5 transition-all">
+                <span id="totalTime">0:00</span>
+            </div>
+        </div>
+
+        <!-- Volume -->
+        <div class="hidden md:flex items-center justify-end gap-2 text-gray-400">
+            <i class="fa-solid fa-volume-high text-xs"></i>
+            <input type="range" id="volumeBar" min="0" max="1" step="0.01" value="1" class="w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+            <button class="ml-2 hover:text-white" onclick="app.openFullPlayer()"><i class="fa-solid fa-expand"></i></button>
+        </div>
+    </footer>
+
+    <!-- FULL SCREEN PLAYER OVERLAY -->
+    <div id="fullPlayer" class="fixed inset-0 z-[60] bg-[#121212] flex flex-col hidden animate-slide-up">
+        <!-- Full Player Background -->
+        <div id="fullPlayerBg" class="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl scale-125 transition-all duration-1000"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/50 to-transparent"></div>
+
+        <!-- Header -->
+        <div class="relative z-10 p-6 flex items-center justify-between">
+            <button onclick="app.closeFullPlayer()" class="btn-press w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="text-xs font-bold tracking-widest text-gray-400 uppercase">Now Playing</div>
+            <button class="btn-press w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                <i class="fa-solid fa-ellipsis"></i>
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="relative z-10 flex-1 flex flex-col items-center justify-center p-8 max-w-2xl mx-auto w-full">
+            <div class="w-full aspect-square max-w-md mb-8 relative group">
+                <img id="fullPlayerImg" src="" class="w-full h-full object-cover rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                    <button onclick="app.viewCurrentSongRelease()" class="bg-black/60 backdrop-blur px-6 py-2 rounded-full font-bold text-sm border border-white/20 hover:bg-black/80 hover:scale-105 transition">View Release</button>
+                </div>
+            </div>
+            
+            <div class="w-full flex items-end justify-between mb-6">
+                <div>
+                    <h2 id="fullPlayerTitle" onclick="app.viewCurrentSongRelease()" class="text-3xl md:text-4xl font-black mb-2 hover:underline cursor-pointer">Song Title</h2>
+                    <p id="fullPlayerArtist" class="text-lg text-gray-400 hover:text-white cursor-pointer">Artist Name</p>
+                </div>
+                <button class="text-3xl text-green-500 btn-press"><i class="fa-solid fa-heart"></i></button>
+            </div>
+
+            <!-- Progress -->
+            <div class="w-full mb-8">
+                <input type="range" id="fullProgressBar" value="0" min="0" max="100" class="w-full h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer mb-2">
+                <div class="flex justify-between text-xs font-mono text-gray-400">
+                    <span id="fullCurrentTime">0:00</span>
+                    <span id="fullTotalTime">0:00</span>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-between w-full max-w-sm">
+                <button class="text-2xl text-gray-400 hover:text-white btn-press"><i class="fa-solid fa-shuffle"></i></button>
+                <button onclick="player.prev()" class="text-4xl text-white hover:text-gray-300 btn-press"><i class="fa-solid fa-backward-step"></i></button>
+                <button onclick="player.togglePlay()" id="fullPlayPauseBtn" class="w-20 h-20 bg-white text-black rounded-full flex items-center justify-center text-3xl shadow-xl hover:scale-105 transition btn-press">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+                <button onclick="player.next()" class="text-4xl text-white hover:text-gray-300 btn-press"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="text-2xl text-gray-400 hover:text-white btn-press"><i class="fa-solid fa-repeat"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE NAV -->
+    <nav class="md:hidden fixed bottom-24 left-0 w-full bg-gradient-to-t from-black to-transparent h-16 flex items-end justify-around pb-4 text-xs font-semibold z-40">
+        <button onclick="app.navigate('home')" class="btn-press flex flex-col items-center gap-1 text-white">
+            <i class="fa-solid fa-house text-xl"></i> Home
+        </button>
+        <button class="btn-press flex flex-col items-center gap-1 text-gray-400">
+            <i class="fa-solid fa-magnifying-glass text-xl"></i> Search
+        </button>
+        <button onclick="app.navigate('library')" class="btn-press flex flex-col items-center gap-1 text-gray-400">
+            <i class="fa-solid fa-book-open text-xl"></i> Library
+        </button>
+    </nav>
+
+    <!-- MODALS -->
+    <div id="modalOverlay" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        
+        <!-- Create Artist Modal -->
+        <div id="modalCreateArtist" class="modal-content hidden glass-panel w-full max-w-md p-6 rounded-xl shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4">Create New Artist</h2>
+            <input type="text" id="newArtistName" placeholder="Artist Name" class="w-full bg-[#333] border border-transparent focus:border-white rounded p-3 mb-4 text-white outline-none transition">
+            <div class="flex justify-end gap-3">
+                <button onclick="app.closeModals()" class="px-4 py-2 font-bold hover:text-white text-gray-400">Cancel</button>
+                <button onclick="app.createArtist()" class="btn-press px-6 py-2 bg-green-500 text-black rounded-full font-bold hover:bg-green-400">Create</button>
+            </div>
+        </div>
+
+        <!-- Add Song Modal -->
+        <div id="modalAddSong" class="modal-content hidden glass-panel w-full max-w-md p-6 rounded-xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-4">Upload Release</h2>
+            <div class="space-y-4">
+                <input type="text" id="songTitle" placeholder="Song Title" class="w-full bg-[#333] border border-transparent focus:border-white rounded p-3 text-white outline-none">
+                
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold uppercase">Audio File (MP3)</label>
+                    <input type="file" id="songFile" accept="audio/*" class="w-full bg-[#333] rounded p-2 text-sm text-gray-300">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold uppercase">Cover Art (Optional)</label>
+                    <input type="file" id="songCover" accept="image/*" class="w-full bg-[#333] rounded p-2 text-sm text-gray-300">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold uppercase">Initial Streams</label>
+                    <input type="number" id="songStreams" value="1000" class="w-full bg-[#333] border border-transparent focus:border-white rounded p-3 text-white outline-none">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold uppercase">Collaborators (Select Multiple)</label>
+                    <select id="songCollab" multiple class="w-full bg-[#333] border border-transparent focus:border-white rounded p-3 text-white outline-none h-24">
+                        <!-- Options injected -->
+                    </select>
+                    <div class="text-[10px] text-gray-500">Hold Ctrl/Cmd to select multiple</div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="app.closeModals()" class="px-4 py-2 font-bold hover:text-white text-gray-400">Cancel</button>
+                <button onclick="app.addSong()" class="btn-press px-6 py-2 bg-green-500 text-black rounded-full font-bold hover:bg-green-400">Upload</button>
+            </div>
+        </div>
+
+        <!-- Edit Stats Modal -->
+        <div id="modalEditStats" class="modal-content hidden glass-panel w-full max-w-md p-6 rounded-xl shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4">Edit Artist Stats</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Monthly Listeners</label>
+                    <input type="number" id="editListeners" class="w-full bg-[#333] rounded p-3 text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Followers</label>
+                    <input type="number" id="editFollowers" class="w-full bg-[#333] rounded p-3 text-white outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="app.closeModals()" class="px-4 py-2 font-bold hover:text-white text-gray-400">Cancel</button>
+                <button onclick="app.saveStats()" class="btn-press px-6 py-2 bg-white text-black rounded-full font-bold">Save</button>
+            </div>
+        </div>
+
+        <!-- Edit Bio Modal -->
+        <div id="modalEditBio" class="modal-content hidden glass-panel w-full max-w-lg p-6 rounded-xl shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4">Edit Bio</h2>
+            <textarea id="editBioText" rows="6" class="w-full bg-[#333] border border-transparent focus:border-white rounded p-3 text-white outline-none resize-none"></textarea>
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="app.closeModals()" class="px-4 py-2 font-bold hover:text-white text-gray-400">Cancel</button>
+                <button onclick="app.saveBio()" class="btn-press px-6 py-2 bg-white text-black rounded-full font-bold">Save Bio</button>
+            </div>
+        </div>
+
+        <!-- Edit Song Streams Modal -->
+        <div id="modalEditSongStats" class="modal-content hidden glass-panel w-full max-w-md p-6 rounded-xl shadow-2xl">
+            <h2 class="text-xl font-bold mb-4">Edit Song Streams</h2>
+            <p id="editSongNameDisplay" class="text-gray-400 mb-4 text-sm"></p>
+            <input type="number" id="editSongStreamCount" class="w-full bg-[#333] border border-transparent focus:border-white rounded p-3 text-white outline-none">
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="app.closeModals()" class="px-4 py-2 font-bold hover:text-white text-gray-400">Cancel</button>
+                <button onclick="app.saveSongStats()" class="btn-press px-6 py-2 bg-white text-black rounded-full font-bold">Update</button>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Hidden File Inputs for PFP/Banner -->
+    <input type="file" id="pfpInput" accept="image/*" class="hidden" onchange="app.handlePfpUpload(this)">
+    <input type="file" id="bannerInput" accept="image/*" class="hidden" onchange="app.handleBannerUpload(this)">
+
+    <!-- LOGIC -->
+    <script>
+        // --- INDEXED DB WRAPPER ---
+        const DB_NAME = 'PeyzaDB';
+        const DB_VERSION = 1;
+        const STORE_FILES = 'files';
+
+        const db = {
+            open: () => {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onupgradeneeded = (e) => {
+                        e.target.result.createObjectStore(STORE_FILES);
+                    };
+                    request.onsuccess = (e) => resolve(e.target.result);
+                    request.onerror = (e) => reject(e);
+                });
+            },
+            saveFile: async (key, file) => {
+                const database = await db.open();
+                return new Promise((resolve, reject) => {
+                    const tx = database.transaction(STORE_FILES, 'readwrite');
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject();
+                    tx.objectStore(STORE_FILES).put(file, key);
+                });
+            },
+            getFile: async (key) => {
+                const database = await db.open();
+                return new Promise((resolve, reject) => {
+                    const tx = database.transaction(STORE_FILES, 'readonly');
+                    const request = tx.objectStore(STORE_FILES).get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject();
+                });
+            },
+            deleteFile: async (key) => {
+                const database = await db.open();
+                return new Promise((resolve, reject) => {
+                    const tx = database.transaction(STORE_FILES, 'readwrite');
+                    tx.oncomplete = () => resolve();
+                    tx.objectStore(STORE_FILES).delete(key);
+                });
+            }
+        };
+
+        // --- GLOBAL STATE ---
+        const State = {
+            artists: [],
+            currentArtistId: null,
+            editingSongId: null,
+            currentViewedSongId: null,
+            
+            init() {
+                const saved = localStorage.getItem('peyzaData');
+                if (saved) {
+                    this.artists = JSON.parse(saved);
+                } else {
+                    this.artists = [];
+                }
+            },
+            save() {
+                localStorage.setItem('peyzaData', JSON.stringify(this.artists));
+            },
+            getArtist(id) { return this.artists.find(a => a.id === id); },
+            getSong(artistId, songId) {
+                const artist = this.getArtist(artistId);
+                return artist ? artist.songs.find(s => s.id === songId) : null;
+            },
+            getAllSongs() {
+                let all = [];
+                this.artists.forEach(a => {
+                    a.songs.forEach(s => all.push({ ...s, artistName: a.name, artistId: a.id }));
+                });
+                return all;
+            }
+        };
+
+        // --- AUDIO PLAYER CONTROLLER ---
+        const player = {
+            audio: new Audio(),
+            playlist: [], 
+            currentIndex: 0,
+            isPlaying: false,
+
+            init() {
+                this.audio.addEventListener('timeupdate', this.updateProgress);
+                this.audio.addEventListener('ended', this.next.bind(this));
+                
+                const inputs = ['progressBar', 'fullProgressBar'];
+                inputs.forEach(id => {
+                    document.getElementById(id).addEventListener('input', (e) => {
+                        const time = (e.target.value / 100) * this.audio.duration;
+                        this.audio.currentTime = time;
+                    });
+                });
+                
+                document.getElementById('volumeBar').addEventListener('input', (e) => {
+                    this.audio.volume = e.target.value;
+                });
+            },
+
+            async playSong(song, artist, playlistContext = []) {
+                this.playlist = playlistContext.length ? playlistContext : [{...song, artistName: artist.name, artistId: artist.id}];
+                this.currentIndex = this.playlist.findIndex(s => s.id === song.id);
+                await this.loadAndPlay();
+            },
+
+            async loadAndPlay() {
+                const song = this.playlist[this.currentIndex];
+                if (!song) return;
+
+                // Sync UI
+                ['playerTitle', 'fullPlayerTitle'].forEach(id => document.getElementById(id).innerText = song.title);
+                ['playerArtist', 'fullPlayerArtist'].forEach(id => document.getElementById(id).innerText = song.artistName);
+                
+                // Load Audio
+                try {
+                    const fileBlob = await db.getFile(song.fileId);
+                    if (fileBlob) {
+                        this.audio.src = URL.createObjectURL(fileBlob);
+                        this.audio.play();
+                        this.isPlaying = true;
+                        this.updatePlayBtn();
+                        
+                        // Image Loading Logic (Song Cover -> Artist PFP -> Random)
+                        let imgUrl = `https://ui-avatars.com/api/?name=${song.artistName}&background=random`;
+                        
+                        // Check for Song Cover
+                        if(song.coverId) {
+                             const blob = await db.getFile(song.coverId);
+                             if(blob) imgUrl = URL.createObjectURL(blob);
+                        } else {
+                            // Fallback to Artist PFP
+                            const artist = State.getArtist(song.artistId);
+                            if(artist && artist.pfpId) {
+                                const blob = await db.getFile(artist.pfpId);
+                                if(blob) imgUrl = URL.createObjectURL(blob);
+                            }
+                        }
+
+                        document.getElementById('playerImg').src = imgUrl;
+                        document.getElementById('fullPlayerImg').src = imgUrl;
+                        document.getElementById('fullPlayerBg').style.backgroundImage = `url('${imgUrl}')`;
+
+                    } else {
+                        alert("Error: Audio file not found.");
+                    }
+                } catch (e) { console.error(e); }
+            },
+
+            togglePlay() {
+                if (this.audio.paused) {
+                    this.audio.play();
+                    this.isPlaying = true;
+                } else {
+                    this.audio.pause();
+                    this.isPlaying = false;
+                }
+                this.updatePlayBtn();
+            },
+
+            next() {
+                if (this.currentIndex < this.playlist.length - 1) {
+                    this.currentIndex++;
+                    this.loadAndPlay();
+                }
+            },
+
+            prev() {
+                if (this.audio.currentTime > 3) {
+                    this.audio.currentTime = 0;
+                } else if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.loadAndPlay();
+                }
+            },
+
+            updatePlayBtn() {
+                const icon = this.isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play ml-1"></i>';
+                document.getElementById('playPauseBtn').innerHTML = icon;
+                document.getElementById('fullPlayPauseBtn').innerHTML = icon;
+                
+                // Pulse effect on full player btn
+                const fp = document.getElementById('fullPlayPauseBtn');
+                if(this.isPlaying) fp.classList.add('animate-pulse');
+                else fp.classList.remove('animate-pulse');
+            },
+
+            updateProgress() {
+                const duration = player.audio.duration;
+                const current = player.audio.currentTime;
+                if (!duration) return;
+
+                const pct = (current / duration) * 100;
+                
+                ['progressBar', 'fullProgressBar'].forEach(id => {
+                     const el = document.getElementById(id);
+                     el.value = pct;
+                     el.style.background = `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, #4b5563 ${pct}%, #4b5563 100%)`;
+                });
+
+                ['currentTime', 'fullCurrentTime'].forEach(id => document.getElementById(id).innerText = app.formatTime(current));
+                ['totalTime', 'fullTotalTime'].forEach(id => document.getElementById(id).innerText = app.formatTime(duration));
+            }
+        };
+
+        // --- APP LOGIC ---
+        const app = {
+            init() {
+                State.init();
+                player.init();
+                this.setGreeting();
+                this.renderHome();
+                this.renderSidebar();
+            },
+
+            navigate(viewId) {
+                document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+                document.getElementById('view-' + viewId).classList.remove('hidden');
+                
+                // Animation reset hack
+                const view = document.getElementById('view-' + viewId);
+                view.classList.remove('animate-fade-in');
+                void view.offsetWidth;
+                view.classList.add('animate-fade-in');
+
+                if (viewId === 'home') this.renderHome();
+                if (viewId === 'library') this.renderLibrary();
+            },
+
+            setGreeting() {
+                const hr = new Date().getHours();
+                const el = document.getElementById('timeGreeting');
+                if (hr < 12) el.innerText = "Morning";
+                else if (hr < 18) el.innerText = "Afternoon";
+                else el.innerText = "Evening";
+            },
+            
+            formatNumber(num) { return new Intl.NumberFormat('en-US').format(num); },
+            formatTime(seconds) {
+                if(!seconds) return "0:00";
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return `${m}:${s < 10 ? '0' : ''}${s}`;
+            },
+
+            // --- UI ACTIONS ---
+            openFullPlayer() {
+                document.getElementById('fullPlayer').classList.remove('hidden');
+            },
+            closeFullPlayer() {
+                document.getElementById('fullPlayer').classList.add('hidden');
+            },
+
+            // --- VIEW: RELEASE PROFILE ---
+            async viewSong(songId, artistId) {
+                const artist = State.getArtist(artistId);
+                const song = artist.songs.find(s => s.id === songId);
+                if (!song) return;
+
+                State.currentViewedSongId = songId;
+                State.currentArtistId = artistId; // Context
+
+                this.navigate('release');
+
+                // Bind Data
+                document.getElementById('releaseTitle').innerText = song.title;
+                document.getElementById('releaseStreams').innerText = this.formatNumber(song.streams);
+                document.getElementById('releaseDate').innerText = new Date().getFullYear();
+                
+                // Cover
+                const img = document.getElementById('releaseCover');
+                if(song.coverId) {
+                    const blob = await db.getFile(song.coverId);
+                    img.src = blob ? URL.createObjectURL(blob) : '';
+                } else if(artist.pfpId) {
+                    const blob = await db.getFile(artist.pfpId);
+                    img.src = blob ? URL.createObjectURL(blob) : '';
+                } else {
+                    img.src = `https://ui-avatars.com/api/?name=${artist.name}&background=random`;
+                }
+
+                // Render Artist Chips (Main + Collabs)
+                const chipContainer = document.getElementById('releaseArtists');
+                chipContainer.innerHTML = '';
+
+                const createChip = async (aId, isMain) => {
+                    const a = State.getArtist(aId);
+                    if(!a) return;
+                    
+                    const div = document.createElement('div');
+                    div.className = "flex items-center gap-2 bg-white/10 hover:bg-white/20 rounded-full pr-4 p-1 cursor-pointer transition btn-press";
+                    div.onclick = () => this.goToArtist(aId);
+                    
+                    const imgId = `chip-img-${aId}-${Math.random()}`;
+                    div.innerHTML = `
+                        <img id="${imgId}" src="https://ui-avatars.com/api/?name=${a.name}" class="w-8 h-8 rounded-full object-cover">
+                        <span class="font-bold text-sm">${a.name}</span>
+                    `;
+                    chipContainer.appendChild(div);
+                    this.loadImageInto(a.pfpId, imgId);
+                };
+
+                // Add Main Artist
+                await createChip(artistId, true);
+
+                // Add Collaborators
+                if (song.collaborators) {
+                    // Logic: Show first 2 collaborators, then +N
+                    const maxShow = 2; // Actually showing 2 collabs + main = 3 chips max before +N
+                    // The prompt asked for "collaborator profile with a +1 if there is a third one"
+                    // Interpret: Main + Collab1 + Collab2. If Collab3 exists -> +1.
+                    
+                    const collabsToShow = song.collaborators.slice(0, 2);
+                    const remaining = song.collaborators.length - 2;
+
+                    for(const cId of collabsToShow) {
+                        await createChip(cId, false);
+                    }
+
+                    if(remaining > 0) {
+                        const plusDiv = document.createElement('div');
+                        plusDiv.className = "w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm text-gray-400";
+                        plusDiv.innerText = `+${remaining}`;
+                        chipContainer.appendChild(plusDiv);
+                    }
+                }
+                
+                // Play Button Context
+                document.getElementById('releasePlayBtn').onclick = () => {
+                    player.playSong(song, artist, [song]); // Play single or context? Just single for now
+                };
+            },
+
+            viewCurrentSongRelease() {
+                if(!player.playlist[player.currentIndex]) return;
+                const current = player.playlist[player.currentIndex];
+                this.closeFullPlayer();
+                this.viewSong(current.id, current.artistId);
+            },
+            
+            goBackToArtist() {
+                if(State.currentArtistId) this.goToArtist(State.currentArtistId);
+                else this.navigate('home');
+            },
+
+            // --- RENDERERS ---
+            renderSidebar() {
+                const list = document.getElementById('sidebarArtistList');
+                list.innerHTML = '';
+                State.artists.forEach(artist => {
+                    const div = document.createElement('div');
+                    div.className = "flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg cursor-pointer transition btn-press";
+                    div.onclick = () => this.goToArtist(artist.id);
+                    div.innerHTML = `
+                        <div class="w-10 h-10 rounded-full bg-gray-800 overflow-hidden flex-shrink-0 border border-white/10">
+                            <img id="sidebar-img-${artist.id}" src="https://ui-avatars.com/api/?name=${artist.name}&background=random" class="w-full h-full object-cover">
+                        </div>
+                        <div class="truncate text-sm font-medium text-gray-300">${artist.name}</div>
+                    `;
+                    list.appendChild(div);
+                    this.loadImageInto(artist.pfpId, `sidebar-img-${artist.id}`);
+                });
+            },
+
+            renderHome() {
+                const grid = document.getElementById('homeRecentArtists');
+                const links = document.getElementById('homeQuickLinks');
+                const mixes = document.getElementById('homeMixes');
+                const radios = document.getElementById('homeRadios');
+                
+                grid.innerHTML = ''; links.innerHTML = ''; mixes.innerHTML = ''; radios.innerHTML = '';
+
+                // Quick Links (Top 6)
+                State.artists.slice(0, 6).forEach(artist => {
+                     const div = document.createElement('div');
+                     div.className = "flex items-center bg-white/5 hover:bg-white/20 transition rounded-lg overflow-hidden cursor-pointer h-16 md:h-20 group btn-press";
+                     div.onclick = () => this.goToArtist(artist.id);
+                     div.innerHTML = `
+                        <div class="h-full w-16 md:w-20 bg-gray-800 flex-shrink-0">
+                             <img id="quick-img-${artist.id}" src="https://ui-avatars.com/api/?name=${artist.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="px-4 font-bold truncate flex-1">${artist.name}</div>
+                        <div class="mr-4 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition translate-y-2 group-hover:translate-y-0 text-black">
+                            <i class="fa-solid fa-play"></i>
+                        </div>
+                     `;
+                     links.appendChild(div);
+                     this.loadImageInto(artist.pfpId, `quick-img-${artist.id}`);
+                });
+
+                // New Releases (Horizontal Scroll)
+                State.artists.forEach(artist => {
+                    const card = document.createElement('div');
+                    card.className = "min-w-[150px] md:min-w-[180px] bg-[#181818] p-4 rounded-xl hover:bg-[#282828] transition duration-300 cursor-pointer group btn-press";
+                    card.onclick = () => this.goToArtist(artist.id);
+                    card.innerHTML = `
+                        <div class="relative w-full aspect-square mb-4">
+                            <img id="home-card-${artist.id}" src="https://ui-avatars.com/api/?name=${artist.name}" class="w-full h-full object-cover rounded-lg shadow-lg mb-4">
+                             <div class="absolute bottom-2 right-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition translate-y-2 group-hover:translate-y-0 text-black text-lg">
+                                <i class="fa-solid fa-play"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold truncate">${artist.name}</h3>
+                        <p class="text-sm text-gray-400 mt-1">Artist</p>
+                    `;
+                    grid.appendChild(card);
+                    this.loadImageInto(artist.pfpId, `home-card-${artist.id}`);
+                });
+
+                // Generated Mixes & Radios (Randomized)
+                // Just create visual placeholders using existing artists for now as "Mixes"
+                if(State.artists.length > 0) {
+                    for(let i=1; i<=5; i++) {
+                        const randArtist = State.artists[Math.floor(Math.random() * State.artists.length)];
+                        const mixCard = document.createElement('div');
+                        mixCard.className = "bg-[#181818] p-4 rounded-xl hover:bg-[#282828] transition duration-300 cursor-pointer group btn-press";
+                        mixCard.innerHTML = `
+                            <div class="relative w-full aspect-square mb-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center p-4">
+                                <span class="font-black text-2xl drop-shadow-md">Daily Mix ${i}</span>
+                                <div class="absolute bottom-2 right-2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition translate-y-2 group-hover:translate-y-0 text-black">
+                                    <i class="fa-solid fa-play"></i>
+                                </div>
+                            </div>
+                            <h3 class="font-bold truncate text-gray-200">Made for You</h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-2">Featuring ${randArtist.name} and more...</p>
+                        `;
+                        // Mock functionality for mix
+                        mixCard.onclick = () => {
+                            if(randArtist.songs.length) player.playSong(randArtist.songs[0], randArtist);
+                        }
+                        mixes.appendChild(mixCard);
+                        
+                        // Artist Radio
+                        const radioCard = mixCard.cloneNode(true);
+                        const rArtist = State.artists[Math.floor(Math.random() * State.artists.length)];
+                        radioCard.querySelector('.bg-gradient-to-br').classList.remove('from-indigo-500', 'to-purple-600');
+                        radioCard.querySelector('.bg-gradient-to-br').classList.add('from-gray-700', 'to-black');
+                        radioCard.querySelector('span').innerText = "";
+                        radioCard.querySelector('.relative').innerHTML += `<img id="radio-${i}" class="absolute inset-0 w-full h-full object-cover opacity-60 rounded-lg mix-blend-overlay">`;
+                        radioCard.querySelector('h3').innerText = `${rArtist.name} Radio`;
+                        radioCard.querySelector('p').innerText = `With ${rArtist.name} and similar artists`;
+                        radioCard.onclick = () => this.goToArtist(rArtist.id);
+                        radios.appendChild(radioCard);
+                        this.loadImageInto(rArtist.pfpId, `radio-${i}`);
+                    }
+                }
+            },
+            
+            renderLibrary() {
+                 const grid = document.getElementById('libraryList');
+                 grid.innerHTML = "";
+                 State.artists.forEach(artist => {
+                     const card = document.createElement('div');
+                     card.className = "bg-[#181818] p-4 rounded-xl hover:bg-[#282828] cursor-pointer btn-press transition";
+                     card.onclick = () => this.goToArtist(artist.id);
+                     card.innerHTML = `
+                        <div class="aspect-square w-full mb-3">
+                            <img id="lib-img-${artist.id}" src="https://ui-avatars.com/api/?name=${artist.name}" class="w-full h-full rounded-full object-cover shadow-lg">
+                        </div>
+                        <div class="font-bold text-base truncate">${artist.name}</div>
+                        <div class="text-gray-400 text-xs uppercase font-bold mt-1">Artist</div>
+                     `;
+                     grid.appendChild(card);
+                     this.loadImageInto(artist.pfpId, `lib-img-${artist.id}`);
+                 });
+            },
+
+            async goToArtist(id) {
+                State.currentArtistId = id;
+                const artist = State.getArtist(id);
+                if (!artist) return;
+
+                this.navigate('artist');
+
+                document.getElementById('artistName').innerText = artist.name;
+                document.getElementById('artistListeners').innerText = this.formatNumber(artist.monthlyListeners || 0);
+                document.getElementById('artistFollowers').innerText = this.formatNumber(artist.followers || 0);
+                document.getElementById('artistBio').innerText = artist.bio || "No biography yet. Click to add one.";
+                
+                this.loadImageInto(artist.pfpId, 'artistPfp');
+                this.loadImageInto(artist.bannerId, 'artistBanner', true);
+
+                const list = document.getElementById('artistSongList');
+                list.innerHTML = '';
+                
+                const sortedSongs = [...artist.songs].sort((a,b) => b.streams - a.streams);
+
+                sortedSongs.forEach((song, idx) => {
+                    const row = document.createElement('div');
+                    row.className = "group flex items-center gap-4 p-3 rounded-md hover:bg-white/10 transition cursor-pointer";
+                    
+                    // Collab Text
+                    let artistText = artist.name;
+                    if(song.collaborators && song.collaborators.length > 0) {
+                        const colNames = song.collaborators.map(cid => {
+                            const c = State.getArtist(cid);
+                            return c ? c.name : '';
+                        }).filter(n => n).join(', ');
+                        if(colNames) artistText += ` ft. ${colNames}`;
+                    }
+                    
+                    // Async load thumbnail for list
+                    const thumbId = `list-thumb-${song.id}`;
+
+                    row.innerHTML = `
+                        <div class="w-6 text-center text-gray-400 group-hover:hidden font-mono text-sm">${idx + 1}</div>
+                        <div class="w-6 text-center hidden group-hover:block text-white">
+                            <button onclick="event.stopPropagation(); app.playArtistSong('${song.id}')"><i class="fa-solid fa-play"></i></button>
+                        </div>
+                        
+                        <div class="w-10 h-10 rounded bg-gray-700 flex-shrink-0">
+                            <img id="${thumbId}" class="w-full h-full object-cover rounded">
+                        </div>
+
+                        <div class="flex-1 min-w-0" onclick="app.viewSong('${song.id}', '${artist.id}')">
+                            <div class="font-medium text-white truncate ${player.playlist[player.currentIndex]?.id === song.id ? 'text-green-500' : ''}">${song.title}</div>
+                            <div class="text-xs text-gray-400 truncate group-hover:text-white">${artistText}</div>
+                        </div>
+                        <div class="text-sm text-gray-400 hover:text-white cursor-pointer group/streams hidden md:block" onclick="event.stopPropagation(); app.showEditSongStats('${song.id}')">
+                            ${this.formatNumber(song.streams)}
+                        </div>
+                         <button class="text-gray-400 hover:text-white ml-2 opacity-0 group-hover:opacity-100 transition" onclick="event.stopPropagation(); app.viewSong('${song.id}', '${artist.id}')">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </button>
+                        <div class="text-sm text-gray-400 font-mono w-12 text-right">3:42</div>
+                    `;
+                    list.appendChild(row);
+
+                    // Load tiny thumb
+                    if(song.coverId) this.loadImageInto(song.coverId, thumbId);
+                    else if(artist.pfpId) this.loadImageInto(artist.pfpId, thumbId);
+                    else document.getElementById(thumbId).src = `https://ui-avatars.com/api/?name=${artist.name}&background=random`;
+                });
+            },
+
+            playArtistSong(songId) {
+                const artist = State.getArtist(State.currentArtistId);
+                const sortedSongs = [...artist.songs].sort((a,b) => b.streams - a.streams);
+                const song = sortedSongs.find(s => s.id === songId);
+                
+                const playlist = sortedSongs.map(s => ({
+                    ...s,
+                    artistName: artist.name,
+                    artistId: artist.id
+                }));
+
+                player.playSong(song, artist, playlist);
+                this.goToArtist(artist.id); 
+            },
+
+            playArtist() {
+                const artist = State.getArtist(State.currentArtistId);
+                if(artist.songs.length > 0) {
+                    this.playArtistSong(artist.songs[0].id);
+                }
+            },
+            
+            async loadImageInto(fileId, imgElementId, isBackground = false) {
+                const el = document.getElementById(imgElementId);
+                if (!fileId) {
+                    if (isBackground) el.style.backgroundImage = 'none';
+                    else el.src = `https://ui-avatars.com/api/?name=Music&background=random`;
+                    return;
+                }
+                
+                try {
+                    const blob = await db.getFile(fileId);
+                    if (blob) {
+                        const url = URL.createObjectURL(blob);
+                        if (isBackground) el.style.backgroundImage = `url('${url}')`;
+                        else el.src = url;
+                    }
+                } catch (e) { console.log('Image load error', e); }
+            },
+
+            // --- ACTIONS ---
+            createArtist() {
+                const name = document.getElementById('newArtistName').value;
+                if (!name) return alert("Name required");
+                
+                const newArtist = {
+                    id: crypto.randomUUID(),
+                    name: name,
+                    bio: "",
+                    monthlyListeners: 0,
+                    followers: 0,
+                    pfpId: null,
+                    bannerId: null,
+                    songs: []
+                };
+                
+                State.artists.push(newArtist);
+                State.save();
+                this.closeModals();
+                this.renderSidebar();
+                this.renderHome();
+                this.goToArtist(newArtist.id);
+            },
+
+            showEditBio() {
+                const artist = State.getArtist(State.currentArtistId);
+                document.getElementById('editBioText').value = artist.bio;
+                this.showModal('editBio');
+            },
+            saveBio() {
+                const artist = State.getArtist(State.currentArtistId);
+                artist.bio = document.getElementById('editBioText').value;
+                State.save();
+                this.closeModals();
+                this.goToArtist(artist.id);
+            },
+
+            showEditStats() {
+                const artist = State.getArtist(State.currentArtistId);
+                document.getElementById('editListeners').value = artist.monthlyListeners;
+                document.getElementById('editFollowers').value = artist.followers;
+                this.showModal('editStats');
+            },
+            saveStats() {
+                const artist = State.getArtist(State.currentArtistId);
+                artist.monthlyListeners = parseInt(document.getElementById('editListeners').value) || 0;
+                artist.followers = parseInt(document.getElementById('editFollowers').value) || 0;
+                State.save();
+                this.closeModals();
+                this.goToArtist(artist.id);
+            },
+
+            showEditArtistPfp() { document.getElementById('pfpInput').click(); },
+            showEditArtistBanner() { document.getElementById('bannerInput').click(); },
+            
+            async handlePfpUpload(input) {
+                if (input.files && input.files[0]) {
+                    const file = input.files[0];
+                    const fileId = `img_${Date.now()}_${Math.random()}`;
+                    await db.saveFile(fileId, file);
+                    const artist = State.getArtist(State.currentArtistId);
+                    artist.pfpId = fileId;
+                    State.save();
+                    this.goToArtist(artist.id);
+                    this.renderSidebar();
+                }
+            },
+            async handleBannerUpload(input) {
+                if (input.files && input.files[0]) {
+                    const file = input.files[0];
+                    const fileId = `img_${Date.now()}_${Math.random()}`;
+                    await db.saveFile(fileId, file);
+                    const artist = State.getArtist(State.currentArtistId);
+                    artist.bannerId = fileId;
+                    State.save();
+                    this.goToArtist(artist.id);
+                }
+            },
+
+            showAddSongModal() {
+                const select = document.getElementById('songCollab');
+                select.innerHTML = '';
+                State.artists.forEach(a => {
+                    if(a.id !== State.currentArtistId) {
+                        const opt = document.createElement('option');
+                        opt.value = a.id;
+                        opt.innerText = a.name;
+                        select.appendChild(opt);
+                    }
+                });
+                this.showModal('addSong');
+            },
+            
+            async addSong() {
+                const title = document.getElementById('songTitle').value;
+                const streams = document.getElementById('songStreams').value;
+                const select = document.getElementById('songCollab');
+                const fileInput = document.getElementById('songFile');
+                const coverInput = document.getElementById('songCover');
+                
+                if(!title || !fileInput.files[0]) return alert("Title and Audio required");
+
+                // Save Audio
+                const fileId = `audio_${Date.now()}_${Math.random()}`;
+                await db.saveFile(fileId, fileInput.files[0]);
+
+                // Save Cover (Optional)
+                let coverId = null;
+                if(coverInput.files && coverInput.files[0]) {
+                    coverId = `cover_${Date.now()}_${Math.random()}`;
+                    await db.saveFile(coverId, coverInput.files[0]);
+                }
+
+                // Get Selected Collaborators
+                const selectedCollabs = Array.from(select.selectedOptions).map(opt => opt.value);
+
+                const newSong = {
+                    id: crypto.randomUUID(),
+                    title: title,
+                    streams: parseInt(streams) || 0,
+                    fileId: fileId,
+                    coverId: coverId,
+                    artistId: State.currentArtistId,
+                    collaborators: selectedCollabs
+                };
+
+                const artist = State.getArtist(State.currentArtistId);
+                artist.songs.push(newSong);
+                State.save();
+                this.closeModals();
+                this.goToArtist(artist.id);
+            },
+
+            showEditSongStats(songId) {
+                State.editingSongId = songId;
+                const song = State.getSong(State.currentArtistId, songId);
+                document.getElementById('editSongNameDisplay').innerText = `Editing: ${song.title}`;
+                document.getElementById('editSongStreamCount').value = song.streams;
+                this.showModal('editSongStats');
+            },
+
+            saveSongStats() {
+                if(!State.editingSongId) return;
+                const song = State.getSong(State.currentArtistId, State.editingSongId);
+                song.streams = parseInt(document.getElementById('editSongStreamCount').value) || 0;
+                State.save();
+                this.closeModals();
+                this.goToArtist(State.currentArtistId);
+            },
+
+            showModal(name) {
+                document.getElementById('modalOverlay').classList.remove('hidden');
+                document.querySelectorAll('.modal-content').forEach(el => el.classList.add('hidden'));
+                
+                if (name === 'createArtist') document.getElementById('modalCreateArtist').classList.remove('hidden');
+                if (name === 'addSong') document.getElementById('modalAddSong').classList.remove('hidden');
+                if (name === 'editStats') document.getElementById('modalEditStats').classList.remove('hidden');
+                if (name === 'editBio') document.getElementById('modalEditBio').classList.remove('hidden');
+                if (name === 'editSongStats') document.getElementById('modalEditSongStats').classList.remove('hidden');
+            },
+
+            closeModals() {
+                document.getElementById('modalOverlay').classList.add('hidden');
+            },
+
+            toggleFollow() {
+                const btn = document.getElementById('followBtn');
+                if(btn.innerText === "FOLLOW") {
+                    btn.innerText = "FOLLOWING";
+                    btn.classList.add('bg-white', 'text-black', 'border-transparent');
+                } else {
+                    btn.innerText = "FOLLOW";
+                    btn.classList.remove('bg-white', 'text-black', 'border-transparent');
+                }
+            },
+
+            wipeData() {
+                if(confirm("Are you sure? This deletes ALL data permanently.")) {
+                    localStorage.removeItem('peyzaData');
+                    indexedDB.deleteDatabase(DB_NAME);
+                    location.reload();
+                }
+            }
+        };
+
+        window.onload = () => app.init();
+
+    </script>
+</body>
+</html>
