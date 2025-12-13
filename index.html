@@ -96,6 +96,24 @@
             border-radius: 2px;
         }
         input[type=range]:focus { outline: none; }
+        
+        /* Mobile Mini Player Layout */
+        @media (max-width: 767px) {
+            #miniPlayer {
+                padding: 8px 16px;
+                height: 72px; /* Slightly shorter, more compact */
+                grid-template-columns: 1fr auto;
+                display: flex; /* Override md:grid for mobile */
+                justify-content: space-between;
+                align-items: center;
+            }
+            #miniPlayer > div:nth-child(2) { /* Controls column */
+                display: none; /* Hide controls on mobile mini player */
+            }
+            #miniPlayer > div:nth-child(3) { /* Volume column */
+                display: none;
+            }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col text-gray-100">
@@ -302,7 +320,13 @@
                  <!-- LIBRARY VIEW -->
                  <div id="view-library" class="hidden p-6 md:p-8 animate-fade-in">
                     <h2 class="text-3xl font-bold mb-6">Your Library</h2>
-                    <div class="flex gap-4 mb-6 text-sm font-bold">
+                    <div class="md:hidden flex items-center gap-4 mb-6">
+                         <button onclick="app.showModal('createArtist')" class="btn-press flex items-center gap-2 px-4 py-2 bg-green-500 text-black rounded-full font-bold text-sm">
+                             <i class="fa-solid fa-plus-circle"></i> Create Artist
+                         </button>
+                    </div>
+                    
+                    <div class="flex gap-4 mb-6 text-sm font-bold hidden md:flex">
                         <button class="bg-white text-black px-4 py-1.5 rounded-full">All</button>
                         <button class="bg-white/10 text-white px-4 py-1.5 rounded-full hover:bg-white/20">Artists</button>
                         <button class="bg-white/10 text-white px-4 py-1.5 rounded-full hover:bg-white/20">Playlists</button>
@@ -315,24 +339,34 @@
     </div>
 
     <!-- MINI PLAYER BAR -->
-    <footer id="miniPlayer" class="h-24 bg-[#181818]/90 backdrop-blur-lg border-t border-[#282828] fixed bottom-0 w-full z-50 flex items-center px-4 justify-between md:grid md:grid-cols-3 transition-transform duration-300">
-        <!-- Track Info -->
-        <div class="flex items-center gap-4 w-full md:w-auto overflow-hidden group cursor-pointer" onclick="app.openFullPlayer()">
+    <footer id="miniPlayer" class="bg-[#181818]/90 backdrop-blur-lg border-t border-[#282828] fixed bottom-0 w-full z-50 px-4 md:h-24 md:grid md:grid-cols-3 transition-transform duration-300">
+        <!-- Track Info (Always visible, optimized for mobile) -->
+        <div class="flex items-center gap-4 w-full overflow-hidden group py-2 md:py-0 md:w-auto cursor-pointer" onclick="app.openFullPlayer()">
             <div class="relative w-14 h-14 rounded overflow-hidden flex-shrink-0">
                  <img id="playerImg" src="" class="w-full h-full object-cover bg-gray-800">
-                 <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center">
+                 <!-- Mobile only expand button overlay -->
+                 <div class="absolute inset-0 bg-black/40 flex md:hidden items-center justify-center">
                     <i class="fa-solid fa-chevron-up text-white"></i>
                  </div>
             </div>
-            <div class="overflow-hidden">
+            <div class="overflow-hidden flex-1">
                 <div id="playerTitle" class="text-sm font-semibold hover:underline truncate text-white">Not Playing</div>
                 <div id="playerArtist" class="text-xs text-gray-400 hover:text-white hover:underline truncate">Select a song</div>
             </div>
+            
+            <!-- Desktop only heart/info -->
             <button class="btn-press text-green-500 ml-2 hidden md:block" onclick="event.stopPropagation()"><i class="fa-regular fa-heart"></i></button>
+            
+            <!-- Mobile Controls (Play/Pause & Expand) -->
+            <div class="flex md:hidden items-center gap-3 ml-auto">
+                 <button onclick="player.togglePlay()" id="playPauseBtnMobile" class="btn-press w-8 h-8 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition">
+                    <i class="fa-solid fa-play"></i>
+                 </button>
+            </div>
         </div>
 
-        <!-- Controls -->
-        <div class="flex flex-col items-center max-w-xl w-full px-2">
+        <!-- Controls (Desktop Only) -->
+        <div class="hidden md:flex flex-col items-center max-w-xl w-full px-2">
             <div class="flex items-center gap-6 mb-1 text-gray-400">
                 <button class="btn-press hover:text-white transition"><i class="fa-solid fa-shuffle"></i></button>
                 <button onclick="player.prev()" class="btn-press hover:text-white transition text-lg"><i class="fa-solid fa-backward-step"></i></button>
@@ -340,7 +374,9 @@
                     <i class="fa-solid fa-play"></i>
                 </button>
                 <button onclick="player.next()" class="btn-press hover:text-white transition text-lg"><i class="fa-solid fa-forward-step"></i></button>
-                <button class="btn-press hover:text-white transition"><i class="fa-solid fa-repeat"></i></button>
+                <button onclick="player.toggleRepeat()" id="repeatBtn" class="btn-press hover:text-white transition relative text-gray-400">
+                    <i class="fa-solid fa-repeat"></i>
+                </button>
             </div>
             <div class="flex items-center gap-2 w-full text-xs text-gray-400 font-mono group">
                 <span id="currentTime">0:00</span>
@@ -349,7 +385,7 @@
             </div>
         </div>
 
-        <!-- Volume -->
+        <!-- Volume (Desktop Only) -->
         <div class="hidden md:flex items-center justify-end gap-2 text-gray-400">
             <i class="fa-solid fa-volume-high text-xs"></i>
             <input type="range" id="volumeBar" min="0" max="1" step="0.01" value="1" class="w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer">
@@ -400,21 +436,27 @@
                 </div>
             </div>
 
-            <!-- Controls -->
-            <div class="flex items-center justify-between w-full max-w-sm">
+            <!-- Controls (Mobile/Desktop Clustered) -->
+            <div class="flex items-center justify-center w-full max-w-sm gap-8">
                 <button class="text-2xl text-gray-400 hover:text-white btn-press"><i class="fa-solid fa-shuffle"></i></button>
-                <button onclick="player.prev()" class="text-4xl text-white hover:text-gray-300 btn-press"><i class="fa-solid fa-backward-step"></i></button>
-                <button onclick="player.togglePlay()" id="fullPlayPauseBtn" class="w-20 h-20 bg-white text-black rounded-full flex items-center justify-center text-3xl shadow-xl hover:scale-105 transition btn-press">
-                    <i class="fa-solid fa-play"></i>
+                
+                <div class="flex items-center gap-6">
+                    <button onclick="player.prev()" class="text-4xl text-white hover:text-gray-300 btn-press"><i class="fa-solid fa-backward-step"></i></button>
+                    <button onclick="player.togglePlay()" id="fullPlayPauseBtn" class="w-20 h-20 bg-white text-black rounded-full flex items-center justify-center text-3xl shadow-xl hover:scale-105 transition btn-press">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                    <button onclick="player.next()" class="text-4xl text-white hover:text-gray-300 btn-press"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+                
+                <button onclick="player.toggleRepeat()" id="fullRepeatBtn" class="text-2xl text-gray-400 hover:text-white btn-press relative">
+                    <i class="fa-solid fa-repeat"></i>
                 </button>
-                <button onclick="player.next()" class="text-4xl text-white hover:text-gray-300 btn-press"><i class="fa-solid fa-forward-step"></i></button>
-                <button class="text-2xl text-gray-400 hover:text-white btn-press"><i class="fa-solid fa-repeat"></i></button>
             </div>
         </div>
     </div>
 
     <!-- MOBILE NAV -->
-    <nav class="md:hidden fixed bottom-24 left-0 w-full bg-gradient-to-t from-black to-transparent h-16 flex items-end justify-around pb-4 text-xs font-semibold z-40">
+    <nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#181818] border-t border-[#282828] h-16 flex items-center justify-around text-xs font-semibold z-40">
         <button onclick="app.navigate('home')" class="btn-press flex flex-col items-center gap-1 text-white">
             <i class="fa-solid fa-house text-xl"></i> Home
         </button>
@@ -553,7 +595,10 @@
                     const tx = database.transaction(STORE_FILES, 'readonly');
                     const request = tx.objectStore(STORE_FILES).get(key);
                     request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject();
+                    request.onerror = (e) => {
+                        console.error("Error retrieving file:", e);
+                        resolve(null);
+                    };
                 });
             },
             deleteFile: async (key) => {
@@ -604,13 +649,15 @@
             playlist: [], 
             currentIndex: 0,
             isPlaying: false,
+            repeatCount: 0,
+            maxRepeats: 3,
 
             init() {
-                this.audio.addEventListener('timeupdate', this.updateProgress);
-                this.audio.addEventListener('ended', this.next.bind(this));
+                this.audio.addEventListener('timeupdate', this.updateProgress.bind(this));
+                this.audio.addEventListener('ended', this.handleSongEnd.bind(this));
                 
-                const inputs = ['progressBar', 'fullProgressBar'];
-                inputs.forEach(id => {
+                const progressInputs = ['progressBar', 'fullProgressBar'];
+                progressInputs.forEach(id => {
                     document.getElementById(id).addEventListener('input', (e) => {
                         const time = (e.target.value / 100) * this.audio.duration;
                         this.audio.currentTime = time;
@@ -620,9 +667,16 @@
                 document.getElementById('volumeBar').addEventListener('input', (e) => {
                     this.audio.volume = e.target.value;
                 });
+                
+                // Initial update for repeat button
+                this.updateRepeatBtn();
             },
 
             async playSong(song, artist, playlistContext = []) {
+                // Reset repeat count when starting a new song
+                this.repeatCount = 0;
+                this.updateRepeatBtn();
+                
                 this.playlist = playlistContext.length ? playlistContext : [{...song, artistName: artist.name, artistId: artist.id}];
                 this.currentIndex = this.playlist.findIndex(s => s.id === song.id);
                 await this.loadAndPlay();
@@ -666,9 +720,9 @@
                         document.getElementById('fullPlayerBg').style.backgroundImage = `url('${imgUrl}')`;
 
                     } else {
-                        alert("Error: Audio file not found.");
+                        console.error("Error: Audio file not found.");
                     }
-                } catch (e) { console.error(e); }
+                } catch (e) { console.error("Error loading song:", e); }
             },
 
             togglePlay() {
@@ -681,15 +735,36 @@
                 }
                 this.updatePlayBtn();
             },
+            
+            handleSongEnd() {
+                if (this.repeatCount > 0) {
+                    this.audio.currentTime = 0;
+                    this.audio.play();
+                    this.repeatCount--;
+                    this.updateRepeatBtn();
+                } else {
+                    this.next(false); // Do not reset repeat counter when calling next internally
+                }
+            },
 
-            next() {
+            next(resetRepeat = true) {
+                if (resetRepeat) {
+                    this.repeatCount = 0; 
+                    this.updateRepeatBtn();
+                }
+
                 if (this.currentIndex < this.playlist.length - 1) {
                     this.currentIndex++;
                     this.loadAndPlay();
                 }
             },
 
-            prev() {
+            prev(resetRepeat = true) {
+                if (resetRepeat) {
+                    this.repeatCount = 0; 
+                    this.updateRepeatBtn();
+                }
+                
                 if (this.audio.currentTime > 3) {
                     this.audio.currentTime = 0;
                 } else if (this.currentIndex > 0) {
@@ -697,11 +772,46 @@
                     this.loadAndPlay();
                 }
             },
+            
+            toggleRepeat() {
+                if (this.repeatCount === this.maxRepeats) {
+                    this.repeatCount = 0; // Reset after max
+                } else {
+                    this.repeatCount++; // Increment
+                }
+                this.updateRepeatBtn();
+            },
+
+            updateRepeatBtn() {
+                const btns = ['repeatBtn', 'fullRepeatBtn'];
+                
+                btns.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+
+                    let icon = '<i class="fa-solid fa-repeat"></i>';
+                    let colorClass = 'text-gray-400 hover:text-white';
+                    
+                    if (this.repeatCount > 0) {
+                        icon = `<i class="fa-solid fa-repeat"></i><span class="absolute top-0 right-0 text-[10px] font-black -mt-2 -mr-1 text-black bg-green-400 rounded-full px-1">${this.repeatCount}</span>`;
+                        colorClass = 'text-green-500 hover:text-green-400';
+                    }
+                    
+                    // Cleanup existing classes and apply new ones
+                    el.className = el.className.replace(/text-(green|gray)-\d{3}/g, '').replace(/hover:text-(green|white)-\d{3}/g, '').trim() + ' ' + colorClass;
+                    el.innerHTML = icon;
+                    el.classList.add('relative');
+                });
+            },
 
             updatePlayBtn() {
-                const icon = this.isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play ml-1"></i>';
-                document.getElementById('playPauseBtn').innerHTML = icon;
-                document.getElementById('fullPlayPauseBtn').innerHTML = icon;
+                const icon = this.isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play ml-0.5"></i>';
+                
+                // Update Mini Player Buttons
+                ['playPauseBtn', 'fullPlayPauseBtn', 'playPauseBtnMobile'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.innerHTML = icon;
+                });
                 
                 // Pulse effect on full player btn
                 const fp = document.getElementById('fullPlayPauseBtn');
@@ -716,14 +826,23 @@
 
                 const pct = (current / duration) * 100;
                 
+                // Update progress bars
                 ['progressBar', 'fullProgressBar'].forEach(id => {
                      const el = document.getElementById(id);
+                     if (!el) return;
                      el.value = pct;
                      el.style.background = `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, #4b5563 ${pct}%, #4b5563 100%)`;
                 });
 
-                ['currentTime', 'fullCurrentTime'].forEach(id => document.getElementById(id).innerText = app.formatTime(current));
-                ['totalTime', 'fullTotalTime'].forEach(id => document.getElementById(id).innerText = app.formatTime(duration));
+                // Update time displays
+                ['currentTime', 'fullCurrentTime'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.innerText = app.formatTime(current);
+                });
+                ['totalTime', 'fullTotalTime'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.innerText = app.formatTime(duration);
+                });
             }
         };
 
@@ -830,10 +949,6 @@
                 // Add Collaborators
                 if (song.collaborators) {
                     // Logic: Show first 2 collaborators, then +N
-                    const maxShow = 2; // Actually showing 2 collabs + main = 3 chips max before +N
-                    // The prompt asked for "collaborator profile with a +1 if there is a third one"
-                    // Interpret: Main + Collab1 + Collab2. If Collab3 exists -> +1.
-                    
                     const collabsToShow = song.collaborators.slice(0, 2);
                     const remaining = song.collaborators.length - 2;
 
@@ -950,7 +1065,7 @@
                         `;
                         // Mock functionality for mix
                         mixCard.onclick = () => {
-                            if(randArtist.songs.length) player.playSong(randArtist.songs[0], randArtist);
+                            if(randArtist.songs.length) player.playSong(randArtist.songs[0], randArtist, randArtist.songs.map(s => ({...s, artistName: randArtist.name, artistId: randArtist.id})));
                         }
                         mixes.appendChild(mixCard);
                         
@@ -1081,9 +1196,14 @@
             
             async loadImageInto(fileId, imgElementId, isBackground = false) {
                 const el = document.getElementById(imgElementId);
+                
+                // Set default/placeholder based on type if no fileId
                 if (!fileId) {
                     if (isBackground) el.style.backgroundImage = 'none';
-                    else el.src = `https://ui-avatars.com/api/?name=Music&background=random`;
+                    else {
+                        const name = imgElementId.includes('artistPfp') ? State.getArtist(State.currentArtistId)?.name : 'Music';
+                        el.src = `https://ui-avatars.com/api/?name=${name || 'Music'}&background=random`;
+                    }
                     return;
                 }
                 
@@ -1093,6 +1213,13 @@
                         const url = URL.createObjectURL(blob);
                         if (isBackground) el.style.backgroundImage = `url('${url}')`;
                         else el.src = url;
+                    } else {
+                        // If file not found in DB, use placeholder
+                         if (isBackground) el.style.backgroundImage = 'none';
+                         else {
+                            const name = imgElementId.includes('artistPfp') ? State.getArtist(State.currentArtistId)?.name : 'Music';
+                            el.src = `https://ui-avatars.com/api/?name=${name || 'Music'}&background=random`;
+                         }
                     }
                 } catch (e) { console.log('Image load error', e); }
             },
