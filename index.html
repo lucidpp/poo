@@ -1635,6 +1635,18 @@ document.head.insertAdjacentHTML('beforeend', '<link rel="icon" type="image/png"
     });
   }
 </script>
+
+    document.addEventListener("click", e => {
+  if (e.target.tagName === "A") {
+    e.preventDefault();
+    history.pushState({}, "", e.target.href);
+  }
+});
+
+
+    navigator.vibrate(50);
+    
+</script>
     
 </body>
 </html>
