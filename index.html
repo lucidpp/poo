@@ -8,44 +8,52 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Lucide Icons for aesthetic icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Universal Cherry Dark Tailwind Config -->
+    <!-- SAFE Universal Tailwind Config (Cherry + Light/Dark) -->
 <script>
   tailwind.config = {
+    darkMode: 'class', // enables light/dark switching
     theme: {
       extend: {
+        /* Accent colors ONLY (opt-in) */
         colors: {
-          /* Cherry accents (opt-in only) */
           cherry: {
-            50:  '#fff1f2',
-            100: '#ffe4e6',
-            200: '#fecdd3',
-            300: '#fda4af',
-            400: '#fb7185',
-            500: '#ef4444',
-            600: '#dc2626',
-            700: '#b91c1c',
-            800: '#991b1b',
-            900: '#7f1d1d',
+            500: '#c1121f',
+            600: '#a30f1a',
           },
 
-          /* Spotify-safe dark tones */
-          'spotify-dark': '#121212',
-          'spotify-panel': '#181818',
-          'spotify-card': '#242424',
+          /* Explicit solid surfaces (NO transparency) */
+          surface: {
+            dark: '#121212',
+            darker: '#181818',
+            card: '#242424',
+            light: '#ffffff',
+            lightCard: '#f5f5f5',
+          },
+
+          /* Text helpers */
+          textbase: {
+            dark: '#ffffff',
+            muted: '#b3b3b3',
+            light: '#000000',
+            lightMuted: '#4b5563',
+          }
         },
 
+        /* Shadows (solid, safe) */
         boxShadow: {
-          'cherry': '0 0 20px rgba(220,38,38,0.35)',
-          'soft': '0 10px 30px rgba(0,0,0,0.45)',
+          soft: '0 8px 24px rgba(0,0,0,0.35)',
+          cherry: '0 0 12px rgba(193,18,31,0.35)',
         },
 
-        backgroundImage: {
-          'cherry-accent':
-            'linear-gradient(90deg, #dc2626, #ef4444)',
-        },
-
+        /* New font (modern, Spotify-safe) */
         fontFamily: {
-          sans: ['Inter', 'system-ui', 'sans-serif'],
+          sans: [
+            'Manrope',
+            'Inter',
+            'system-ui',
+            '-apple-system',
+            'sans-serif'
+          ],
         },
 
         screens: {
