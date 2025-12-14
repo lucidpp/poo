@@ -677,6 +677,68 @@
             hideLoading();
         }
 
+        async function getArtistDetails(artistId) {
+            showLoading();
+            const token = await getToken();
+            if (!token) {
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
+                hideLoading();
+                return;
+            }
+
+            try {
+                const [artistRes, topTracksRes, albumsRes] = await Promise.all([
+                    fetch(`${API_URL}/artists/${artistId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${API_URL}/artists/${artistId}/top-tracks?market=US`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${API_URL}/artists/${artistId}/albums?market=US&include_groups=album,single&limit=5`, { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+
+                if (artistRes.ok && topTracksRes.ok && albumsRes.ok) {
+                    const artistData = await artistRes.json();
+                    const topTracksData = await topTracksRes.json();
+                    const albumsData = await albumsRes.json();
+
+                    // Standardize top tracks for playback. Passing the artist's first image as a very general fallback.
+                    const tracksForPlayback = topTracksData.tracks.map((t, i) => createPlaybackTrack(t, i, t.album.images?.[0]?.url));
+
+                    renderArtistPage(artistData, tracksForPlayback, albumsData.items);
+                } else {
+                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Failed to load artist details.</p>`;
+                }
+            } catch (error) {
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network error loading artist details.</p>`;
+            }
+            hideLoading();
+            renderIcons();
+        }
+
+        async function getAlbumDetails(albumId) {
+            showLoading();
+            const token = await getToken();
+            if (!token) {
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
+                hideLoading();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/albums/${albumId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const albumData = await response.json();
+                    renderAlbumPage(albumData);
+                } else {
+                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Failed to load album details.</p>`;
+                }
+            } catch (error) {
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network error loading album details.</p>`;
+            }
+            hideLoading();
+            renderIcons();
+        }
+
         async function getFullArtistCatalog(artistId) {
             showLoading();
             const token = await getToken();
@@ -779,6 +841,20 @@
                 followButton.outerHTML = renderFollowButton(artistId, artistName, imageUrl);
                 renderIcons();
             }
+        }
+        
+        function renderFollowButton(artistId, artistName, imageUrl) {
+            const isFollowed = isArtistFollowed(artistId);
+            const buttonClass = isFollowed ? 'bg-secondary-dark border border-white text-white' : 'bg-transparent border border-light-gray text-light-gray';
+            const buttonText = isFollowed ? 'FOLLOWING' : 'FOLLOW';
+
+            return `
+                <button id="follow-button" 
+                    class="${buttonClass} font-bold py-2 px-4 rounded-full text-sm hover:scale-[1.02] hover:border-white hover:text-white transition duration-200"
+                    onclick="toggleFollowArtist('${artistId}', '${artistName.replace(/'/g, "\\'")}', '${imageUrl}')">
+                    ${buttonText}
+                </button>
+            `;
         }
 
         // --- UI RENDERING FUNCTIONS ---
@@ -888,8 +964,83 @@
                 </div>
             `;
         }
+        
+        function renderSearchPlaceholder() {
+            return `
+                <h1 class="text-3xl font-extrabold mb-6">Search</h1>
+                <h2 class="text-xl font-bold mb-4">Browse All</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    ${renderSearchCategoryCard('Pop', '#D91E47')}
+                    ${renderSearchCategoryCard('Hip Hop', '#1E3AD9')}
+                    ${renderSearchCategoryCard('Rock', '#D96A1E')}
+                    ${renderSearchCategoryCard('Chill', '#1ED9AD')}
+                    ${renderSearchCategoryCard('Workout', '#7D1ED9')}
+                    ${renderSearchCategoryCard('Jazz', '#1E47D9')}
+                    ${renderSearchCategoryCard('Electronic', '#D9AD1E')}
+                    ${renderSearchCategoryCard('Classical', '#3A1ED9')}
+                </div>
+            `;
+        }
 
-        // ... (renderSearchPlaceholder, renderSearchCategoryCard, renderSearchResults are unchanged) ...
+        function renderSearchCategoryCard(title, color) {
+            // Placeholder: clicking a category will start a search for the title
+            const imageUrl = `https://placehold.co/100x100/${color.replace('#', '')}/ffffff?text=${title.toUpperCase().replace(/\s/g, '+')}`;
+            return `
+                <div class="aspect-square rounded-xl overflow-hidden shadow-xl cursor-pointer transform hover:scale-[1.03] transition duration-200"
+                     style="background-color: ${color};"
+                     onclick="performSearch('${title}')">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-white">${title}</h3>
+                    </div>
+                    <!-- Placeholder image tilted to look like a category cover -->
+                    <img src="${imageUrl}" class="w-1/2 h-1/2 object-cover float-right transform rotate-12 -mt-4 mr-1" onerror="this.onerror=null;this.src='https://placehold.co/100x100/282828/b3b3b3?text=IMG'">
+                </div>
+            `;
+        }
+
+        function renderSearchResults(data) {
+            const contentArea = document.getElementById('dynamic-content');
+            const artists = data.artists?.items || [];
+            const albums = data.albums?.items || [];
+            // Tracks need to be standardized using the album image if the track itself is missing one
+            const tracks = (data.tracks?.items || []).map((t, i) => createPlaybackTrack(t, i, t.album.images?.[0]?.url));
+
+            contentArea.innerHTML = `
+                <h1 class="text-3xl font-extrabold mb-8">Search Results</h1>
+
+                <!-- Artists -->
+                ${artists.length > 0 ? `
+                    <h2 class="text-2xl font-bold mb-4">Verified Peyza Artists</h2>
+                    <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
+                        ${artists.map(renderArtistCard).join('')}
+                    </div>
+                ` : ''}
+
+                <!-- Albums -->
+                ${albums.length > 0 ? `
+                    <h2 class="text-2xl font-bold mb-4">Albums, EPs, and Compilations</h2>
+                    <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
+                        ${albums.map(renderAlbumCard).join('')}
+                    </div>
+                ` : ''}
+
+                <!-- Tracks (Top 5) -->
+                ${tracks.length > 0 ? `
+                    <h2 class="text-2xl font-bold mb-4">Top Tracks</h2>
+                    <div class="space-y-1">
+                        ${tracks.slice(0, 5).map((track, index) => renderTrackRow(track, index + 1)).join('')}
+                    </div>
+                ` : ''}
+
+                ${artists.length === 0 && albums.length === 0 && tracks.length === 0 ? `
+                    <div class="text-center p-10 text-light-gray">
+                        <i data-lucide="frown" class="w-12 h-12 mx-auto mb-3"></i>
+                        <h2 class="text-xl font-bold mb-2">No results found</h2>
+                        <p>Please try a different search term in the Full Library.</p>
+                    </div>
+                ` : ''}
+            `;
+        }
 
         function renderArtistCard(artist) {
             const imageUrl = artist.images?.[0]?.url || 'https://placehold.co/160x160/282828/b3b3b3?text=ARTIST';
@@ -1252,8 +1403,6 @@
             updateLikedSongsCount();
         };
 
-        // Note: The `renderLibrary` function is retained from v2 and only needs to be called
-        // to update the sidebar, as its main content (MP3 upload, artists) is correct.
         function renderLibrary() {
             const followedArtists = JSON.parse(localStorage.getItem('followedPeyzaArtists') || '[]');
             const librarySidebar = document.getElementById('library-content');
