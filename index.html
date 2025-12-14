@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#b91d47">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Peyza">
     <title>Peyza - Cherry Edition</title>
+    
+    <!-- PWA Manifest (Data URI) -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGV5emEiLCJzaG9ydF9uYW1lIjoiUGV5emEiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzAwMDAwMCIsInRoZW1lX2NvbG9yIjoiI2I5MWQ0NyIsImljb25zIjpbeyJzcmMiOiJodHRwczovL3BsYWNlaG9sZC5jby8xOTJ4MTkyL2ZmMmQ1NS9mZmZmZmY/dGV4dD1QIiwiYml6ZXM1IjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifSx7InNyYyI6Imh0dHBzOi8vcGxhY2Vob2xkLmNvLzUxMng1MTIvZmYyZDU1L2ZmZmZmZj90ZXh0PVAiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -38,6 +45,9 @@
                     },
                     boxShadow: {
                         'glow': '0 0 20px rgba(255, 45, 85, 0.3)',
+                    },
+                    screens: {
+                        'tablet': '900px', // Custom breakpoint for tablet landscape
                     }
                 }
             }
@@ -54,11 +64,12 @@
             min-height: 100vh;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         /* Fullscreen Player Transition */
         .fullscreen-player {
-            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+            transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
             transform: translateY(100%);
             z-index: 60;
         }
@@ -66,27 +77,29 @@
             transform: translateY(0);
         }
 
-        /* Range Slider Styling */
+        /* Improved Range Slider Styling */
         input[type="range"] {
             -webkit-appearance: none;
-            background: rgba(255,255,255,0.3);
-            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 99px;
             height: 4px;
+            cursor: pointer;
         }
+        /* Track fill logic is handled via JS or separate div usually, but simple gradient works for static check */
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 24px;
-            width: 24px;
+            height: 14px;
+            width: 14px;
             border-radius: 50%;
-            background: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            background: #ffffff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.5);
             cursor: pointer;
-            margin-top: -10px;
-            transform: scale(0.7);
-            transition: transform 0.1s;
+            margin-top: -5px; /* (4px track - 14px thumb) / 2 */
+            transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
         }
         input[type="range"]:active::-webkit-slider-thumb {
-            transform: scale(1);
+            transform: scale(1.3);
+            background: #ff2d55; 
         }
 
         .active-click:active {
@@ -104,7 +117,7 @@
         }
 
         .art-shadow {
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
+            box-shadow: 0 20px 50px -12px rgba(0,0,0,0.8);
         }
         
         .like-active i {
@@ -126,6 +139,24 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+        
+        /* Lyrics Text Area */
+        .lyrics-textarea {
+            background: transparent;
+            border: none;
+            width: 100%;
+            height: 100%;
+            color: rgba(255,255,255,0.9);
+            font-size: 1.25rem;
+            line-height: 1.6;
+            resize: none;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+        }
+        .lyrics-textarea::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
     </style>
 </head>
 <body class="text-white selection:bg-accent-cherry selection:text-white pb-safe">
@@ -133,49 +164,54 @@
     <!-- Hidden File Input for MP3 Upload -->
     <input type="file" id="mp3-upload" accept="audio/*" class="hidden">
 
-    <!-- Install Prompt -->
-    <div id="install-prompt" class="hidden fixed top-0 left-0 right-0 bg-accent-cherry text-white px-4 py-3 z-[100] flex justify-between items-center shadow-lg animate-fade-in">
-        <span class="text-xs font-bold flex items-center"><i data-lucide="download" class="w-4 h-4 mr-2"></i> Install Peyza</span>
-        <button id="install-btn" class="bg-white text-black px-3 py-1 rounded-full text-xs font-bold active-click">GET</button>
+    <!-- Install Prompt (PWA) -->
+    <div id="install-prompt" class="hidden fixed top-0 left-0 right-0 bg-[#2c2c2e]/90 backdrop-blur-md border-b border-white/10 text-white px-4 py-3 z-[100] flex justify-between items-center shadow-lg animate-fade-in">
+        <div class="flex items-center">
+            <div class="w-8 h-8 bg-accent-cherry rounded-lg flex items-center justify-center mr-3">
+                <i data-lucide="music" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <p class="text-sm font-bold">Install Peyza</p>
+                <p class="text-xs text-gray-400">Get the full app experience</p>
+            </div>
+        </div>
+        <button id="install-btn" class="bg-white text-black px-4 py-1.5 rounded-full text-xs font-bold active-click hover:bg-gray-200 transition">INSTALL</button>
+        <button onclick="document.getElementById('install-prompt').classList.add('hidden')" class="ml-2 p-1 text-gray-500"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
 
     <!-- Main Layout -->
     <div class="flex h-screen w-full overflow-hidden bg-primary-dark relative">
         
-        <!-- Sidebar -->
-        <aside class="hidden md:flex flex-col w-64 bg-[#121212] border-r border-white/5 h-full z-20 pt-safe">
-            <div class="p-6">
-                <h1 class="text-2xl font-bold flex items-center gap-2 text-accent-cherry tracking-tight">
+        <!-- Sidebar (Desktop/Tablet) -->
+        <aside class="hidden md:flex flex-col w-20 lg:w-64 bg-[#121212] border-r border-white/5 h-full z-20 pt-safe transition-all duration-300">
+            <div class="p-4 lg:p-6 flex justify-center lg:justify-start">
+                <div class="lg:hidden w-10 h-10 bg-accent-cherry rounded-full flex items-center justify-center">
+                    <i data-lucide="music" class="w-6 h-6 text-white fill-current"></i>
+                </div>
+                <h1 class="hidden lg:flex text-2xl font-bold items-center gap-2 text-accent-cherry tracking-tight">
                     <i data-lucide="music" class="w-7 h-7 fill-current"></i> Peyza
                 </h1>
             </div>
             
-            <nav class="flex-1 px-3 space-y-1 overflow-y-auto">
-                <div class="mb-6">
-                    <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Discover</p>
-                    <a href="#" id="nav-home" onclick="navigateTo('home')" class="nav-item flex items-center space-x-3 px-3 py-2 text-gray-400 hover:text-white rounded-lg transition active-click">
-                        <i data-lucide="home" class="w-5 h-5"></i>
-                        <span class="font-medium text-sm">Home</span>
-                    </a>
-                    <a href="#" id="nav-search" onclick="navigateTo('search')" class="nav-item flex items-center space-x-3 px-3 py-2 text-gray-400 hover:text-white rounded-lg transition active-click">
-                        <i data-lucide="search" class="w-5 h-5"></i>
-                        <span class="font-medium text-sm">Search</span>
-                    </a>
-                </div>
+            <nav class="flex-1 px-2 lg:px-3 space-y-2 overflow-y-auto mt-4">
+                <a href="#" id="nav-home" onclick="navigateTo('home')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg transition active-click group">
+                    <i data-lucide="home" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i>
+                    <span class="hidden lg:block font-medium text-sm">Home</span>
+                </a>
+                <a href="#" id="nav-search" onclick="navigateTo('search')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg transition active-click group">
+                    <i data-lucide="search" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i>
+                    <span class="hidden lg:block font-medium text-sm">Search</span>
+                </a>
+                <a href="#" id="nav-library" onclick="navigateTo('library')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg transition active-click group">
+                    <i data-lucide="library" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i>
+                    <span class="hidden lg:block font-medium text-sm">Library</span>
+                </a>
+                <a href="#" id="nav-liked" onclick="navigateTo('liked')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg transition active-click group">
+                    <i data-lucide="heart" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i>
+                    <span class="hidden lg:block font-medium text-sm">Liked</span>
+                </a>
 
-                <div class="mb-6">
-                    <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Library</p>
-                    <a href="#" id="nav-library" onclick="navigateTo('library')" class="nav-item flex items-center space-x-3 px-3 py-2 text-gray-400 hover:text-white rounded-lg transition active-click">
-                        <i data-lucide="library" class="w-5 h-5"></i>
-                        <span class="font-medium text-sm">Library</span>
-                    </a>
-                    <a href="#" id="nav-liked" onclick="navigateTo('liked')" class="nav-item flex items-center space-x-3 px-3 py-2 text-gray-400 hover:text-white rounded-lg transition active-click">
-                        <i data-lucide="heart" class="w-5 h-5"></i>
-                        <span class="font-medium text-sm">Liked Songs</span>
-                    </a>
-                </div>
-                
-                <div class="mt-4">
+                <div class="hidden lg:block mt-6 pt-4 border-t border-white/5">
                     <div class="flex items-center justify-between px-3 mb-2">
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Playlists</p>
                         <button onclick="createPlaylistPrompt()" class="text-gray-400 hover:text-white transition"><i data-lucide="plus" class="w-4 h-4"></i></button>
@@ -187,13 +223,13 @@
 
         <!-- Main Content Area -->
         <main class="flex-1 flex flex-col relative min-w-0 bg-primary-dark">
-            <!-- Desktop Top Search/Header -->
-            <header class="absolute top-0 left-0 right-0 z-30 px-4 py-3 md:py-4 bg-gradient-to-b from-black/90 to-transparent pt-safe pointer-events-none">
-                <div class="max-w-4xl mx-auto w-full flex justify-end md:justify-start pointer-events-auto">
-                    <div id="search-bar-container" class="hidden md:block w-full max-w-sm relative group transition-all duration-300 opacity-0">
+            <!-- Desktop/Tablet Top Search/Header -->
+            <header class="absolute top-0 left-0 right-0 z-30 px-6 py-4 bg-gradient-to-b from-black/90 to-transparent pt-safe pointer-events-none">
+                <div class="max-w-7xl mx-auto w-full flex justify-end md:justify-start pointer-events-auto">
+                    <div id="search-bar-container" class="hidden md:block w-full max-w-sm tablet:max-w-md relative group transition-all duration-300 opacity-0">
                         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-accent-cherry transition-colors"></i>
                         <input type="text" id="desktop-search" 
-                            class="w-full bg-[#1c1c1e] border border-transparent focus:border-accent-cherry/50 rounded-lg py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-cherry/20 transition-all shadow-lg"
+                            class="w-full bg-[#1c1c1e] border border-transparent focus:border-accent-cherry/50 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-cherry/20 transition-all shadow-lg backdrop-blur-md bg-opacity-80"
                             placeholder="Search artists, albums, songs..."
                             onkeyup="if(event.key === 'Enter') performSearch(this.value)">
                     </div>
@@ -201,7 +237,7 @@
             </header>
 
             <!-- Scroll Container -->
-            <div id="main-scroll" class="flex-1 overflow-y-auto pb-40 md:pb-24 scroll-smooth">
+            <div id="main-scroll" class="flex-1 overflow-y-auto pb-40 md:pb-28 scroll-smooth">
                 <div id="dynamic-content" class="min-h-full p-4 md:p-8 pt-10 md:pt-24 max-w-7xl mx-auto">
                     <!-- Content injected here -->
                 </div>
@@ -210,7 +246,7 @@
     </div>
 
     <!-- Mini Player -->
-    <div id="mini-player" class="fixed bottom-[60px] md:bottom-0 left-0 right-0 h-[64px] md:h-[84px] bg-[#1c1c1e] border-t border-white/10 z-50 px-3 md:px-6 flex items-center justify-between cursor-pointer transition-transform duration-300" onclick="toggleFullscreenPlayer(true)">
+    <div id="mini-player" class="fixed bottom-[60px] md:bottom-0 left-0 right-0 h-[64px] md:h-[84px] bg-[#1c1c1e]/95 backdrop-blur-xl border-t border-white/10 z-50 px-3 md:px-6 flex items-center justify-between cursor-pointer transition-transform duration-300" onclick="toggleFullscreenPlayer(true)">
         
         <!-- Track Info -->
         <div class="flex items-center w-full md:w-1/3 min-w-0">
@@ -221,14 +257,14 @@
             </div>
         </div>
 
-        <!-- Desktop Playback Controls -->
+        <!-- Desktop/Tablet Playback Controls -->
         <div class="hidden md:flex flex-col items-center w-1/3">
-            <div class="flex items-center space-x-8 mb-1">
-                <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation();"><i data-lucide="skip-back" class="w-6 h-6 fill-current"></i></button>
+            <div class="flex items-center space-x-6 lg:space-x-8 mb-1">
+                <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation();"><i data-lucide="skip-back" class="w-5 h-5 lg:w-6 lg:h-6 fill-current"></i></button>
                 <button id="mini-play-btn" class="bg-white text-black rounded-full p-2 hover:scale-105 transition active-click shadow-glow" onclick="event.stopPropagation(); togglePlayPause()">
-                    <i data-lucide="play" class="w-6 h-6 fill-black ml-0.5"></i>
+                    <i data-lucide="play" class="w-5 h-5 lg:w-6 lg:h-6 fill-black ml-0.5"></i>
                 </button>
-                <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation();"><i data-lucide="skip-forward" class="w-6 h-6 fill-current"></i></button>
+                <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation();"><i data-lucide="skip-forward" class="w-5 h-5 lg:w-6 lg:h-6 fill-current"></i></button>
             </div>
             <!-- Mini Progress -->
             <div class="w-full max-w-xs flex items-center space-x-2 text-[10px] font-medium text-gray-500" onclick="event.stopPropagation()">
@@ -245,7 +281,7 @@
             <button class="text-gray-400 hover:text-accent-cherry transition" onclick="event.stopPropagation(); showAddToPlaylistModal(currentTrack)">
                 <i data-lucide="plus-circle" class="w-5 h-5"></i>
             </button>
-            <div class="flex items-center space-x-2 w-28" onclick="event.stopPropagation()">
+            <div class="flex items-center space-x-2 w-24 lg:w-28" onclick="event.stopPropagation()">
                 <i data-lucide="volume-2" class="w-4 h-4 text-gray-500"></i>
                 <input type="range" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white" oninput="audio.volume = this.value/100">
             </div>
@@ -286,87 +322,90 @@
         <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black"></div>
 
         <!-- Header -->
-        <div class="relative z-10 w-full flex justify-between items-center px-6 pt-12 pb-4 md:pt-10 max-w-6xl mx-auto shrink-0">
-            <button class="text-gray-400 hover:text-white" onclick="toggleFullscreenPlayer(false)">
+        <div class="relative z-10 w-full flex justify-between items-center px-6 pt-12 pb-4 md:pt-10 md:px-12 max-w-7xl mx-auto shrink-0">
+            <button class="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition" onclick="toggleFullscreenPlayer(false)">
                 <i data-lucide="chevron-down" class="w-8 h-8"></i>
             </button>
             <span class="text-xs font-bold tracking-widest uppercase text-gray-400">Now Playing</span>
-            <button class="text-gray-400 hover:text-white" onclick="showAddToPlaylistModal(currentTrack)">
+            <button class="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition" onclick="showAddToPlaylistModal(currentTrack)">
                 <i data-lucide="more-horizontal" class="w-6 h-6"></i>
             </button>
         </div>
 
-        <!-- Player Content (Responsive Grid) -->
-        <div class="relative z-10 flex-1 flex flex-col md:flex-row md:items-center md:justify-center md:gap-16 px-8 max-w-6xl mx-auto w-full pb-10">
+        <!-- Player Content (Responsive Grid: Desktop/Tablet Landscape Optimized) -->
+        <div class="relative z-10 flex-1 flex flex-col tablet:flex-row tablet:items-center tablet:justify-center gap-8 tablet:gap-16 px-8 max-w-7xl mx-auto w-full pb-10">
             
-            <!-- Artwork Section -->
-            <div class="w-full md:w-1/2 flex justify-center items-center mb-8 md:mb-0">
-                 <div class="w-full aspect-square relative group max-h-[350px] md:max-h-[500px] max-w-[500px]">
-                    <img id="fs-art" src="" class="w-full h-full object-cover rounded-2xl art-shadow transform transition duration-500 scale-100">
+            <!-- Artwork / Lyrics Section -->
+            <div class="w-full tablet:w-1/2 flex justify-center items-center mb-4 tablet:mb-0 h-[40vh] tablet:h-[60vh] relative perspective-1000">
+                <!-- Artwork -->
+                <div id="art-container" class="w-full h-full max-w-[400px] tablet:max-w-[550px] aspect-square relative transition-all duration-500 transform">
+                    <img id="fs-art" src="" class="w-full h-full object-cover rounded-2xl art-shadow">
+                </div>
+                <!-- Lyrics (Hidden by default) -->
+                <div id="lyrics-container" class="hidden w-full h-full max-w-[500px] bg-black/40 backdrop-blur-md rounded-2xl p-6 border border-white/5 shadow-2xl overflow-hidden flex flex-col">
+                    <p class="text-xs text-gray-400 text-center mb-2 uppercase tracking-wider font-bold">Lyrics</p>
+                    <textarea id="lyrics-text" class="lyrics-textarea no-scrollbar" placeholder="Tap to insert lyrics for this song..."></textarea>
                 </div>
             </div>
 
             <!-- Controls Section -->
-            <div class="w-full md:w-1/2 flex flex-col justify-center max-w-md mx-auto md:max-w-none">
+            <div class="w-full tablet:w-1/2 flex flex-col justify-center max-w-md mx-auto tablet:max-w-none">
                 
                 <!-- Title & Artist & Like -->
-                <div class="flex justify-between items-start mb-6">
+                <div class="flex justify-between items-start mb-6 tablet:mb-10">
                     <div class="min-w-0 pr-4">
-                        <h2 id="fs-title" class="text-2xl md:text-4xl font-bold text-white leading-tight">Select a song</h2>
-                        <p id="fs-artist" class="text-lg md:text-xl text-gray-400 truncate mt-2">Artist</p>
+                        <h2 id="fs-title" class="text-2xl md:text-4xl tablet:text-5xl font-bold text-white leading-tight line-clamp-2">Select a song</h2>
+                        <p id="fs-artist" class="text-lg md:text-xl tablet:text-2xl text-accent-cherry truncate mt-2 font-medium">Artist</p>
                     </div>
                     <!-- Like Button Container -->
                     <div class="flex flex-col items-center">
                         <button id="fs-like-btn" class="text-gray-500 hover:text-white transition active:scale-90 p-2" onclick="toggleLike()">
-                            <i data-lucide="heart" class="w-7 h-7 md:w-8 md:h-8"></i>
+                            <i data-lucide="heart" class="w-7 h-7 md:w-8 md:h-8 tablet:w-9 tablet:h-9"></i>
                         </button>
                          <span id="fs-like-count" class="text-[10px] font-mono text-accent-cherry opacity-0 transition-opacity duration-500 mt-1">0</span>
                     </div>
                 </div>
 
                 <!-- Scrubber -->
-                <div class="w-full mb-8">
-                    <input type="range" id="fs-progress" value="0" min="0" max="100" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer focus:outline-none accent-white">
-                    <div class="flex justify-between text-xs font-medium text-gray-500 mt-2 font-mono">
+                <div class="w-full mb-8 tablet:mb-12">
+                    <input type="range" id="fs-progress" value="0" min="0" max="100" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer focus:outline-none accent-white group">
+                    <div class="flex justify-between text-xs font-medium text-gray-500 mt-3 font-mono">
                         <span id="fs-curr-time">0:00</span>
                         <span id="fs-duration">0:00</span>
                     </div>
                 </div>
 
                 <!-- Main Playback Controls -->
-                <div class="flex justify-between items-center w-full px-2 mb-10">
-                    <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="shuffle" class="w-5 h-5 md:w-6 md:h-6"></i></button>
+                <div class="flex justify-between items-center w-full px-2 mb-10 tablet:mb-12">
+                    <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="shuffle" class="w-6 h-6 tablet:w-7 tablet:h-7"></i></button>
                     
-                    <div class="flex items-center gap-8 md:gap-12">
+                    <div class="flex items-center gap-8 md:gap-12 tablet:gap-16">
                         <button class="text-white hover:scale-110 transition active-click" onclick="audio.currentTime -= 10">
-                            <i data-lucide="skip-back" class="w-8 h-8 md:w-10 md:h-10 fill-current"></i>
+                            <i data-lucide="skip-back" class="w-9 h-9 md:w-10 md:h-10 tablet:w-12 tablet:h-12 fill-current"></i>
                         </button>
                         
                         <!-- Fixed Play Button with Black Icon inside White Circle -->
-                        <button id="fs-play-btn" class="bg-white rounded-full p-4 md:p-5 hover:scale-105 transition active-click shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center" onclick="togglePlayPause()">
-                           <i data-lucide="play" class="w-8 h-8 md:w-10 md:h-10 fill-black text-black ml-1"></i>
+                        <button id="fs-play-btn" class="bg-white rounded-full p-5 md:p-6 tablet:p-7 hover:scale-105 transition active-click shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center" onclick="togglePlayPause()">
+                           <i data-lucide="play" class="w-8 h-8 md:w-10 md:h-10 tablet:w-10 tablet:h-10 fill-black text-black ml-1"></i>
                         </button>
                         
                         <button class="text-white hover:scale-110 transition active-click" onclick="audio.currentTime += 10">
-                            <i data-lucide="skip-forward" class="w-8 h-8 md:w-10 md:h-10 fill-current"></i>
+                            <i data-lucide="skip-forward" class="w-9 h-9 md:w-10 md:h-10 tablet:w-12 tablet:h-12 fill-current"></i>
                         </button>
                     </div>
 
-                    <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="repeat" class="w-5 h-5 md:w-6 md:h-6"></i></button>
+                    <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="repeat" class="w-6 h-6 tablet:w-7 tablet:h-7"></i></button>
                 </div>
 
-                <!-- Volume Slider (Desktop) -->
-                <div class="hidden md:flex items-center space-x-4 px-2 mb-8">
-                    <i data-lucide="volume-1" class="w-5 h-5 text-gray-500"></i>
-                    <input type="range" class="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer" oninput="audio.volume = this.value/100">
-                    <i data-lucide="volume-2" class="w-5 h-5 text-gray-500"></i>
-                </div>
-                
-                <!-- Bottom Actions -->
-                 <div class="flex justify-center space-x-10 md:justify-start md:pl-4">
-                    <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="message-square-quote" class="w-5 h-5 md:w-6 md:h-6"></i></button>
-                    <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="airplay" class="w-5 h-5 md:w-6 md:h-6"></i></button>
-                    <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="list-music" class="w-5 h-5 md:w-6 md:h-6"></i></button>
+                <!-- Bottom Actions & Lyrics Toggle -->
+                 <div class="flex justify-center space-x-12 md:justify-start md:pl-4 items-center">
+                    <button id="lyrics-btn" class="text-gray-500 hover:text-accent-cherry transition flex flex-col items-center gap-1 group" onclick="toggleLyrics()">
+                        <div class="p-2 rounded-full group-hover:bg-white/5 transition">
+                            <i data-lucide="mic-2" class="w-6 h-6 md:w-7 md:h-7"></i>
+                        </div>
+                    </button>
+                    <button class="text-gray-500 hover:text-accent-cherry transition p-2 rounded-full hover:bg-white/5"><i data-lucide="airplay" class="w-6 h-6 md:w-7 md:h-7"></i></button>
+                    <button class="text-gray-500 hover:text-accent-cherry transition p-2 rounded-full hover:bg-white/5"><i data-lucide="list-music" class="w-6 h-6 md:w-7 md:h-7"></i></button>
                  </div>
             </div>
         </div>
@@ -413,10 +452,13 @@
         
         const audio = document.getElementById('global-audio');
         const mp3Input = document.getElementById('mp3-upload');
+        const lyricsText = document.getElementById('lyrics-text');
+        
         let accessToken = localStorage.getItem('spotify_token');
         let isPlaying = false;
         let currentTrack = null;
         let likedTracks = new Set(); 
+        let isLyricsView = false;
         
         // --- UTILS ---
         function renderIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
@@ -459,6 +501,22 @@
             loadUserPlaylists();
             navigateTo('home');
             
+            // Check PWA Install
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                const prompt = document.getElementById('install-prompt');
+                prompt.classList.remove('hidden');
+                
+                document.getElementById('install-btn').addEventListener('click', () => {
+                    prompt.classList.add('hidden');
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => { deferredPrompt = null; });
+                });
+            });
+
+            // File input listener
             mp3Input.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -469,6 +527,13 @@
                     updateMiniPlayer();
                     updateFullscreenVisuals();
                     toggleFullscreenPlayer(true);
+                }
+            });
+
+            // Save lyrics on change
+            lyricsText.addEventListener('input', () => {
+                if(currentTrack) {
+                    localStorage.setItem(`lyrics_${currentTrack.id}`, lyricsText.value);
                 }
             });
         };
@@ -528,7 +593,6 @@
                 }));
                 const popularSongs = topTracks.slice(0, 10);
                 
-                // Filter duplicated albums by name
                 const uniqueAlbums = [];
                 const map = new Map();
                 for (const item of albumsData.items) {
@@ -548,7 +612,6 @@
                         </div>
                     </div>
 
-                    <!-- Popular Tracks (Horizontal Scroll) -->
                     <div class="mb-10 animate-slide-up">
                         <h2 class="text-2xl font-bold mb-4 flex items-center">Popular <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2>
                         <div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">
@@ -572,7 +635,6 @@
                         </div>
                     </div>
 
-                    <!-- Releases (Horizontal Scroll) -->
                     <div class="animate-slide-up">
                         <h2 class="text-2xl font-bold mb-4 flex items-center">Releases <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2>
                          <div class="flex overflow-x-auto space-x-6 pb-6 no-scrollbar snap-x-mandatory">
@@ -600,11 +662,10 @@
                 const res = await fetch(`${API_URL}/albums/${albumId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const album = await res.json();
                 
-                // Calculate total stats
                 let totalStreams = 0;
                 let totalLikes = 0;
                 const tracksWithStats = album.tracks.items.map(t => {
-                    const s = generateStats(t.popularity || 40); // Albums endpoint doesn't give track pop, assume avg
+                    const s = generateStats(t.popularity || 40);
                     totalStreams += s.streamsRaw;
                     totalLikes += s.likesRaw;
                     return { ...t, stats: s };
@@ -662,7 +723,7 @@
             document.getElementById('dynamic-content').innerHTML = `
                 <div class="animate-fade-in">
                     <h2 class="text-3xl font-bold mb-6">Listen Now</h2>
-                    <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="grid grid-cols-2 md:grid-cols-2 tablet:grid-cols-4 gap-4 mb-8">
                         <div class="bg-[#1c1c1e] p-4 rounded-xl flex flex-col justify-between h-32 cursor-pointer hover:bg-white/10 transition active-click shadow-lg" onclick="navigateTo('liked')">
                             <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mb-2">
                                 <i data-lucide="heart" class="w-5 h-5 text-white fill-white"></i>
@@ -694,7 +755,7 @@
                 </div>
 
                 <h2 class="text-3xl font-bold mb-6">Browse Categories</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
+                <div class="grid grid-cols-2 md:grid-cols-3 tablet:grid-cols-4 gap-4 animate-fade-in">
                     ${['Pop', 'Hip-Hop', 'Rock', 'Electronic', 'Jazz', 'Classical', 'Workout', 'Focus'].map((genre, i) => `
                         <div class="aspect-video relative overflow-hidden rounded-xl cursor-pointer hover:scale-[1.02] transition shadow-lg active-click" 
                              style="background: linear-gradient(135deg, hsl(${i * 45}, 70%, 20%), hsl(${i * 45}, 70%, 10%))"
@@ -726,6 +787,28 @@
                 mini.style.transform = "translateY(0)";
             }
         }
+        
+        function toggleLyrics() {
+            const art = document.getElementById('art-container');
+            const lyrics = document.getElementById('lyrics-container');
+            const btn = document.getElementById('lyrics-btn');
+            
+            isLyricsView = !isLyricsView;
+            
+            if(isLyricsView) {
+                art.classList.add('hidden');
+                lyrics.classList.remove('hidden');
+                btn.classList.add('text-accent-cherry');
+                // Load lyrics
+                if(currentTrack) {
+                    lyricsText.value = localStorage.getItem(`lyrics_${currentTrack.id}`) || '';
+                }
+            } else {
+                art.classList.remove('hidden');
+                lyrics.classList.add('hidden');
+                btn.classList.remove('text-accent-cherry');
+            }
+        }
 
         function updateFullscreenVisuals() {
             if (!currentTrack) return;
@@ -745,7 +828,13 @@
             likeCount.classList.remove('opacity-0');
             
             const playBtn = document.getElementById('fs-play-btn');
-            playBtn.innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-8 h-8 md:w-10 md:h-10 fill-black text-black ml-1"></i>`;
+            playBtn.innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-8 h-8 md:w-10 md:h-10 tablet:w-10 tablet:h-10 fill-black text-black ml-1"></i>`;
+
+            // Reset lyrics if changing track
+            if(isLyricsView && currentTrack.id !== (lyricsText.dataset.trackId)) {
+                lyricsText.value = localStorage.getItem(`lyrics_${currentTrack.id}`) || '';
+                lyricsText.dataset.trackId = currentTrack.id;
+            }
 
             renderIcons();
         }
@@ -817,7 +906,7 @@
             document.getElementById('mini-img').src = currentTrack.imageUrl;
             document.getElementById('mini-title').textContent = currentTrack.name;
             document.getElementById('mini-artist').textContent = currentTrack.artists[0].name;
-            document.getElementById('mini-play-btn').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-6 h-6 fill-black ml-0.5"></i>`;
+            document.getElementById('mini-play-btn').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-5 h-5 lg:w-6 lg:h-6 fill-black ml-0.5"></i>`;
             document.getElementById('mobile-mini-play').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-7 h-7 fill-current"></i>`;
             renderIcons();
         }
@@ -996,7 +1085,12 @@
             document.getElementById('fs-curr-time').textContent = formatTime(audio.currentTime);
             document.getElementById('fs-duration').textContent = formatTime(audio.duration || 0);
         });
-        document.getElementById('fs-progress').addEventListener('input', (e) => audio.currentTime = (e.target.value/100) * audio.duration);
+        document.getElementById('fs-progress').addEventListener('input', (e) => {
+            const duration = audio.duration;
+            if (Number.isFinite(duration)) {
+                audio.currentTime = (e.target.value/100) * duration;
+            }
+        });
         audio.addEventListener('play', () => { isPlaying = true; updateMiniPlayer(); updateFullscreenVisuals(); });
         audio.addEventListener('pause', () => { isPlaying = false; updateMiniPlayer(); updateFullscreenVisuals(); });
     </script>
