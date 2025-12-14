@@ -35,13 +35,13 @@
                         'fade-in': 'fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
                         'scale-pulse': 'scalePulse 0.2s ease-out',
-                        'heart-pop': 'heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'spin-slow': 'spin 2s linear infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
                         slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
                         scalePulse: { '0%': { transform: 'scale(1)' }, '50%': { transform: 'scale(0.95)' }, '100%': { transform: 'scale(1)' } },
-                        heartPop: { '0%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.4)' }, '100%': { transform: 'scale(1)' } }
+                        heartPop: { '0%': { transform: 'scale(1)' }, '40%': { transform: 'scale(1.5)' }, '100%': { transform: 'scale(1)' } }
                     },
                     boxShadow: {
                         'glow': '0 0 20px rgba(255, 45, 85, 0.3)',
@@ -84,21 +84,24 @@
             border-radius: 99px;
             height: 4px;
             cursor: pointer;
+            outline: none;
         }
-        /* Track fill logic is handled via JS or separate div usually, but simple gradient works for static check */
+        
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 14px;
-            width: 14px;
+            height: 12px;
+            width: 12px;
             border-radius: 50%;
             background: #ffffff;
             box-shadow: 0 1px 4px rgba(0,0,0,0.5);
             cursor: pointer;
-            margin-top: -5px; /* (4px track - 14px thumb) / 2 */
-            transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
+            margin-top: -4px;
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(1);
         }
+        
         input[type="range"]:active::-webkit-slider-thumb {
-            transform: scale(1.3);
+            transform: scale(1.6);
             background: #ff2d55; 
         }
 
@@ -123,6 +126,13 @@
         .like-active i {
             fill: #ff3b30;
             stroke: #ff3b30;
+        }
+
+        /* Heart Pop Animation - applied directly to the icon */
+        .animate-heart-pop {
+            animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            fill: #ff3b30 !important;
+            stroke: #ff3b30 !important;
         }
 
         /* Horizontal Scroll Snap */
@@ -237,8 +247,13 @@
             </header>
 
             <!-- Scroll Container -->
-            <div id="main-scroll" class="flex-1 overflow-y-auto pb-40 md:pb-28 scroll-smooth">
-                <div id="dynamic-content" class="min-h-full p-4 md:p-8 pt-10 md:pt-24 max-w-7xl mx-auto">
+            <div id="main-scroll" class="flex-1 overflow-y-auto pb-40 md:pb-28 scroll-smooth relative">
+                <!-- Refresh Indicator (Visual) -->
+                <div id="refresh-indicator" class="hidden w-full flex justify-center py-4 absolute top-0 left-0 right-0 z-0">
+                    <i data-lucide="loader-2" class="w-6 h-6 text-accent-cherry animate-spin-slow"></i>
+                </div>
+                
+                <div id="dynamic-content" class="min-h-full p-4 md:p-8 pt-10 md:pt-24 max-w-7xl mx-auto relative z-10">
                     <!-- Content injected here -->
                 </div>
             </div>
@@ -327,7 +342,8 @@
                 <i data-lucide="chevron-down" class="w-8 h-8"></i>
             </button>
             <span class="text-xs font-bold tracking-widest uppercase text-gray-400">Now Playing</span>
-            <button class="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition" onclick="showAddToPlaylistModal(currentTrack)">
+            <!-- Immersive Mode Button -->
+            <button class="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition" onclick="toggleImmersiveMode()">
                 <i data-lucide="more-horizontal" class="w-6 h-6"></i>
             </button>
         </div>
@@ -335,7 +351,7 @@
         <!-- Player Content (Responsive Grid: Desktop/Tablet Landscape Optimized) -->
         <div class="relative z-10 flex-1 flex flex-col tablet:flex-row tablet:items-center tablet:justify-center gap-8 tablet:gap-16 px-8 max-w-7xl mx-auto w-full pb-10">
             
-            <!-- Artwork / Lyrics Section -->
+            <!-- Artwork / Lyrics / Recommendations Section -->
             <div class="w-full tablet:w-1/2 flex justify-center items-center mb-4 tablet:mb-0 h-[40vh] tablet:h-[60vh] relative perspective-1000">
                 <!-- Artwork -->
                 <div id="art-container" class="w-full h-full max-w-[400px] tablet:max-w-[550px] aspect-square relative transition-all duration-500 transform">
@@ -345,6 +361,13 @@
                 <div id="lyrics-container" class="hidden w-full h-full max-w-[500px] bg-black/40 backdrop-blur-md rounded-2xl p-6 border border-white/5 shadow-2xl overflow-hidden flex flex-col">
                     <p class="text-xs text-gray-400 text-center mb-2 uppercase tracking-wider font-bold">Lyrics</p>
                     <textarea id="lyrics-text" class="lyrics-textarea no-scrollbar" placeholder="Tap to insert lyrics for this song..."></textarea>
+                </div>
+                <!-- Recommendations (Hidden by default) -->
+                <div id="recs-container" class="hidden w-full h-full max-w-[500px] bg-black/40 backdrop-blur-md rounded-2xl p-4 border border-white/5 shadow-2xl overflow-hidden flex flex-col">
+                    <h3 class="text-lg font-bold text-center mb-4 text-white">For You</h3>
+                    <div id="recs-content" class="flex-1 overflow-y-auto no-scrollbar space-y-2">
+                        <!-- Injected JS content -->
+                    </div>
                 </div>
             </div>
 
@@ -359,10 +382,10 @@
                     </div>
                     <!-- Like Button Container -->
                     <div class="flex flex-col items-center">
-                        <button id="fs-like-btn" class="text-gray-500 hover:text-white transition active:scale-90 p-2" onclick="toggleLike()">
-                            <i data-lucide="heart" class="w-7 h-7 md:w-8 md:h-8 tablet:w-9 tablet:h-9"></i>
+                        <button id="fs-like-btn" class="text-gray-500 hover:text-white transition active:scale-90 p-2 group relative" onclick="toggleLike()">
+                            <i data-lucide="heart" class="w-7 h-7 md:w-8 md:h-8 tablet:w-9 tablet:h-9 transition-colors duration-300"></i>
                         </button>
-                         <span id="fs-like-count" class="text-[10px] font-mono text-accent-cherry opacity-0 transition-opacity duration-500 mt-1">0</span>
+                         <span id="fs-like-count" class="text-[12px] font-mono text-accent-cherry transition-opacity duration-300 mt-1 font-bold">0</span>
                     </div>
                 </div>
 
@@ -397,15 +420,21 @@
                     <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="repeat" class="w-6 h-6 tablet:w-7 tablet:h-7"></i></button>
                 </div>
 
-                <!-- Bottom Actions & Lyrics Toggle -->
+                <!-- Bottom Actions: Lyrics | Chromecast | Recommendations -->
                  <div class="flex justify-center space-x-12 md:justify-start md:pl-4 items-center">
-                    <button id="lyrics-btn" class="text-gray-500 hover:text-accent-cherry transition flex flex-col items-center gap-1 group" onclick="toggleLyrics()">
+                    <button id="lyrics-btn" class="text-gray-500 hover:text-accent-cherry transition flex flex-col items-center gap-1 group" onclick="toggleView('lyrics')">
                         <div class="p-2 rounded-full group-hover:bg-white/5 transition">
                             <i data-lucide="mic-2" class="w-6 h-6 md:w-7 md:h-7"></i>
                         </div>
                     </button>
-                    <button class="text-gray-500 hover:text-accent-cherry transition p-2 rounded-full hover:bg-white/5"><i data-lucide="airplay" class="w-6 h-6 md:w-7 md:h-7"></i></button>
-                    <button class="text-gray-500 hover:text-accent-cherry transition p-2 rounded-full hover:bg-white/5"><i data-lucide="list-music" class="w-6 h-6 md:w-7 md:h-7"></i></button>
+                    
+                    <button class="text-gray-500 hover:text-accent-cherry transition p-2 rounded-full hover:bg-white/5" onclick="castToTv()">
+                        <i data-lucide="tv-2" class="w-6 h-6 md:w-7 md:h-7"></i>
+                    </button>
+                    
+                    <button id="recs-btn" class="text-gray-500 hover:text-accent-cherry transition p-2 rounded-full hover:bg-white/5" onclick="toggleView('recs')">
+                        <i data-lucide="list-music" class="w-6 h-6 md:w-7 md:h-7"></i>
+                    </button>
                  </div>
             </div>
         </div>
@@ -458,7 +487,7 @@
         let isPlaying = false;
         let currentTrack = null;
         let likedTracks = new Set(); 
-        let isLyricsView = false;
+        let activeView = 'art'; // 'art', 'lyrics', 'recs'
         
         // --- UTILS ---
         function renderIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
@@ -543,6 +572,10 @@
             updateSidebarActiveState(view);
             const content = document.getElementById('dynamic-content');
             const searchContainer = document.getElementById('search-bar-container');
+            const refreshIndicator = document.getElementById('refresh-indicator');
+
+            // Simulate Refresh Effect
+            refreshIndicator.classList.remove('hidden');
             
             // Toggle desktop search bar visibility
             if(view === 'search' || view === 'home') {
@@ -551,9 +584,11 @@
                 searchContainer?.classList.add('opacity-0', 'pointer-events-none');
             }
 
+            // Spinner during load
             content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>';
             
             setTimeout(() => {
+                refreshIndicator.classList.add('hidden'); // Hide refresh after "load"
                 switch(view) {
                     case 'home': renderHome(); break;
                     case 'search': renderSearch(); break;
@@ -562,7 +597,7 @@
                     case 'artist': fetchArtistDetails(id); break;
                     case 'album': fetchAlbumDetails(id); break;
                 }
-            }, 50);
+            }, 600); 
         }
 
         function updateSidebarActiveState(view) {
@@ -788,26 +823,138 @@
             }
         }
         
-        function toggleLyrics() {
+        function toggleImmersiveMode() {
+            // Toggles browser fullscreen (removes URL bar/status bar on mobile)
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch((e) => {
+                    console.log('Fullscreen rejected', e);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        
+        function toggleView(viewName) {
+            // Toggle between Art, Lyrics, and Recommendations
             const art = document.getElementById('art-container');
             const lyrics = document.getElementById('lyrics-container');
-            const btn = document.getElementById('lyrics-btn');
+            const recs = document.getElementById('recs-container');
             
-            isLyricsView = !isLyricsView;
-            
-            if(isLyricsView) {
-                art.classList.add('hidden');
+            const lyricsBtn = document.getElementById('lyrics-btn');
+            const recsBtn = document.getElementById('recs-btn');
+
+            // Reset all
+            art.classList.add('hidden');
+            lyrics.classList.add('hidden');
+            recs.classList.add('hidden');
+            lyricsBtn.classList.remove('text-accent-cherry');
+            recsBtn.classList.remove('text-accent-cherry');
+
+            // If clicking the active view again, revert to ART
+            if (activeView === viewName && viewName !== 'art') {
+                activeView = 'art';
+            } else {
+                activeView = viewName;
+            }
+
+            if(activeView === 'art') {
+                art.classList.remove('hidden');
+            } else if (activeView === 'lyrics') {
                 lyrics.classList.remove('hidden');
-                btn.classList.add('text-accent-cherry');
-                // Load lyrics
+                lyricsBtn.classList.add('text-accent-cherry');
                 if(currentTrack) {
                     lyricsText.value = localStorage.getItem(`lyrics_${currentTrack.id}`) || '';
+                    lyricsText.dataset.trackId = currentTrack.id;
                 }
-            } else {
-                art.classList.remove('hidden');
-                lyrics.classList.add('hidden');
-                btn.classList.remove('text-accent-cherry');
+            } else if (activeView === 'recs') {
+                recs.classList.remove('hidden');
+                recsBtn.classList.add('text-accent-cherry');
+                loadRecommendations();
             }
+        }
+
+        async function loadRecommendations() {
+            const container = document.getElementById('recs-content');
+            container.innerHTML = '<div class="flex justify-center p-4"><i data-lucide="loader-2" class="animate-spin text-white"></i></div>';
+            
+            if(!currentTrack) {
+                container.innerHTML = '<p class="text-center text-gray-500 p-4">Play a song to see recommendations.</p>';
+                return;
+            }
+
+            const token = await getSpotifyToken();
+            if(!token) return;
+
+            try {
+                // Fetch recommendations based on current track ID and Artist ID
+                const artistId = currentTrack.artists[0]?.id;
+                const trackId = currentTrack.id;
+                
+                let query = `seed_tracks=${trackId}&limit=10`;
+                if(artistId) query += `&seed_artists=${artistId}`;
+
+                const res = await fetch(`${API_URL}/recommendations?${query}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if(data.tracks && data.tracks.length) {
+                    container.innerHTML = `
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Recommended Songs</h4>
+                        <div class="space-y-2 mb-4">
+                            ${data.tracks.slice(0, 5).map(t => `
+                                <div class="flex items-center p-2 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'>
+                                    <img src="${t.album.images[2]?.url || 'https://placehold.co/40x40'}" class="w-10 h-10 rounded mr-3">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-bold truncate">${t.name}</p>
+                                        <p class="text-xs text-gray-400 truncate">${t.artists[0].name}</p>
+                                    </div>
+                                    <i data-lucide="play-circle" class="w-4 h-4 text-accent-cherry"></i>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Similar Artists</h4>
+                        <div class="space-y-2">
+                             ${data.tracks.slice(5, 8).map(t => `
+                                <div class="flex items-center p-2 rounded-lg cursor-pointer hover:bg-white/5" onclick="toggleFullscreenPlayer(false); navigateTo('artist', '${t.artists[0].id}')">
+                                    <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center mr-3 font-bold text-xs">${t.artists[0].name.substring(0,2)}</div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-bold truncate">${t.artists[0].name}</p>
+                                        <p class="text-xs text-gray-400">Artist</p>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500"></i>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    renderIcons();
+                } else {
+                    container.innerHTML = '<p class="text-center text-gray-500">No recommendations found.</p>';
+                }
+            } catch(e) {
+                console.error(e);
+                container.innerHTML = '<p class="text-center text-gray-500">Could not load recommendations.</p>';
+            }
+        }
+
+        function castToTv() {
+            confirmModal('Connect to Device', 
+                '<div class="flex flex-col items-center py-4 space-y-4">' +
+                '<i data-lucide="tv" class="w-12 h-12 text-white mb-2"></i>' +
+                '<p class="text-center">Looking for devices...</p>' +
+                '<div class="w-full bg-white/5 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-white/10">' +
+                    '<span class="font-bold">Living Room TV</span> <span class="text-xs text-gray-400">Chromecast</span>' +
+                '</div>' +
+                 '<div class="w-full bg-white/5 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-white/10">' +
+                    '<span class="font-bold">Bedroom Speaker</span> <span class="text-xs text-gray-400">Google Nest</span>' +
+                '</div>' +
+                '</div>',
+                () => { /* Mock Connect */ }
+            );
+            setTimeout(renderIcons, 50);
         }
 
         function updateFullscreenVisuals() {
@@ -819,6 +966,13 @@
             
             const likeBtn = document.getElementById('fs-like-btn');
             const likeCount = document.getElementById('fs-like-count');
+            
+            // Handle Heart Icon State
+            const icon = likeBtn.querySelector('i');
+            
+            // Remove animation to reset it if needed
+            icon.classList.remove('animate-heart-pop');
+
             if(likedTracks.has(currentTrack.id)) {
                 likeBtn.classList.add('like-active');
             } else {
@@ -830,10 +984,12 @@
             const playBtn = document.getElementById('fs-play-btn');
             playBtn.innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-8 h-8 md:w-10 md:h-10 tablet:w-10 tablet:h-10 fill-black text-black ml-1"></i>`;
 
-            // Reset lyrics if changing track
-            if(isLyricsView && currentTrack.id !== (lyricsText.dataset.trackId)) {
+            // Reset views if changing track
+            if(activeView === 'lyrics' && currentTrack.id !== (lyricsText.dataset.trackId)) {
                 lyricsText.value = localStorage.getItem(`lyrics_${currentTrack.id}`) || '';
                 lyricsText.dataset.trackId = currentTrack.id;
+            } else if (activeView === 'recs') {
+                loadRecommendations(); // Refresh recs for new song
             }
 
             renderIcons();
@@ -842,16 +998,19 @@
         function toggleLike() {
             if(!currentTrack) return;
             const btn = document.getElementById('fs-like-btn');
+            const icon = btn.querySelector('i');
             const count = document.getElementById('fs-like-count');
             
             if(likedTracks.has(currentTrack.id)) {
                 likedTracks.delete(currentTrack.id);
                 btn.classList.remove('like-active');
+                icon.classList.remove('animate-heart-pop');
             } else {
                 likedTracks.add(currentTrack.id);
                 btn.classList.add('like-active');
-                btn.classList.add('animate-heart-pop');
-                setTimeout(() => btn.classList.remove('animate-heart-pop'), 400);
+                // Trigger reflow to restart animation if it was already played
+                void icon.offsetWidth; 
+                icon.classList.add('animate-heart-pop');
             }
             
             if(currentTrack.stats) {
@@ -940,7 +1099,20 @@
 
         async function performSearch(query) {
             if (!query) return;
-            navigateTo('search'); 
+            
+            // Update UI to show we are in search mode, but don't trigger the generic renderSearch
+            // This prevents the race condition where navigateTo's timeout clears results
+            updateSidebarActiveState('search');
+            
+            const content = document.getElementById('dynamic-content');
+            const searchContainer = document.getElementById('search-bar-container');
+            
+            // Ensure search bar is visible
+            searchContainer?.classList.remove('opacity-0', 'pointer-events-none');
+            
+            // Show Spinner
+            content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>';
+
             const token = await getSpotifyToken();
             if (!token) return;
 
@@ -951,8 +1123,7 @@
                 });
                 const data = await res.json();
                 
-                const content = document.getElementById('dynamic-content');
-                let html = `<div class="space-y-4 pt-4 md:pt-0">`; // added padding for mobile search
+                let html = `<div class="space-y-4 pt-4 md:pt-0 animate-fade-in">`; 
 
                 // 1. Artists Section
                 if (data.artists && data.artists.items.length > 0) {
