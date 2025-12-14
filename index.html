@@ -45,7 +45,7 @@
     </script>
     <style>
         /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        ::-webkit-scrollbar { width: 0px; height: 0px; background: transparent; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -111,19 +111,38 @@
             fill: #ff3b30;
             stroke: #ff3b30;
         }
+
+        /* Horizontal Scroll Snap */
+        .snap-x-mandatory {
+            scroll-snap-type: x mandatory;
+        }
+        .snap-center {
+            scroll-snap-align: center;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body class="text-white selection:bg-accent-cherry selection:text-white pb-safe">
 
+    <!-- Hidden File Input for MP3 Upload -->
     <input type="file" id="mp3-upload" accept="audio/*" class="hidden">
 
+    <!-- Install Prompt -->
     <div id="install-prompt" class="hidden fixed top-0 left-0 right-0 bg-accent-cherry text-white px-4 py-3 z-[100] flex justify-between items-center shadow-lg animate-fade-in">
         <span class="text-xs font-bold flex items-center"><i data-lucide="download" class="w-4 h-4 mr-2"></i> Install Peyza</span>
         <button id="install-btn" class="bg-white text-black px-3 py-1 rounded-full text-xs font-bold active-click">GET</button>
     </div>
 
+    <!-- Main Layout -->
     <div class="flex h-screen w-full overflow-hidden bg-primary-dark relative">
         
+        <!-- Sidebar -->
         <aside class="hidden md:flex flex-col w-64 bg-[#121212] border-r border-white/5 h-full z-20 pt-safe">
             <div class="p-6">
                 <h1 class="text-2xl font-bold flex items-center gap-2 text-accent-cherry tracking-tight">
@@ -166,10 +185,12 @@
             </nav>
         </aside>
 
+        <!-- Main Content Area -->
         <main class="flex-1 flex flex-col relative min-w-0 bg-primary-dark">
-            <header class="absolute top-0 left-0 right-0 z-30 px-4 py-3 md:py-4 bg-gradient-to-b from-black/90 to-transparent pt-safe">
-                <div class="max-w-4xl mx-auto w-full flex justify-end md:justify-start">
-                    <div id="search-bar-container" class="hidden md:block w-full max-w-sm relative group transition-all duration-300">
+            <!-- Desktop Top Search/Header -->
+            <header class="absolute top-0 left-0 right-0 z-30 px-4 py-3 md:py-4 bg-gradient-to-b from-black/90 to-transparent pt-safe pointer-events-none">
+                <div class="max-w-4xl mx-auto w-full flex justify-end md:justify-start pointer-events-auto">
+                    <div id="search-bar-container" class="hidden md:block w-full max-w-sm relative group transition-all duration-300 opacity-0">
                         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-accent-cherry transition-colors"></i>
                         <input type="text" id="desktop-search" 
                             class="w-full bg-[#1c1c1e] border border-transparent focus:border-accent-cherry/50 rounded-lg py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-cherry/20 transition-all shadow-lg"
@@ -179,15 +200,19 @@
                 </div>
             </header>
 
+            <!-- Scroll Container -->
             <div id="main-scroll" class="flex-1 overflow-y-auto pb-40 md:pb-24 scroll-smooth">
-                <div id="dynamic-content" class="min-h-full p-4 md:p-8 pt-24 max-w-7xl mx-auto">
-                    </div>
+                <div id="dynamic-content" class="min-h-full p-4 md:p-8 pt-10 md:pt-24 max-w-7xl mx-auto">
+                    <!-- Content injected here -->
+                </div>
             </div>
         </main>
     </div>
 
+    <!-- Mini Player -->
     <div id="mini-player" class="fixed bottom-[60px] md:bottom-0 left-0 right-0 h-[64px] md:h-[84px] bg-[#1c1c1e] border-t border-white/10 z-50 px-3 md:px-6 flex items-center justify-between cursor-pointer transition-transform duration-300" onclick="toggleFullscreenPlayer(true)">
         
+        <!-- Track Info -->
         <div class="flex items-center w-full md:w-1/3 min-w-0">
             <img id="mini-img" src="https://placehold.co/60x60/222/555?text=..." class="w-12 h-12 md:w-14 md:h-14 rounded-md object-cover shadow-sm bg-card-dark mr-3">
             <div class="min-w-0 flex-1">
@@ -196,6 +221,7 @@
             </div>
         </div>
 
+        <!-- Desktop Playback Controls -->
         <div class="hidden md:flex flex-col items-center w-1/3">
             <div class="flex items-center space-x-8 mb-1">
                 <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation();"><i data-lucide="skip-back" class="w-6 h-6 fill-current"></i></button>
@@ -204,6 +230,7 @@
                 </button>
                 <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation();"><i data-lucide="skip-forward" class="w-6 h-6 fill-current"></i></button>
             </div>
+            <!-- Mini Progress -->
             <div class="w-full max-w-xs flex items-center space-x-2 text-[10px] font-medium text-gray-500" onclick="event.stopPropagation()">
                 <span id="mini-curr-time">0:00</span>
                 <div class="relative flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
@@ -213,6 +240,7 @@
             </div>
         </div>
 
+        <!-- Right Side (Volume/Expand) -->
         <div class="hidden md:flex items-center justify-end w-1/3 space-x-4">
             <button class="text-gray-400 hover:text-accent-cherry transition" onclick="event.stopPropagation(); showAddToPlaylistModal(currentTrack)">
                 <i data-lucide="plus-circle" class="w-5 h-5"></i>
@@ -223,15 +251,18 @@
             </div>
         </div>
 
+        <!-- Mobile Play Button -->
         <div class="flex md:hidden items-center pr-1">
             <button id="mobile-mini-play" class="text-white p-3 active-click" onclick="event.stopPropagation(); togglePlayPause()">
                 <i data-lucide="play" class="w-7 h-7 fill-current"></i>
             </button>
         </div>
         
+        <!-- Mobile Progress Bar -->
         <div id="mobile-progress-bar" class="absolute bottom-0 left-0 h-[2px] bg-accent-cherry md:hidden w-0 transition-all duration-300"></div>
     </div>
 
+    <!-- Mobile Navigation Tab Bar -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-50 flex justify-around items-center pb-safe">
         <button id="mob-nav-home" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('home')">
             <i data-lucide="home" class="w-6 h-6 mb-0.5"></i>
@@ -247,11 +278,14 @@
         </button>
     </nav>
 
+    <!-- Fullscreen Player -->
     <div id="fullscreen-player" class="fullscreen-player fixed inset-0 bg-[#000000] flex flex-col overflow-y-auto md:overflow-hidden">
         
+        <!-- Dynamic Background -->
         <div id="fs-bg" class="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl scale-125 transition-all duration-1000"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black"></div>
 
+        <!-- Header -->
         <div class="relative z-10 w-full flex justify-between items-center px-6 pt-12 pb-4 md:pt-10 max-w-6xl mx-auto shrink-0">
             <button class="text-gray-400 hover:text-white" onclick="toggleFullscreenPlayer(false)">
                 <i data-lucide="chevron-down" class="w-8 h-8"></i>
@@ -262,21 +296,26 @@
             </button>
         </div>
 
+        <!-- Player Content (Responsive Grid) -->
         <div class="relative z-10 flex-1 flex flex-col md:flex-row md:items-center md:justify-center md:gap-16 px-8 max-w-6xl mx-auto w-full pb-10">
             
+            <!-- Artwork Section -->
             <div class="w-full md:w-1/2 flex justify-center items-center mb-8 md:mb-0">
                  <div class="w-full aspect-square relative group max-h-[350px] md:max-h-[500px] max-w-[500px]">
                     <img id="fs-art" src="" class="w-full h-full object-cover rounded-2xl art-shadow transform transition duration-500 scale-100">
                 </div>
             </div>
 
+            <!-- Controls Section -->
             <div class="w-full md:w-1/2 flex flex-col justify-center max-w-md mx-auto md:max-w-none">
                 
+                <!-- Title & Artist & Like -->
                 <div class="flex justify-between items-start mb-6">
                     <div class="min-w-0 pr-4">
                         <h2 id="fs-title" class="text-2xl md:text-4xl font-bold text-white leading-tight">Select a song</h2>
                         <p id="fs-artist" class="text-lg md:text-xl text-gray-400 truncate mt-2">Artist</p>
                     </div>
+                    <!-- Like Button Container -->
                     <div class="flex flex-col items-center">
                         <button id="fs-like-btn" class="text-gray-500 hover:text-white transition active:scale-90 p-2" onclick="toggleLike()">
                             <i data-lucide="heart" class="w-7 h-7 md:w-8 md:h-8"></i>
@@ -285,6 +324,7 @@
                     </div>
                 </div>
 
+                <!-- Scrubber -->
                 <div class="w-full mb-8">
                     <input type="range" id="fs-progress" value="0" min="0" max="100" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer focus:outline-none accent-white">
                     <div class="flex justify-between text-xs font-medium text-gray-500 mt-2 font-mono">
@@ -293,6 +333,7 @@
                     </div>
                 </div>
 
+                <!-- Main Playback Controls -->
                 <div class="flex justify-between items-center w-full px-2 mb-10">
                     <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="shuffle" class="w-5 h-5 md:w-6 md:h-6"></i></button>
                     
@@ -301,6 +342,7 @@
                             <i data-lucide="skip-back" class="w-8 h-8 md:w-10 md:h-10 fill-current"></i>
                         </button>
                         
+                        <!-- Fixed Play Button with Black Icon inside White Circle -->
                         <button id="fs-play-btn" class="bg-white rounded-full p-4 md:p-5 hover:scale-105 transition active-click shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center" onclick="togglePlayPause()">
                            <i data-lucide="play" class="w-8 h-8 md:w-10 md:h-10 fill-black text-black ml-1"></i>
                         </button>
@@ -313,13 +355,15 @@
                     <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="repeat" class="w-5 h-5 md:w-6 md:h-6"></i></button>
                 </div>
 
+                <!-- Volume Slider (Desktop) -->
                 <div class="hidden md:flex items-center space-x-4 px-2 mb-8">
                     <i data-lucide="volume-1" class="w-5 h-5 text-gray-500"></i>
                     <input type="range" class="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer" oninput="audio.volume = this.value/100">
                     <i data-lucide="volume-2" class="w-5 h-5 text-gray-500"></i>
                 </div>
                 
-                <div class="flex justify-center space-x-10 md:justify-start md:pl-4">
+                <!-- Bottom Actions -->
+                 <div class="flex justify-center space-x-10 md:justify-start md:pl-4">
                     <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="message-square-quote" class="w-5 h-5 md:w-6 md:h-6"></i></button>
                     <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="airplay" class="w-5 h-5 md:w-6 md:h-6"></i></button>
                     <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="list-music" class="w-5 h-5 md:w-6 md:h-6"></i></button>
@@ -328,6 +372,7 @@
         </div>
     </div>
 
+    <!-- Playlist Modal -->
     <div id="playlist-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-6">
         <div class="bg-[#1c1c1e] w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-white/10 scale-95 opacity-0 transition-all duration-200" id="playlist-modal-content">
             <div class="flex justify-between items-center mb-6">
@@ -345,6 +390,7 @@
         </div>
     </div>
 
+    <!-- Generic Modal -->
     <div id="generic-modal" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-6 animate-fade-in">
         <div class="bg-card-dark w-full max-w-sm rounded-xl p-6 shadow-2xl border border-white/10">
             <h3 id="modal-title" class="text-xl font-bold text-white mb-2">Message</h3>
@@ -380,19 +426,16 @@
             const sec = Math.floor(s % 60);
             return `${min}:${sec < 10 ? '0' : ''}${sec}`;
         }
+        function formatNumber(num) {
+            if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+            if(num >= 1000) return (num/1000).toFixed(1) + 'K';
+            return num.toString();
+        }
 
         // --- STATS GENERATOR ---
         function generateStats(popularity) {
-            // Lower popularity = significantly fewer streams
-            // Pop 0-10: <1k streams
-            // Pop 10-40: 1k - 100k
-            // Pop 40-70: 100k - 5M
-            // Pop 70-90: 5M - 100M
-            // Pop 90+: 100M - 900M
-            
             let min, max;
             const pop = popularity || 50;
-            
             if(pop < 10) { min=100; max=900; }
             else if(pop < 40) { min=1000; max=90000; }
             else if(pop < 70) { min=100000; max=5000000; }
@@ -400,14 +443,14 @@
             else { min=100000000; max=900000000; }
 
             const streams = Math.floor(Math.random() * (max - min) + min);
-            const likes = Math.floor(streams * (Math.random() * (0.08 - 0.03) + 0.03)); // Likes are ~3-8% of streams
-
-            let streamStr = streams >= 1000000 ? (streams/1000000).toFixed(1) + 'M' : 
-                            streams >= 1000 ? (streams/1000).toFixed(0) + 'K' : streams.toString();
+            const likes = Math.floor(streams * (Math.random() * (0.08 - 0.03) + 0.03)); 
             
-            let likeStr = likes.toLocaleString();
-
-            return { streams: streamStr, likes: likes, likesFormatted: likeStr };
+            return { 
+                streamsRaw: streams,
+                likesRaw: likes,
+                streams: formatNumber(streams), 
+                likesFormatted: likes.toLocaleString() 
+            };
         }
 
         // --- INIT ---
@@ -416,7 +459,6 @@
             loadUserPlaylists();
             navigateTo('home');
             
-            // File input listener
             mp3Input.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -424,7 +466,6 @@
                     audio.src = objectUrl;
                     audio.play();
                     isPlaying = true;
-                    // Keep the metadata of the track user tried to click
                     updateMiniPlayer();
                     updateFullscreenVisuals();
                     toggleFullscreenPlayer(true);
@@ -438,6 +479,7 @@
             const content = document.getElementById('dynamic-content');
             const searchContainer = document.getElementById('search-bar-container');
             
+            // Toggle desktop search bar visibility
             if(view === 'search' || view === 'home') {
                 searchContainer?.classList.remove('opacity-0', 'pointer-events-none');
             } else {
@@ -472,7 +514,7 @@
                 const [artistRes, tracksRes, albumsRes] = await Promise.all([
                     fetch(`${API_URL}/artists/${artistId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
                     fetch(`${API_URL}/artists/${artistId}/top-tracks?market=US`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch(`${API_URL}/artists/${artistId}/albums?include_groups=album,single&limit=10`, { headers: { 'Authorization': `Bearer ${token}` } })
+                    fetch(`${API_URL}/artists/${artistId}/albums?include_groups=album,single&limit=15`, { headers: { 'Authorization': `Bearer ${token}` } })
                 ]);
                 const artist = await artistRes.json();
                 const tracksData = await tracksRes.json();
@@ -480,11 +522,21 @@
 
                 const topTracks = tracksData.tracks.map(t => ({
                     ...t,
-                    stats: generateStats(t.popularity), // Uses popularity
+                    stats: generateStats(t.popularity),
                     imageUrl: t.album.images[0]?.url,
                     durationFormatted: formatTime(t.duration_ms / 1000)
                 }));
                 const popularSongs = topTracks.slice(0, 10);
+                
+                // Filter duplicated albums by name
+                const uniqueAlbums = [];
+                const map = new Map();
+                for (const item of albumsData.items) {
+                    if(!map.has(item.name)) {
+                        map.set(item.name, true);
+                        uniqueAlbums.push(item);
+                    }
+                }
 
                 const content = document.getElementById('dynamic-content');
                 content.innerHTML = `
@@ -492,44 +544,48 @@
                         <img src="${artist.images[0]?.url || 'https://placehold.co/1000x400'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
                         <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 flex flex-col justify-end p-6 md:p-10">
                             <h1 class="text-4xl md:text-6xl font-extrabold mb-2 tracking-tight">${artist.name}</h1>
-                            <p class="text-white/80 font-medium text-lg uppercase tracking-widest text-xs">${artist.followers.total.toLocaleString()} Followers</p>
+                            <p class="text-white/80 font-medium text-lg uppercase tracking-widest text-xs">${artist.followers.total.toLocaleString()} Pals</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up">
-                        <div class="lg:col-span-2">
-                            <h2 class="text-2xl font-bold mb-4">Popular</h2>
-                            <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg">
-                                <div class="max-h-[320px] overflow-y-auto scroll-smooth">
-                                    ${popularSongs.map((t, i) => `
-                                        <div class="flex items-center p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 group" 
-                                             onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'>
-                                            <span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span>
-                                            <img src="${t.imageUrl}" class="w-12 h-12 rounded-md object-cover mr-4 shadow-sm">
-                                            <div class="flex-1 min-w-0">
-                                                <div class="flex items-center justify-between">
-                                                    <p class="font-semibold text-white truncate pr-2">${t.name}</p>
-                                                    <span class="text-xs text-gray-500 font-mono">${t.stats.streams}</span>
-                                                </div>
-                                                <p class="text-xs text-gray-400 truncate">${t.artists.map(a => a.name).join(', ')}</p>
-                                            </div>
+
+                    <!-- Popular Tracks (Horizontal Scroll) -->
+                    <div class="mb-10 animate-slide-up">
+                        <h2 class="text-2xl font-bold mb-4 flex items-center">Popular <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2>
+                        <div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">
+                            ${popularSongs.map((t) => `
+                                <div class="snap-center shrink-0 w-[280px] md:w-[320px] bg-[#1c1c1e] p-3 rounded-xl hover:bg-white/5 cursor-pointer group transition border border-white/5"
+                                     onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'>
+                                    <div class="flex items-center">
+                                        <div class="relative w-16 h-16 mr-3">
+                                             <img src="${t.imageUrl}" class="w-full h-full rounded-md object-cover shadow-sm">
+                                             <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-md">
+                                                <i data-lucide="play" class="w-6 h-6 fill-white text-white"></i>
+                                             </div>
                                         </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold mb-4">Releases</h2>
-                            <div class="space-y-4">
-                                ${albumsData.items.slice(0, 4).map(album => `
-                                    <div class="flex items-center p-3 bg-[#1c1c1e] rounded-xl cursor-pointer hover:bg-white/5 transition" onclick="navigateTo('album', '${album.id}')">
-                                        <img src="${album.images[0]?.url || 'https://placehold.co/60x60'}" class="w-16 h-16 rounded-lg shadow-md mr-4">
-                                        <div>
-                                            <p class="font-bold text-sm line-clamp-1">${album.name}</p>
-                                            <p class="text-xs text-gray-400">${album.release_date.split('-')[0]} • ${album.album_type}</p>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="font-bold text-white truncate text-sm mb-1">${t.name}</p>
+                                            <p class="text-xs text-gray-400 font-mono">${t.stats.streams} plays</p>
                                         </div>
                                     </div>
-                                `).join('')}
-                            </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Releases (Horizontal Scroll) -->
+                    <div class="animate-slide-up">
+                        <h2 class="text-2xl font-bold mb-4 flex items-center">Releases <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2>
+                         <div class="flex overflow-x-auto space-x-6 pb-6 no-scrollbar snap-x-mandatory">
+                            ${uniqueAlbums.map(album => `
+                                <div class="snap-center shrink-0 w-40 md:w-48 group cursor-pointer" onclick="navigateTo('album', '${album.id}')">
+                                    <div class="w-full aspect-square mb-3 relative overflow-hidden rounded-lg shadow-lg">
+                                        <img src="${album.images[0]?.url || 'https://placehold.co/200x200'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                    </div>
+                                    <p class="font-bold text-sm truncate text-white mb-1 group-hover:text-accent-cherry transition">${album.name}</p>
+                                    <p class="text-xs text-gray-400 truncate">${album.release_date.split('-')[0]} • ${album.album_type}</p>
+                                     <p class="text-[10px] text-gray-500 truncate mt-0.5">Feat. ${album.artists.slice(0,2).map(a=>a.name).join(', ')}</p>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 `;
@@ -543,26 +599,42 @@
             try {
                 const res = await fetch(`${API_URL}/albums/${albumId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const album = await res.json();
+                
+                // Calculate total stats
+                let totalStreams = 0;
+                let totalLikes = 0;
+                const tracksWithStats = album.tracks.items.map(t => {
+                    const s = generateStats(t.popularity || 40); // Albums endpoint doesn't give track pop, assume avg
+                    totalStreams += s.streamsRaw;
+                    totalLikes += s.likesRaw;
+                    return { ...t, stats: s };
+                });
+
                 const content = document.getElementById('dynamic-content');
                 content.innerHTML = `
                     <div class="flex flex-col md:flex-row gap-8 mb-10 animate-fade-in items-center md:items-end">
-                        <div class="w-64 h-64 md:w-72 md:h-72 shrink-0 shadow-2xl rounded-lg">
+                        <div class="w-64 h-64 md:w-72 md:h-72 shrink-0 shadow-2xl rounded-lg relative group">
                             <img src="${album.images[0]?.url || 'https://placehold.co/300x300'}" class="w-full h-full object-cover rounded-lg art-shadow">
                         </div>
-                        <div class="text-center md:text-left">
+                        <div class="text-center md:text-left flex-1">
+                            <h4 class="text-xs font-bold tracking-widest text-accent-cherry uppercase mb-2">${album.album_type}</h4>
                             <h1 class="text-3xl md:text-5xl font-bold mb-2 leading-tight">${album.name}</h1>
-                            <p class="text-xl text-accent-cherry font-medium mb-1 cursor-pointer" onclick="navigateTo('artist', '${album.artists[0].id}')">${album.artists[0].name}</p>
-                            <p class="text-sm text-gray-500 font-bold">${album.release_date.split('-')[0]} • ${album.total_tracks} Songs</p>
-                            <div class="mt-6 flex items-center justify-center md:justify-start gap-4">
+                            <p class="text-xl text-white font-medium mb-3 cursor-pointer hover:underline" onclick="navigateTo('artist', '${album.artists[0].id}')">${album.artists[0].name}</p>
+                            <p class="text-sm text-gray-400 font-bold mb-4">${album.release_date.split('-')[0]} • ${album.total_tracks} Songs • <span class="text-gray-300">${formatNumber(totalStreams)} Streams</span> • <span class="text-liked-red">${formatNumber(totalLikes)} Likes</span></p>
+                            
+                            <div class="mt-4 flex items-center justify-center md:justify-start gap-4">
                                 <button class="bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center"
                                     onclick='playCollection(${JSON.stringify(album.tracks.items.map(t => mapSpotifyTrack(t, album.images[0]?.url))).replace(/'/g, "")})'>
                                     <i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play
                                 </button>
+                                <button class="w-10 h-10 rounded-full border border-gray-500 flex items-center justify-center hover:bg-white/10 transition"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                                <button class="w-10 h-10 rounded-full border border-gray-500 flex items-center justify-center hover:bg-white/10 transition"><i data-lucide="arrow-down-to-line" class="w-5 h-5"></i></button>
                             </div>
                         </div>
                     </div>
+                    
                     <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg animate-slide-up">
-                        ${album.tracks.items.map((t, i) => `
+                        ${tracksWithStats.map((t, i) => `
                             <div class="flex items-center p-4 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer group"
                                 onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t, album.images[0]?.url)).replace(/'/g, "")})'>
                                 <span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span>
@@ -570,9 +642,15 @@
                                     <p class="font-medium text-white truncate">${t.name}</p>
                                     <p class="text-xs text-gray-500 truncate">${t.artists.map(a => a.name).join(', ')}</p>
                                 </div>
-                                <span class="text-xs text-gray-500 font-mono ml-4">${formatTime(t.duration_ms/1000)}</span>
+                                <div class="hidden md:block text-xs text-gray-500 font-mono mr-6">${t.stats.streams}</div>
+                                <span class="text-xs text-gray-500 font-mono">${formatTime(t.duration_ms/1000)}</span>
                             </div>
                         `).join('')}
+                    </div>
+                    
+                    <div class="mt-8 text-xs text-gray-500 font-medium">
+                        <p>${new Date(album.release_date).toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric'})}</p>
+                        <p class="mt-1">© ${album.copyrights?.[0]?.text || 'Copyright'}</p>
                     </div>
                 `;
                 renderIcons();
@@ -605,6 +683,16 @@
 
         function renderSearch() {
              document.getElementById('dynamic-content').innerHTML = `
+                <!-- Mobile Search Input -->
+                <div class="md:hidden mb-6 animate-fade-in">
+                     <div class="relative w-full group">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
+                        <input type="text" class="w-full bg-[#1c1c1e] border border-transparent focus:border-accent-cherry/50 rounded-lg py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-cherry/20 transition-all shadow-lg"
+                            placeholder="Search artists, albums, songs..."
+                            onkeyup="if(event.key === 'Enter') performSearch(this.value)">
+                    </div>
+                </div>
+
                 <h2 class="text-3xl font-bold mb-6">Browse Categories</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
                     ${['Pop', 'Hip-Hop', 'Rock', 'Electronic', 'Jazz', 'Classical', 'Workout', 'Focus'].map((genre, i) => `
@@ -617,6 +705,12 @@
                 </div>
             `;
             renderIcons();
+        }
+
+        function renderLibrary() { renderHome(); } 
+        function renderLiked() { 
+             const content = document.getElementById('dynamic-content');
+             content.innerHTML = `<div class="text-center mt-20 text-gray-500">Liked songs will appear here.</div>`;
         }
 
         // --- PLAYER LOGIC ---
@@ -640,7 +734,6 @@
             document.getElementById('fs-title').textContent = currentTrack.name;
             document.getElementById('fs-artist').textContent = currentTrack.artists[0].name;
             
-            // Like Button State
             const likeBtn = document.getElementById('fs-like-btn');
             const likeCount = document.getElementById('fs-like-count');
             if(likedTracks.has(currentTrack.id)) {
@@ -648,11 +741,9 @@
             } else {
                 likeBtn.classList.remove('like-active');
             }
-            // Reset Like Count Opacity (it appears only on interaction usually, but let's show it)
             likeCount.textContent = currentTrack.stats ? currentTrack.stats.likesFormatted : '0';
             likeCount.classList.remove('opacity-0');
             
-            // Icon Updates - Ensure play button is distinct
             const playBtn = document.getElementById('fs-play-btn');
             playBtn.innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-8 h-8 md:w-10 md:h-10 fill-black text-black ml-1"></i>`;
 
@@ -664,21 +755,18 @@
             const btn = document.getElementById('fs-like-btn');
             const count = document.getElementById('fs-like-count');
             
-            // Toggle
             if(likedTracks.has(currentTrack.id)) {
                 likedTracks.delete(currentTrack.id);
                 btn.classList.remove('like-active');
             } else {
                 likedTracks.add(currentTrack.id);
                 btn.classList.add('like-active');
-                // Explosion animation
                 btn.classList.add('animate-heart-pop');
                 setTimeout(() => btn.classList.remove('animate-heart-pop'), 400);
             }
             
-            // Simulate count going up
             if(currentTrack.stats) {
-                let base = currentTrack.stats.likes;
+                let base = currentTrack.stats.likesRaw;
                 if(likedTracks.has(currentTrack.id)) base++;
                 count.textContent = base.toLocaleString();
             }
@@ -687,7 +775,6 @@
 
         function playTrack(track) {
             currentTrack = track;
-            // Generate stats if missing (for tracks clicked from search/albums directly)
             if(!currentTrack.stats) currentTrack.stats = generateStats(track.popularity || 50);
 
             if(track.previewUrl) {
@@ -698,7 +785,6 @@
                 updateFullscreenVisuals();
                 toggleFullscreenPlayer(true); 
             } else {
-                // FALLBACK: Ask for MP3
                 confirmModal(
                     'Preview Unavailable', 
                     `Spotify does not provide a preview for "${track.name}".<br><br>Would you like to play a local MP3 file for this song instead? (Metadata will be preserved)`,
@@ -770,15 +856,51 @@
             if (!token) return;
 
             try {
-                const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=track,artist,album&limit=6`, {
+                // Fetch Artists, Albums, and Tracks
+                const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=artist,album,track&limit=5`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
                 
-                document.getElementById('dynamic-content').innerHTML = `
-                    <h2 class="text-2xl font-bold mb-4">Results for "${query}"</h2>
-                    ${data.tracks.items.length ? `
-                        <h3 class="text-xl font-bold mb-3">Songs</h3>
+                const content = document.getElementById('dynamic-content');
+                let html = `<div class="space-y-4 pt-4 md:pt-0">`; // added padding for mobile search
+
+                // 1. Artists Section
+                if (data.artists && data.artists.items.length > 0) {
+                     html += `
+                        <h3 class="text-xl font-bold mb-3">Artists</h3>
+                        <div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">
+                            ${data.artists.items.map(a => `
+                                <div class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center cursor-pointer group" onclick="navigateTo('artist', '${a.id}')">
+                                    <img src="${a.images[0]?.url || 'https://placehold.co/150x150'}" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-lg mb-2 group-hover:scale-105 transition">
+                                    <p class="font-semibold text-center text-sm truncate w-full">${a.name}</p>
+                                    <p class="text-xs text-gray-500">Artist</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                // 2. Albums Section
+                if (data.albums && data.albums.items.length > 0) {
+                     html += `
+                        <h3 class="text-xl font-bold mb-3 mt-4">Albums</h3>
+                        <div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">
+                            ${data.albums.items.map(alb => `
+                                <div class="snap-center shrink-0 w-36 md:w-44 cursor-pointer group" onclick="navigateTo('album', '${alb.id}')">
+                                    <img src="${alb.images[0]?.url || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover shadow-lg mb-2 group-hover:scale-105 transition">
+                                    <p class="font-semibold text-sm truncate">${alb.name}</p>
+                                    <p class="text-xs text-gray-500 truncate">${alb.artists[0].name}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                // 3. Songs Section
+                if (data.tracks && data.tracks.items.length > 0) {
+                    html += `
+                        <h3 class="text-xl font-bold mb-3 mt-4">Songs</h3>
                         <div class="bg-[#1c1c1e] rounded-xl overflow-hidden shadow-lg">
                             ${data.tracks.items.map((t, i) => `
                                  <div class="flex items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer" 
@@ -788,11 +910,15 @@
                                         <p class="font-semibold text-white truncate">${t.name}</p>
                                         <p class="text-xs text-gray-500 truncate">${t.artists[0].name}</p>
                                     </div>
+                                    <i data-lucide="play-circle" class="w-5 h-5 text-gray-500"></i>
                                 </div>
                             `).join('')}
                         </div>
-                    ` : ''}
-                `;
+                    `;
+                }
+
+                html += `</div>`;
+                content.innerHTML = html;
                 renderIcons();
             } catch(e) { console.error(e); }
         }
@@ -804,7 +930,6 @@
             document.getElementById('modal-msg').innerHTML = msg;
             
             const btn = document.getElementById('modal-confirm-btn');
-            // Remove old listeners to prevent stacking
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
             
