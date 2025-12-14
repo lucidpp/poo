@@ -8,30 +8,79 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Lucide Icons for aesthetic icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Custom Tailwind Configuration -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-dark': '#121212',
-                        'secondary-dark': '#181818',
-                        'card-dark': '#282828',
-                        'accent-green': '#1DB954',
-                        'light-gray': '#b3b3b3',
-                        'text-white': '#ffffff',
-                        'liked-red': '#C8102E', 
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    screens: {
-                        'xs': '475px',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Cherry Dark Tailwind Configuration -->
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          /* Core backgrounds */
+          'bg-main': '#0b0b0e',
+          'bg-panel': '#121216',
+          'bg-card': '#141418',
+          'bg-hover': '#1a1a20',
+
+          /* Cherry reds */
+          'cherry-main': '#c1121f',
+          'cherry-soft': '#ff4d5a',
+          'cherry-dark': '#8a0e18',
+          'cherry-glow': 'rgba(193, 18, 31, 0.45)',
+
+          /* Text */
+          'text-main': '#ffffff',
+          'text-muted': '#9a9aa3',
+          'text-soft': '#c7c7cf',
+
+          /* Borders */
+          'border-soft': 'rgba(255,255,255,0.06)',
+
+          /* States */
+          'liked-red': '#c1121f',
+        },
+
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+        },
+
+        boxShadow: {
+          'cherry-sm': '0 0 12px rgba(193,18,31,0.25)',
+          'cherry-md': '0 0 24px rgba(193,18,31,0.35)',
+          'cherry-lg': '0 0 40px rgba(193,18,31,0.45)',
+          'soft': '0 10px 30px rgba(0,0,0,0.45)',
+        },
+
+        borderRadius: {
+          'xl': '1rem',
+          '2xl': '1.25rem',
+          '3xl': '1.75rem',
+        },
+
+        backdropBlur: {
+          'xs': '2px',
+          'md': '12px',
+          'lg': '20px',
+        },
+
+        backgroundImage: {
+          'cherry-gradient':
+            'radial-gradient(circle at top, #1a0d12, #0b0b0e)',
+          'cherry-btn':
+            'linear-gradient(135deg, #ff4d5a, #c1121f)',
+          'cherry-progress':
+            'linear-gradient(90deg, #c1121f, #ff4d5a)',
+        },
+
+        transitionTimingFunction: {
+          'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        },
+
+        screens: {
+          'xs': '475px',
+        },
+      },
+    },
+  }
+</script>
     <style>
         /* Custom scrollbar for a modern look */
         ::-webkit-scrollbar {
