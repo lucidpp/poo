@@ -7,7 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Peyza">
+    <meta name="description" content="Peyza - The ultimate web-based music streaming experience. Cherry Edition featuring immersive playback, lyrics, and smart recommendations. Owned by Peyton William Price.">
     <title>Peyza - Cherry Edition</title>
+    
+    <!-- Site Icon -->
+    <link rel="icon" type="image/png" href="favicon.png">
     
     <!-- PWA Manifest (Data URI) -->
     <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGV5emEiLCJzaG9ydF9uYW1lIjoiUGV5emEiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzAwMDAwMCIsInRoZW1lX2NvbG9yIjoiI2I5MWQ0NyIsImljb25zIjpbeyJzcmMiOiJodHRwczovL3BsYWNlaG9sZC5jby8xOTJ4MTkyL2ZmMmQ1NS9mZmZmZmY/dGV4dD1QIiwiYml6ZXM1IjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifSx7InNyYyI6Imh0dHBzOi8vcGxhY2Vob2xkLmNvLzUxMng1MTIvZmYyZDU1L2ZmZmZmZj90ZXh0PVAiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
@@ -221,6 +225,11 @@
                     <i data-lucide="heart" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i>
                     <span class="hidden lg:block font-medium text-sm">Liked</span>
                 </a>
+                <!-- New Updates Tab -->
+                <a href="#" id="nav-updates" onclick="navigateTo('updates')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg transition active-click group">
+                    <i data-lucide="bell" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i>
+                    <span class="hidden lg:block font-medium text-sm">Updates</span>
+                </a>
 
                 <div class="hidden lg:block mt-6 pt-4 border-t border-white/5">
                     <div class="flex items-center justify-between px-3 mb-2">
@@ -315,7 +324,7 @@
     </div>
 
     <!-- Mobile Navigation Tab Bar -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-50 flex justify-around items-center pb-safe">
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-50 flex justify-around items-center pb-safe px-2">
         <button id="mob-nav-home" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('home')">
             <i data-lucide="home" class="w-6 h-6 mb-0.5"></i>
             <span class="text-[10px] font-medium">Home</span>
@@ -327,6 +336,11 @@
         <button id="mob-nav-library" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('library')">
             <i data-lucide="library" class="w-6 h-6 mb-0.5"></i>
             <span class="text-[10px] font-medium">Library</span>
+        </button>
+        <!-- New Updates Button Mobile -->
+        <button id="mob-nav-updates" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('updates')">
+            <i data-lucide="bell" class="w-6 h-6 mb-0.5"></i>
+            <span class="text-[10px] font-medium">Updates</span>
         </button>
     </nav>
 
@@ -672,6 +686,7 @@
                     case 'search': renderSearch(); break;
                     case 'library': renderLibrary(); break;
                     case 'liked': renderLiked(); break;
+                    case 'updates': renderUpdates(); break;
                     case 'artist': fetchArtistDetails(id); break;
                     case 'album': fetchAlbumDetails(id); break;
                 }
@@ -680,7 +695,13 @@
 
         function updateSidebarActiveState(view) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const map = { 'home': ['nav-home', 'mob-nav-home'], 'search': ['nav-search', 'mob-nav-search'], 'library': ['nav-library', 'mob-nav-library'], 'liked': ['nav-liked'] };
+            const map = { 
+                'home': ['nav-home', 'mob-nav-home'], 
+                'search': ['nav-search', 'mob-nav-search'], 
+                'library': ['nav-library', 'mob-nav-library'], 
+                'liked': ['nav-liked'],
+                'updates': ['nav-updates', 'mob-nav-updates']
+            };
             (map[view] || []).forEach(id => document.getElementById(id)?.classList.add('active'));
         }
 
@@ -849,6 +870,63 @@
                             </div>
                             <span class="font-bold">New Playlist</span>
                         </div>
+                    </div>
+                </div>
+            `;
+            renderIcons();
+        }
+
+        function renderUpdates() {
+            document.getElementById('dynamic-content').innerHTML = `
+                <div class="max-w-2xl mx-auto pt-4 animate-fade-in">
+                    <h1 class="text-3xl font-bold mb-8 flex items-center gap-3">
+                        <i data-lucide="sparkles" class="text-accent-cherry w-8 h-8"></i> What's New
+                    </h1>
+                    
+                    <div class="space-y-12 relative border-l border-white/10 ml-3 pl-8 pb-10">
+                        
+                        <!-- Version 2.1 -->
+                        <div class="relative">
+                            <span class="absolute -left-[39px] top-1 h-5 w-5 rounded-full bg-accent-cherry border-4 border-[#000]"></span>
+                            <h3 class="text-xl font-bold text-white">Lyrics & Recommendations</h3>
+                            <p class="text-sm text-accent-cherry mb-3 font-mono">Version 2.1</p>
+                            <ul class="list-disc list-inside text-gray-300 text-sm space-y-2 leading-relaxed">
+                                <li>Added real-time lyrics editor with auto-scrolling animation synced to playback.</li>
+                                <li>New "For You" recommendation engine that suggests songs and artists based on what you're playing.</li>
+                                <li>Simulated Chromecast connection UI for TV casting.</li>
+                                <li>Improved like button animation with a satisfying "pop" effect.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Version 2.0 -->
+                        <div class="relative">
+                            <span class="absolute -left-[39px] top-1 h-5 w-5 rounded-full bg-white border-4 border-[#000]"></span>
+                            <h3 class="text-xl font-bold text-white">PWA & Tablet Support</h3>
+                            <p class="text-sm text-gray-500 mb-3 font-mono">Version 2.0</p>
+                            <ul class="list-disc list-inside text-gray-400 text-sm space-y-2 leading-relaxed">
+                                <li><strong>Installable App:</strong> Add Peyza to your home screen as a Progressive Web App (PWA).</li>
+                                <li><strong>Landscape Mode:</strong> Completely redesigned UI for tablets and desktop screens.</li>
+                                <li><strong>Immersive Player:</strong> New fullscreen experience with blurred backgrounds and cleaner controls.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Version 1.5 -->
+                        <div class="relative">
+                            <span class="absolute -left-[39px] top-1 h-5 w-5 rounded-full bg-white border-4 border-[#000]"></span>
+                            <h3 class="text-xl font-bold text-white">Cherry Edition</h3>
+                            <p class="text-sm text-gray-500 mb-3 font-mono">Version 1.5</p>
+                            <ul class="list-disc list-inside text-gray-400 text-sm space-y-2 leading-relaxed">
+                                <li>Brand new "Cherry" red theme and accent colors.</li>
+                                <li>Enhanced artist profiles with follower counts (Pals) and scrollable discography.</li>
+                                <li>Simulated stream counts based on real-world song popularity.</li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-16 pt-8 border-t border-white/10 text-center pb-10">
+                        <p class="text-sm text-white font-bold tracking-wide">Owned By Peyton William Price</p>
+                        <p class="text-xs text-gray-500 mt-2">© 2025 Peyza Music. All rights reserved.</p>
                     </div>
                 </div>
             `;
