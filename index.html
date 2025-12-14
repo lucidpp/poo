@@ -9,25 +9,52 @@
     <!-- Load Lucide Icons for aesthetic icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-<!-- Custom Tailwind Configuration -->
+<!-- SAFE Universal Tailwind Config (Cherry + Light/Dark) -->
 <script>
   tailwind.config = {
+    darkMode: 'class', // enables light/dark switching
     theme: {
       extend: {
+        /* Accent colors ONLY (opt-in) */
         colors: {
-          'primary-dark': '#121212',
-          'secondary-dark': '#181818',
-          'card-dark': '#282828',
+          cherry: {
+            500: '#c1121f',
+            600: '#a30f1a',
+          },
 
-          'accent-green': '#1DB954',
-          'liked-red': '#C8102E',
+          /* Explicit solid surfaces (NO transparency) */
+          surface: {
+            dark: '#121212',
+            darker: '#181818',
+            card: '#242424',
+            light: '#ffffff',
+            lightCard: '#f5f5f5',
+          },
 
-          'light-gray': '#b3b3b3',
-          'text-white': '#ffffff',
+          /* Text helpers */
+          textbase: {
+            dark: '#ffffff',
+            muted: '#b3b3b3',
+            light: '#000000',
+            lightMuted: '#4b5563',
+          }
         },
 
+        /* Shadows (solid, safe) */
+        boxShadow: {
+          soft: '0 8px 24px rgba(0,0,0,0.35)',
+          cherry: '0 0 12px rgba(193,18,31,0.35)',
+        },
+
+        /* New font (modern, Spotify-safe) */
         fontFamily: {
-          sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          sans: [
+            'Manrope',
+            'Inter',
+            'system-ui',
+            '-apple-system',
+            'sans-serif'
+          ],
         },
 
         screens: {
@@ -35,7 +62,7 @@
         },
       },
     },
-  };
+  }
 </script>
 
   .btn-dark:hover {
