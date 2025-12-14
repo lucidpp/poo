@@ -2,1639 +2,931 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peyza - Music Player</title>
-    <!-- Load Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#b91d47">
+    <title>Peyza - Cherry Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Lucide Icons for aesthetic icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Custom Tailwind Configuration -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'primary-dark': '#121212',
-                        'secondary-dark': '#181818',
-                        'card-dark': '#282828',
-                        'accent-green': '#1DB954',
-                        'light-gray': '#b3b3b3',
+                        'primary-dark': '#000000', /* Pitch black OLED friendly */
+                        'secondary-dark': '#1c1c1e',
+                        'card-dark': '#2c2c2e',
+                        'accent-cherry': '#ff2d55',
+                        'accent-glow': 'rgba(255, 45, 85, 0.4)',
+                        'light-gray': '#98989e',
                         'text-white': '#ffffff',
-                        'liked-red': '#C8102E', 
+                        'liked-red': '#ff3b30',
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
                     },
-                    screens: {
-                        'xs': '475px',
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                        'scale-pulse': 'scalePulse 0.2s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        scalePulse: { '0%': { transform: 'scale(1)' }, '50%': { transform: 'scale(0.95)' }, '100%': { transform: 'scale(1)' } }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(255, 45, 85, 0.3)',
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Custom scrollbar for a modern look */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #535353;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6a6a6a;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1e1e1e;
-        }
-
-        /* General Body and Main Content Styling */
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 0px; background: transparent; } /* Hiding scrollbar for cleaner look */
+        
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #000000;
             color: #ffffff;
-            min-height: 100vh; /* Ensures full screen height */
-            display: flex;
-            flex-direction: column;
-            padding-bottom: 90px; /* Space for the fixed player bar */
-        }
-        .main-content-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 16px;
-            /* Gradient for the top edge like Spotify */
-            background-image: linear-gradient(to bottom, rgba(40, 40, 40, 0.5) 0%, rgba(18, 18, 18, 1) 20%);
+            min-height: 100vh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Heart Click Animation */
-        @keyframes heart-bounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-        }
-        .heart-bounce {
-            animation: heart-bounce 0.3s ease-in-out;
-        }
-
-        /* Mobile Specific Styles */
-        @media (max-width: 767px) {
-            .desktop-sidebar {
-                display: none;
-            }
-            .mobile-nav-bar {
-                display: flex;
-            }
-            .main-content-area {
-                padding-bottom: 72px; /* Space for the mobile nav */
-            }
-            body {
-                padding-bottom: 150px; /* Space for mobile nav + player */
-            }
-            .player-bar {
-                bottom: 64px; /* Move player above mobile nav */
-            }
-            .app-container {
-                min-height: calc(100vh - 150px);
-            }
+        /* Glassmorphism */
+        .glass-nav {
+            background: rgba(28, 28, 30, 0.90);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 0.5px solid rgba(255, 255, 255, 0.15);
         }
 
-        /* Desktop/Tablet Specific Styles */
-        @media (min-width: 768px) {
-            .mobile-nav-bar {
-                display: none;
-            }
-            .desktop-sidebar {
-                display: flex;
-            }
-            .app-container {
-                display: grid;
-                grid-template-columns: 20rem 1fr; /* Sidebar width and main content */
-                grid-template-rows: 1fr;
-                min-height: calc(100vh - 90px); /* Account for player bar */
-            }
-            .player-bar {
-                bottom: 0;
-            }
+        /* Fullscreen Player Transition */
+        .fullscreen-player {
+            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+            transform: translateY(100%);
+            z-index: 60;
+        }
+        .fullscreen-player.active {
+            transform: translateY(0);
         }
 
-        /* Animation for loading spinner */
-        .spinner {
-            border-top-color: #1DB954;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Custom progress bar styling for a modern look */
-        input[type="range"]::-webkit-slider-thumb {
-            appearance: none;
-            width: 12px;
-            height: 12px;
-            background: #fff;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-        }
+        /* Range Slider Styling */
         input[type="range"] {
             -webkit-appearance: none;
+            background: rgba(255,255,255,0.3);
+            border-radius: 5px;
             height: 4px;
-            background: #535353;
         }
-        input[type="range"]::-webkit-slider-runnable-track {
-            height: 4px;
-            background: #535353;
-            border-radius: 2px;
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px; /* Larger hit area */
+            width: 24px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            cursor: pointer;
+            margin-top: -10px;
+            transform: scale(0.7); /* Visually smaller */
+            transition: transform 0.1s;
+        }
+        input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(1);
+        }
+
+        .active-click:active {
+            transform: scale(0.96);
+            opacity: 0.8;
+            transition: transform 0.1s;
+        }
+
+        /* Sidebar Active State */
+        .nav-item.active {
+            background-color: rgba(255, 45, 85, 0.15);
+            color: #ff2d55;
+        }
+        .nav-item.active i {
+            color: #ff2d55;
+        }
+
+        /* Album Art Shadow */
+        .art-shadow {
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
         }
     </style>
 </head>
-<body class="bg-primary-dark">
+<body class="text-white selection:bg-accent-cherry selection:text-white pb-safe">
 
-    <!-- Main Application Container (Desktop Grid Layout) -->
-    <div id="app-container" class="app-container md:p-2 space-x-2 w-full">
+    <!-- Install Prompt -->
+    <div id="install-prompt" class="hidden fixed top-0 left-0 right-0 bg-accent-cherry text-white px-4 py-3 z-[100] flex justify-between items-center shadow-lg animate-fade-in">
+        <span class="text-xs font-bold flex items-center"><i data-lucide="download" class="w-4 h-4 mr-2"></i> Install Peyza</span>
+        <button id="install-btn" class="bg-white text-black px-3 py-1 rounded-full text-xs font-bold active-click">GET</button>
+    </div>
 
-        <!-- Desktop Sidebar (Hidden on Mobile) -->
-        <aside class="desktop-sidebar p-2 space-y-2 bg-primary-dark rounded-lg flex-col">
-            <!-- Navigation Links -->
-            <div class="bg-secondary-dark p-6 rounded-xl space-y-5">
-                <a href="#" class="flex items-center space-x-4 text-white hover:text-light-gray transition duration-150" onclick="navigateTo('home')">
-                    <i data-lucide="home" class="w-6 h-6"></i>
-                    <span class="font-bold">Home</span>
-                </a>
-                <a href="#" class="flex items-center space-x-4 text-light-gray hover:text-white transition duration-150" onclick="navigateTo('search')">
-                    <i data-lucide="search" class="w-6 h-6"></i>
-                    <span class="font-bold">Search</span>
-                </a>
+    <!-- Main Layout -->
+    <div class="flex h-screen w-full overflow-hidden bg-primary-dark relative">
+        
+        <!-- Sidebar -->
+        <aside class="hidden md:flex flex-col w-64 bg-[#121212] border-r border-white/5 h-full z-20 pt-safe">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold flex items-center gap-2 text-accent-cherry tracking-tight">
+                    <i data-lucide="music" class="w-7 h-7 fill-current"></i> Peyza
+                </h1>
             </div>
-
-            <!-- Your Library Section -->
-            <div class="bg-secondary-dark rounded-xl flex-grow overflow-y-auto p-4">
-                <div class="flex items-center justify-between text-light-gray mb-4">
-                    <a href="#" class="flex items-center space-x-2 hover:text-white transition duration-150" onclick="navigateTo('library')">
-                        <i data-lucide="library" class="w-6 h-6"></i>
-                        <span class="font-bold">Your Library</span>
+            
+            <nav class="flex-1 px-3 space-y-1 overflow-y-auto">
+                <div class="mb-6">
+                    <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Discover</p>
+                    <a href="#" id="nav-home" onclick="navigateTo('home')" class="nav-item flex items-center space-x-3 px-3 py-2 text-gray-400 hover:text-white rounded-lg transition active-click">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                        <span class="font-medium text-sm">Home</span>
+                    </a>
+                    <a href="#" id="nav-search" onclick="navigateTo('search')" class="nav-item flex items-center space-x-3 px-3 py-2 text-gray-400 hover:text-white rounded-lg transition active-click">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                        <span class="font-medium text-sm">Search</span>
                     </a>
                 </div>
-                <!-- Library Content (Followed Artists & Liked Songs) -->
-                <div id="library-content" class="space-y-4">
-                    <!-- Liked Songs Playlist -->
-                    <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-card-dark/50 transition duration-150 cursor-pointer"
-                         onclick="navigateTo('liked')">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-white flex items-center justify-center shadow-md">
-                             <i data-lucide="heart" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-white font-semibold truncate">Liked Songs</p>
-                            <p class="text-light-gray text-xs truncate" id="liked-songs-count">0 songs</p>
-                        </div>
-                    </div>
-                    <!-- Followed Artists will be rendered here -->
+
+                <div class="mb-6">
+                    <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Library</p>
+                    <a href="#" id="nav-library" onclick="navigateTo('library')" class="nav-item flex items-center space-x-3 px-3 py-2 text-gray-400 hover:text-white rounded-lg transition active-click">
+                        <i data-lucide="library" class="w-5 h-5"></i>
+                        <span class="font-medium text-sm">Library</span>
+                    </a>
+                    <a href="#" id="nav-liked" onclick="navigateTo('liked')" class="nav-item flex items-center space-x-3 px-3 py-2 text-gray-400 hover:text-white rounded-lg transition active-click">
+                        <i data-lucide="heart" class="w-5 h-5"></i>
+                        <span class="font-medium text-sm">Liked Songs</span>
+                    </a>
                 </div>
-            </div>
+                
+                <div class="mt-4">
+                    <div class="flex items-center justify-between px-3 mb-2">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Playlists</p>
+                        <button onclick="createPlaylistPrompt()" class="text-gray-400 hover:text-white transition"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                    </div>
+                    <div id="user-playlists-sidebar" class="space-y-1"></div>
+                </div>
+            </nav>
         </aside>
 
-        <!-- Main Content & Search Area -->
-        <main class="flex flex-col rounded-lg md:overflow-y-hidden">
-
-            <!-- Search Bar & Header (Always visible) -->
-            <header id="main-header" class="sticky top-0 z-10 bg-secondary-dark p-4 rounded-t-xl flex items-center shadow-lg">
-                <div class="flex items-center space-x-4 w-full">
-                    <!-- Search Input (Visible only on 'search' or 'home' screen on mobile) -->
-                    <div id="search-container" class="w-full max-w-lg hidden md:block">
-                        <div class="relative">
-                            <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-light-gray"></i>
-                            <input type="text" id="search-input" placeholder="What do you want to listen to?" class="w-full py-2 pl-10 pr-4 rounded-full bg-card-dark text-white placeholder-light-gray focus:ring-2 focus:ring-accent-green focus:outline-none transition" onkeyup="if(event.key === 'Enter') performSearch(this.value)">
-                        </div>
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col relative min-w-0 bg-primary-dark">
+            <!-- Top Search/Header -->
+            <header class="absolute top-0 left-0 right-0 z-30 px-4 py-3 md:py-4 bg-gradient-to-b from-black/90 to-transparent pt-safe">
+                <div class="max-w-4xl mx-auto w-full flex justify-end md:justify-start">
+                    <div id="search-bar-container" class="hidden md:block w-full max-w-sm relative group transition-all duration-300">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-accent-cherry transition-colors"></i>
+                        <input type="text" id="desktop-search" 
+                            class="w-full bg-[#1c1c1e] border border-transparent focus:border-accent-cherry/50 rounded-lg py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-cherry/20 transition-all shadow-lg"
+                            placeholder="Search artists, albums, songs..."
+                            onkeyup="if(event.key === 'Enter') performSearch(this.value)">
                     </div>
+                    <!-- Mobile Profile/Settings placeholder could go here -->
                 </div>
             </header>
 
-            <!-- Content Area (Scrollable) -->
-            <div id="content-area" class="main-content-area bg-primary-dark rounded-b-xl md:rounded-b-none md:rounded-r-xl">
-                <!-- Dynamic content (Home, Search Results, Artist, Album) will be injected here -->
-                <div id="loading-indicator" class="hidden flex justify-center items-center py-10">
-                    <div class="spinner w-10 h-10 border-4 border-gray-700 border-solid rounded-full"></div>
-                </div>
-                <div id="dynamic-content">
-                    <!-- Default to Home View -->
+            <!-- Scroll Container -->
+            <div id="main-scroll" class="flex-1 overflow-y-auto pb-40 md:pb-24 scroll-smooth">
+                <div id="dynamic-content" class="min-h-full p-4 md:p-8 pt-24 max-w-7xl mx-auto">
+                    <!-- Content injected here -->
                 </div>
             </div>
-
         </main>
-
     </div>
 
-    <!-- Fixed Global Player Bar -->
-    <div id="player-bar" class="player-bar fixed left-0 right-0 h-20 bg-card-dark border-t border-primary-dark z-30 flex items-center px-4 shadow-2xl">
-        <audio id="global-audio" preload="auto" src=""></audio>
+    <!-- Mini Player -->
+    <div id="mini-player" class="fixed bottom-[60px] md:bottom-0 left-0 right-0 h-[64px] md:h-[84px] bg-[#1c1c1e] border-t border-white/10 z-50 px-3 md:px-6 flex items-center justify-between cursor-pointer transition-transform duration-300" onclick="toggleFullscreenPlayer(true)">
         
         <!-- Track Info -->
-        <div class="flex items-center flex-1 min-w-0">
-            <img id="player-track-image" src="https://placehold.co/60x60/282828/b3b3b3?text=🎧" class="w-12 h-12 object-cover rounded mr-3" alt="Track Cover">
-            <div class="min-w-0">
-                <p id="player-track-name" class="text-white font-semibold truncate">Nothing Playing</p>
-                <p id="player-artist-name" class="text-light-gray text-xs truncate">Select a song to play</p>
+        <div class="flex items-center w-full md:w-1/3 min-w-0">
+            <img id="mini-img" src="https://placehold.co/60x60/222/555?text=..." class="w-12 h-12 md:w-14 md:h-14 rounded-md object-cover shadow-sm bg-card-dark mr-3">
+            <div class="min-w-0 flex-1">
+                <p id="mini-title" class="text-sm md:text-base font-semibold text-white truncate leading-tight">Not Playing</p>
+                <p id="mini-artist" class="text-xs md:text-sm text-gray-400 truncate">Tap to play</p>
             </div>
         </div>
 
-        <!-- Controls -->
-        <div class="flex flex-col items-center flex-1 max-w-sm mx-4">
-            <div class="flex space-x-6 mb-1">
-                <button class="text-light-gray hover:text-white"><i data-lucide="shuffle" class="w-5 h-5"></i></button>
-                <button class="text-light-gray hover:text-white"><i data-lucide="skip-back" class="w-5 h-5"></i></button>
-                <button id="play-pause-btn" class="bg-white text-black p-2 rounded-full hover:scale-105 transition" onclick="togglePlayPause()">
-                    <i data-lucide="play" class="w-6 h-6"></i>
+        <!-- Desktop Playback Controls -->
+        <div class="hidden md:flex flex-col items-center w-1/3">
+            <div class="flex items-center space-x-8 mb-1">
+                <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation();"><i data-lucide="skip-back" class="w-6 h-6 fill-current"></i></button>
+                <button id="mini-play-btn" class="bg-white text-black rounded-full p-2 hover:scale-105 transition active-click shadow-glow" onclick="event.stopPropagation(); togglePlayPause()">
+                    <i data-lucide="play" class="w-6 h-6 fill-black ml-0.5"></i>
                 </button>
-                <button class="text-light-gray hover:text-white"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
-                <button class="text-light-gray hover:text-white"><i data-lucide="repeat" class="w-5 h-5"></i></button>
+                <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation();"><i data-lucide="skip-forward" class="w-6 h-6 fill-current"></i></button>
             </div>
-            <!-- Progress Bar (Desktop/Tablet Only) -->
-            <div class="hidden sm:flex w-full items-center space-x-2 text-xs text-light-gray">
-                <span id="current-time">0:00</span>
-                <input type="range" id="progress-bar" value="0" min="0" max="100" class="w-full h-1 bg-primary-dark rounded-lg appearance-none cursor-pointer range-lg">
-                <span id="duration">0:00</span>
+            <!-- Mini Progress -->
+            <div class="w-full max-w-xs flex items-center space-x-2 text-[10px] font-medium text-gray-500" onclick="event.stopPropagation()">
+                <span id="mini-curr-time">0:00</span>
+                <div class="relative flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div id="mini-progress" class="absolute left-0 top-0 h-full bg-white/80 rounded-full w-0"></div>
+                </div>
+                <span id="mini-duration">0:00</span>
             </div>
         </div>
 
-        <!-- Volume (Desktop Only) -->
-        <div class="flex items-center justify-end flex-1 space-x-2 hidden lg:flex">
-            <div id="player-like-button">
-                 <!-- Like button appears here for current track -->
+        <!-- Right Side (Volume/Expand) -->
+        <div class="hidden md:flex items-center justify-end w-1/3 space-x-4">
+            <button class="text-gray-400 hover:text-accent-cherry transition" onclick="event.stopPropagation(); showAddToPlaylistModal(currentTrack)">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center space-x-2 w-28" onclick="event.stopPropagation()">
+                <i data-lucide="volume-2" class="w-4 h-4 text-gray-500"></i>
+                <input type="range" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white" oninput="audio.volume = this.value/100">
             </div>
-            <i data-lucide="volume-2" class="w-5 h-5 text-light-gray"></i>
-            <input type="range" id="volume-bar" value="100" min="0" max="100" class="w-24 h-1 bg-primary-dark rounded-lg appearance-none cursor-pointer">
         </div>
+
+        <!-- Mobile Play Button -->
+        <div class="flex md:hidden items-center pr-1">
+            <button id="mobile-mini-play" class="text-white p-3 active-click" onclick="event.stopPropagation(); togglePlayPause()">
+                <i data-lucide="play" class="w-7 h-7 fill-current"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Progress Bar -->
+        <div id="mobile-progress-bar" class="absolute bottom-0 left-0 h-[2px] bg-accent-cherry md:hidden w-0 transition-all duration-300"></div>
     </div>
 
-    <!-- Mobile Navigation Bar (Fixed at Bottom) -->
-    <nav class="mobile-nav-bar fixed bottom-0 left-0 right-0 h-16 bg-card-dark border-t border-primary-dark z-20 flex justify-around items-center">
-        <button class="flex flex-col items-center justify-center p-1 text-light-gray hover:text-white transition duration-150" onclick="navigateTo('home')">
-            <i data-lucide="home" class="w-6 h-6"></i>
-            <span class="text-xs">Home</span>
+    <!-- Mobile Navigation Tab Bar -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-50 flex justify-around items-center pb-safe">
+        <button id="mob-nav-home" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('home')">
+            <i data-lucide="home" class="w-6 h-6 mb-0.5"></i>
+            <span class="text-[10px] font-medium">Home</span>
         </button>
-        <button class="flex flex-col items-center justify-center p-1 text-light-gray hover:text-white transition duration-150" onclick="navigateTo('search')">
-            <i data-lucide="search" class="w-6 h-6"></i>
-            <span class="text-xs">Search</span>
+        <button id="mob-nav-search" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('search')">
+            <i data-lucide="search" class="w-6 h-6 mb-0.5"></i>
+            <span class="text-[10px] font-medium">Search</span>
         </button>
-        <button class="flex flex-col items-center justify-center p-1 text-light-gray hover:text-white transition duration-150" onclick="navigateTo('library')">
-            <i data-lucide="library" class="w-6 h-6"></i>
-            <span class="text-xs">Library</span>
+        <button id="mob-nav-library" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('library')">
+            <i data-lucide="library" class="w-6 h-6 mb-0.5"></i>
+            <span class="text-[10px] font-medium">Library</span>
         </button>
     </nav>
 
-    <!-- JavaScript for Logic -->
+    <!-- Fullscreen Player (Zoomed Out / Scaled Layout) -->
+    <div id="fullscreen-player" class="fullscreen-player fixed inset-0 bg-[#000000] flex flex-col items-center overflow-hidden">
+        
+        <!-- Dynamic Background -->
+        <div id="fs-bg" class="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl scale-125 transition-all duration-1000"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black"></div>
+
+        <!-- Header -->
+        <div class="relative z-10 w-full flex justify-between items-center px-6 pt-12 pb-4 md:pt-16 max-w-md mx-auto">
+            <button class="text-gray-400 hover:text-white" onclick="toggleFullscreenPlayer(false)">
+                <i data-lucide="chevron-down" class="w-8 h-8"></i>
+            </button>
+            <span class="text-xs font-bold tracking-widest uppercase text-gray-400">Now Playing</span>
+            <button class="text-gray-400 hover:text-white" onclick="showAddToPlaylistModal(currentTrack)">
+                <i data-lucide="more-horizontal" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Player Body -->
+        <div class="relative z-10 w-full flex-1 flex flex-col justify-evenly px-8 max-w-md mx-auto pb-10">
+            
+            <!-- Artwork -->
+            <div class="w-full aspect-square relative group mx-auto max-h-[350px] md:max-h-[400px]">
+                <img id="fs-art" src="" class="w-full h-full object-cover rounded-2xl art-shadow transform transition duration-500 scale-100">
+            </div>
+
+            <!-- Title & Artist -->
+            <div class="flex justify-between items-center mt-8 mb-2">
+                <div class="min-w-0 pr-4">
+                    <h2 id="fs-title" class="text-2xl font-bold text-white truncate leading-tight">Select a song</h2>
+                    <p id="fs-artist" class="text-lg text-gray-400 truncate mt-1">Artist</p>
+                </div>
+                <!-- Like Button -->
+                <div id="fs-like-btn-container">
+                    <button class="text-gray-500"><i data-lucide="heart" class="w-7 h-7"></i></button>
+                </div>
+            </div>
+
+            <!-- Scrubber -->
+            <div class="w-full mb-6">
+                <input type="range" id="fs-progress" value="0" min="0" max="100" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer focus:outline-none accent-white">
+                <div class="flex justify-between text-xs font-medium text-gray-500 mt-2 font-mono">
+                    <span id="fs-curr-time">0:00</span>
+                    <span id="fs-duration">0:00</span>
+                </div>
+            </div>
+
+            <!-- Main Controls (Exact Layout) -->
+            <div class="flex justify-between items-center w-full px-2 mb-8">
+                <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="shuffle" class="w-5 h-5"></i></button>
+                
+                <div class="flex items-center gap-10">
+                    <button class="text-white hover:scale-110 transition active-click" onclick="audio.currentTime -= 10">
+                        <i data-lucide="skip-back" class="w-9 h-9 fill-current"></i>
+                    </button>
+                    
+                    <button id="fs-play-btn" class="text-white hover:scale-105 transition active-click" onclick="togglePlayPause()">
+                        <i data-lucide="play-circle" class="w-20 h-20 fill-white text-black"></i>
+                    </button>
+                    
+                    <button class="text-white hover:scale-110 transition active-click" onclick="audio.currentTime += 10">
+                        <i data-lucide="skip-forward" class="w-9 h-9 fill-current"></i>
+                    </button>
+                </div>
+
+                <button class="text-gray-500 hover:text-white transition active-click"><i data-lucide="repeat" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- Volume Slider -->
+            <div class="flex items-center space-x-4 px-2">
+                <i data-lucide="volume-1" class="w-4 h-4 text-gray-500"></i>
+                <input type="range" class="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer" oninput="audio.volume = this.value/100">
+                <i data-lucide="volume-2" class="w-4 h-4 text-gray-500"></i>
+            </div>
+            
+            <!-- Bottom Actions -->
+             <div class="flex justify-center space-x-8 mt-6">
+                <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="message-square-quote" class="w-5 h-5"></i></button>
+                <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="airplay" class="w-5 h-5"></i></button>
+                <button class="text-gray-500 hover:text-accent-cherry"><i data-lucide="list-music" class="w-5 h-5"></i></button>
+             </div>
+
+        </div>
+    </div>
+
+    <!-- Playlist Modal -->
+    <div id="playlist-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-6">
+        <div class="bg-[#1c1c1e] w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-white/10 scale-95 opacity-0 transition-all duration-200" id="playlist-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">Add to Playlist</h3>
+                <button onclick="closePlaylistModal()" class="p-1 bg-gray-800 rounded-full text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="playlist-list-container" class="space-y-2 max-h-64 overflow-y-auto mb-4"></div>
+            <button onclick="showCreatePlaylistInput()" class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-accent-cherry font-semibold flex items-center justify-center transition">
+                <i data-lucide="plus" class="w-5 h-5 mr-2"></i> New Playlist
+            </button>
+            <div id="new-playlist-input-div" class="hidden mt-3">
+                <input type="text" id="new-playlist-name" placeholder="Name your playlist" class="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-white focus:border-accent-cherry outline-none mb-2">
+                <button onclick="createNewPlaylist()" class="w-full bg-accent-cherry text-white font-bold py-3 rounded-lg">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="global-audio" preload="auto"></audio>
+
     <script>
-        // --- CONSTANTS ---
+        // CONFIG
         const CLIENT_ID = '24d71c5bae0e407a98cd3cff0ccb33ff';
         const CLIENT_SECRET = '15e5882a39f049edaec7de7bbc62f407';
         const API_URL = 'https://api.spotify.com/v1';
         const TOKEN_URL = 'https://accounts.spotify.com/api/token';
-
-        let accessToken = localStorage.getItem('spotify_token') || null;
-
-        // --- GLOBAL AUDIO PLAYER ELEMENTS ---
+        
         const audio = document.getElementById('global-audio');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const playerTrackName = document.getElementById('player-track-name');
-        const playerArtistName = document.getElementById('player-artist-name');
-        const playerTrackImage = document.getElementById('player-track-image');
-        const playerLikeButtonContainer = document.getElementById('player-like-button');
-        const progressBar = document.getElementById('progress-bar');
-        const currentTimeEl = document.getElementById('current-time');
-        const durationEl = document.getElementById('duration');
-        const volumeBar = document.getElementById('volume-bar');
-
+        let accessToken = localStorage.getItem('spotify_token');
         let isPlaying = false;
         let currentTrack = null;
-        let currentPlaylist = [];
-        let currentTrackIndex = 0;
-        let currentTrackToLink = null; // New global state for linking MP3 to track metadata
+        let trackToAdd = null;
 
-
-        // --- UTILITY & DATA FUNCTIONS ---
-
-        function showLoading() {
-            document.getElementById('loading-indicator').classList.remove('hidden');
-            document.getElementById('loading-indicator').classList.add('flex');
-            document.getElementById('dynamic-content').innerHTML = '';
-        }
-
-        function hideLoading() {
-            document.getElementById('loading-indicator').classList.add('hidden');
-            document.getElementById('loading-indicator').classList.remove('flex');
-        }
-
+        // --- ICON UTILITY ---
         function renderIcons() {
-            lucide.createIcons();
-        }
-
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const remainderSeconds = Math.floor(seconds % 60);
-            return `${minutes}:${remainderSeconds < 10 ? '0' : ''}${remainderSeconds}`;
-        }
-
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-        
-        // --- STREAM/LISTENER GENERATION (for simulation) ---
-
-        function generateMonthlyListeners(popularity) {
-            let base = 500;
-            if (popularity > 70) base = 1000000;
-            else if (popularity > 50) base = 10000;
-            else if (popularity > 30) base = 1000;
-
-            const factor = Math.pow(popularity / 100, 3) * 50 + 0.5;
-            const listeners = Math.floor(base * factor) + (Math.floor(Math.random() * 1000));
-            return formatNumber(listeners);
-        }
-
-        function generateFollowers(popularity) {
-            let base = 100;
-            if (popularity > 80) base = 5000000;
-            else if (popularity > 60) base = 500000;
-            else if (popularity > 40) base = 10000;
-            const factor = Math.pow(popularity / 100, 2) * 20 + 0.5;
-            const followers = Math.floor(base * factor) + (Math.floor(Math.random() * 5000));
-            return formatNumber(followers);
-        }
-
-        function generateStreams(popularity) {
-            let base = 1000;
-            if (popularity > 80) base = 50000000;
-            else if (popularity > 60) base = 5000000;
-            else if (popularity > 40) base = 500000;
-            const factor = Math.pow(popularity / 100, 2) * 5 + 0.1;
-            const streams = Math.floor(base * factor) + (Math.floor(Math.random() * 10000));
-            return formatNumber(streams);
-        }
-
-        // --- TRACK OBJECT STANDARDIZATION ---
-
-        /**
-         * Converts a Spotify track object or a local file object into a standardized playback object.
-         * @param {object} track - Spotify track or local track data.
-         * @param {number} index - Index for local track ID.
-         * @param {string} albumImage - Fallback image URL from the parent album.
-         * @param {number} [albumPopularity=50] - Fallback popularity for stream calculation.
-         * @returns {object} Standardized track object for playback.
-         */
-        function createPlaybackTrack(track, index, albumImage = 'https://placehold.co/60x60/282828/b3b3b3?text=🎶', albumPopularity = 50) {
-            const popularity = track.popularity || albumPopularity;
-            const streams = generateStreams(popularity);
-            // Use track duration if available, otherwise guess a duration for local files (3:30)
-            const durationMs = track.duration_ms || (track.duration * 1000) || (210 * 1000); 
-            const duration = formatTime(Math.floor(durationMs / 1000));
-            
-            // Prioritize specific track image, then album image, then placeholder
-            const finalImage = track.album?.images?.[2]?.url || albumImage || track.localImage || 'https://placehold.co/60x60/282828/b3b3b3?text=🎶';
-            
-            // Check if the track already has a local URL (from a previous link operation)
-            const finalPreviewUrl = track.localUrl || track.preview_url || null;
-
-            return {
-                id: track.id || `local-${index}-${Date.now()}`,
-                name: track.name || track.localName,
-                artists: track.artists || [{ name: 'Local Artist', id: null }],
-                imageUrl: finalImage,
-                duration: duration,
-                durationMs: durationMs,
-                streams: streams,
-                isSpotify: !!track.id,
-                previewUrl: finalPreviewUrl // Playable URL (30-sec preview or local blob)
-            };
-        }
-
-        // --- LIKED SONGS (localStorage) ---
-
-        function getLikedSongs() {
-            try {
-                return JSON.parse(localStorage.getItem('peyzaLikedSongs') || '[]');
-            } catch (e) {
-                console.error("Error reading liked songs from localStorage:", e);
-                return [];
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
             }
         }
-
-        function isTrackLiked(trackId) {
-            return getLikedSongs().some(t => t.id === trackId);
+        
+        // --- MOCK STATS GENERATOR ---
+        function generateStreamCount() {
+            // Generates a random number between 100k and 900M
+            const num = Math.floor(Math.random() * (900000000 - 100000) + 100000);
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
+            return num.toString();
         }
 
-        function toggleLike(track) {
-            if (!track || !track.id) return;
-            let likedSongs = getLikedSongs();
-            const index = likedSongs.findIndex(t => t.id === track.id);
-            const trackId = track.id; // Use trackId for selector
+        function formatTime(s) {
+            if(isNaN(s)) return "0:00";
+            const min = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
 
-            if (index > -1) {
-                // Unlike
-                likedSongs.splice(index, 1);
-                renderNotification("Unliked", `${track.name} removed from Liked Songs.`);
+        // --- INIT ---
+        window.onload = () => {
+            renderIcons();
+            loadUserPlaylists();
+            navigateTo('home');
+        };
+
+        // --- NAVIGATION ---
+        function navigateTo(view, id = null) {
+            updateSidebarActiveState(view);
+            const content = document.getElementById('dynamic-content');
+            const searchContainer = document.getElementById('search-bar-container');
+            
+            // Show/Hide Search Bar
+            if(view === 'search' || view === 'home') {
+                searchContainer?.classList.remove('opacity-0', 'pointer-events-none');
             } else {
-                // Like
-                // Save a minimal representation for simplicity and size
-                const likedTrack = {
-                    id: track.id,
-                    name: track.name,
-                    artists: track.artists,
-                    imageUrl: track.imageUrl,
-                    duration: track.duration,
-                    streams: track.streams,
-                    previewUrl: track.previewUrl,
-                    isSpotify: track.isSpotify
-                };
-                likedSongs.push(likedTrack);
-                renderNotification("Liked", `${track.name} added to Liked Songs.`);
+                searchContainer?.classList.add('opacity-0', 'pointer-events-none');
             }
 
-            localStorage.setItem('peyzaLikedSongs', JSON.stringify(likedSongs));
+            content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>';
             
-            // Apply heart-bounce animation to all visible heart icons for this track ID
-            const likeButtons = document.querySelectorAll(`[onclick*="toggleLike"][onclick*="${trackId}"] i`);
-            likeButtons.forEach(icon => {
-                icon.classList.add('heart-bounce');
-                setTimeout(() => icon.classList.remove('heart-bounce'), 300);
-            });
-            
-            // Update UI elements
-            updateLikedSongsCount();
-            if(currentTrack && currentTrack.id === track.id) {
-                // Only re-render the player button if the liked track is the current track
-                playerLikeButtonContainer.innerHTML = renderLikedButton(currentTrack.id);
-                renderIcons();
-            }
-
-            // If on the Liked Songs page, re-render it
-            const contentArea = document.getElementById('dynamic-content');
-            if (contentArea.dataset.view === 'liked') {
-                 renderLikedSongsPage();
-            }
-        }
-
-        function updateLikedSongsCount() {
-            const count = getLikedSongs().length;
-            const el = document.getElementById('liked-songs-count');
-            if (el) el.textContent = `${count} songs`;
-        }
-
-        function renderLikedButton(trackId, size = 'w-5 h-5') {
-            const isLiked = isTrackLiked(trackId);
-            const colorClass = isLiked ? 'text-liked-red fill-liked-red' : 'text-light-gray hover:text-white';
-            
-            // Get the track data that is currently visible or playing to pass to toggleLike
-            // We use the safer method of querying currentTrack if playing, otherwise relying on the ID.
-            const trackData = currentTrack && currentTrack.id === trackId 
-                ? JSON.stringify(currentTrack).replace(/'/g, "\\'") 
-                : 'null'; 
-
-            return `
-                <button class="${colorClass}" 
-                    onclick="event.stopPropagation(); toggleLike(currentTrack && currentTrack.id === '${trackId}' ? currentTrack : likedSongsFromList.find(t => t.id === '${trackId}') || likedSongsFromList[0] || currentTrack)">
-                    <i data-lucide="heart" class="${size} transition duration-150"></i>
-                </button>
-            `;
-        }
-        
-        // --- LOCAL MP3 LINKING LOGIC ---
-
-        function handleMp3LinkUpload(event) {
-            const file = event.target.files[0];
-            const track = currentTrackToLink;
-            closeNotification('mp3-link-modal'); // Close the linking modal
-
-            if (!track || !file || !file.type.startsWith('audio/')) {
-                renderNotification("Error", "Could not link file: Track data missing or invalid file selected.");
-                return;
-            }
-
-            // 1. Create a new playback track object, overriding the previewUrl with the local blob URL
-            const playbackTrack = {
-                ...track,
-                previewUrl: URL.createObjectURL(file), // Use the local file URL
-                isSpotify: true, // It's still a Spotify track object
-                localUrl: URL.createObjectURL(file) // Store local URL for reference
-            };
-
-            // 2. Update the current playlist with the playable track (if it was part of a list)
-            if (currentPlaylist.length > 0) {
-                const index = currentPlaylist.findIndex(t => t.id === track.id);
-                if (index !== -1) {
-                    currentPlaylist[index] = playbackTrack;
-                    currentTrackIndex = index;
-                } else {
-                    currentPlaylist = [playbackTrack];
-                    currentTrackIndex = 0;
+            // Allow time for DOM update and then render content
+            setTimeout(() => {
+                switch(view) {
+                    case 'home': renderHome(); break;
+                    case 'search': renderSearch(); break;
+                    case 'library': renderLibrary(); break;
+                    case 'liked': renderLiked(); break;
+                    case 'artist': fetchArtistDetails(id); break;
+                    case 'album': fetchAlbumDetails(id); break;
                 }
-            } else {
-                currentPlaylist = [playbackTrack];
-                currentTrackIndex = 0;
-            }
-
-            // 3. Reset linking state and start playback
-            currentTrackToLink = null;
-            playTrack(playbackTrack);
-            renderNotification("Success", `File linked! Now playing: ${playbackTrack.name}`);
+            }, 50);
         }
 
-        function renderMp3LinkPrompt(track) {
-            const modalId = 'mp3-link-modal';
-            let modal = document.getElementById(modalId);
-            
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = modalId;
-                modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4 transition-opacity duration-300 opacity-0 pointer-events-none';
-                document.body.appendChild(modal);
-            }
+        function updateSidebarActiveState(view) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const map = { 'home': ['nav-home', 'mob-nav-home'], 'search': ['nav-search', 'mob-nav-search'], 'library': ['nav-library', 'mob-nav-library'], 'liked': ['nav-liked'] };
+            (map[view] || []).forEach(id => document.getElementById(id)?.classList.add('active'));
+        }
 
-            modal.innerHTML = `
-                <div class="bg-card-dark p-6 rounded-xl shadow-2xl max-w-lg w-full transform translate-y-4 transition-transform duration-300">
-                    <h3 class="text-xl font-bold mb-3 text-white flex items-center"><i data-lucide="alert-triangle" class="w-5 h-5 mr-2 text-yellow-400"></i> No 30-Second Preview Available</h3>
-                    <p class="text-light-gray mb-4">The track <strong>${track.name}</strong> has no playable 30-second preview on the Full Library.</p>
-                    <p class="text-white mb-6">To listen to this song, please link a local MP3 file from your device. The album art and metadata will be used.</p>
+        // --- PAGES ---
 
-                    <div class="flex items-center space-x-4 mb-6 p-4 bg-secondary-dark rounded-lg">
-                         <img src="${track.imageUrl}" class="w-16 h-16 object-cover rounded shadow-md" alt="Album Cover">
-                         <div class="min-w-0">
-                            <p class="text-white font-semibold truncate">${track.name}</p>
-                            <p class="text-light-gray text-sm truncate">${track.artists.map(a => a.name).join(', ')}</p>
-                         </div>
+        async function fetchArtistDetails(artistId) {
+            const token = await getSpotifyToken();
+            if(!token) return;
+
+            try {
+                const [artistRes, tracksRes, albumsRes] = await Promise.all([
+                    fetch(`${API_URL}/artists/${artistId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${API_URL}/artists/${artistId}/top-tracks?market=US`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${API_URL}/artists/${artistId}/albums?include_groups=album,single&limit=10`, { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+
+                const artist = await artistRes.json();
+                const tracksData = await tracksRes.json();
+                const albumsData = await albumsRes.json();
+
+                // Process tracks with mock stats
+                const topTracks = tracksData.tracks.map(t => ({
+                    ...t,
+                    streamCount: generateStreamCount(),
+                    imageUrl: t.album.images[0]?.url,
+                    durationFormatted: formatTime(t.duration_ms / 1000)
+                }));
+                
+                // Keep only top 10 songs
+                const popularSongs = topTracks.slice(0, 10);
+
+
+                const content = document.getElementById('dynamic-content');
+                content.innerHTML = `
+                    <div class="relative w-full h-80 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-2xl animate-fade-in group">
+                        <img src="${artist.images[0]?.url || 'https://placehold.co/1000x400/000/555?text=Artist+Image'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 flex flex-col justify-end p-6 md:p-10">
+                            <h1 class="text-4xl md:text-6xl font-extrabold mb-2 tracking-tight">${artist.name}</h1>
+                            <p class="text-white/80 font-medium text-lg uppercase tracking-widest text-xs">${artist.followers.total.toLocaleString()} Followers</p>
+                        </div>
                     </div>
 
-                    <div class="flex justify-between items-center">
-                        <label for="mp3-link-upload" class="inline-block bg-accent-green text-black font-bold py-2 px-4 rounded-full cursor-pointer hover:bg-green-600 transition">
-                            <i data-lucide="music" class="w-5 h-5 inline-block mr-1"></i> Link MP3
-                        </label>
-                        <input type="file" id="mp3-link-upload" accept="audio/mp3" class="hidden" onchange="handleMp3LinkUpload(event)">
-                        
-                        <button class="bg-secondary-dark text-white font-bold py-2 px-4 rounded-full hover:bg-[#333] transition" onclick="closeNotification('${modalId}')">
-                            Cancel
-                        </button>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up">
+                        <!-- Top Songs Column (Swipeable List) -->
+                        <div class="lg:col-span-2">
+                            <h2 class="text-2xl font-bold mb-4">Popular</h2>
+                            <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg">
+                                <div class="max-h-[320px] overflow-y-auto scroll-smooth">
+                                    ${popularSongs.map((t, i) => `
+                                        <div class="flex items-center p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 group" 
+                                             onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'>
+                                            <span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span>
+                                            <img src="${t.imageUrl}" class="w-12 h-12 rounded-md object-cover mr-4 shadow-sm">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center justify-between">
+                                                    <p class="font-semibold text-white truncate pr-2">${t.name}</p>
+                                                    <span class="text-xs text-gray-500 font-mono">${t.streamCount}</span>
+                                                </div>
+                                                <p class="text-xs text-gray-400 truncate">${t.artists.map(a => a.name).join(', ')}</p>
+                                            </div>
+                                            <button class="ml-4 text-gray-500 hover:text-white" onclick="event.stopPropagation()"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                ${popularSongs.length > 4 ? `
+                                    <div class="bg-white/5 p-2 text-center text-xs text-gray-400 font-medium uppercase tracking-wider">
+                                        Swipe/Scroll down to see all ${popularSongs.length} popular songs
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Releases Column -->
+                        <div>
+                            <h2 class="text-2xl font-bold mb-4">Releases</h2>
+                            <div class="space-y-4">
+                                ${albumsData.items.slice(0, 4).map(album => `
+                                    <div class="flex items-center p-3 bg-[#1c1c1e] rounded-xl cursor-pointer hover:bg-white/5 transition" onclick="navigateTo('album', '${album.id}')">
+                                        <img src="${album.images[0]?.url || 'https://placehold.co/60x60'}" class="w-16 h-16 rounded-lg shadow-md mr-4">
+                                        <div>
+                                            <p class="font-bold text-sm line-clamp-1">${album.name}</p>
+                                            <p class="text-xs text-gray-400">${album.release_date.split('-')[0]} • ${album.album_type.charAt(0).toUpperCase() + album.album_type.slice(1)}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                renderIcons();
+            } catch(e) { console.error(e); }
+        }
+
+        async function fetchAlbumDetails(albumId) {
+            const token = await getSpotifyToken();
+            if(!token) return;
+
+            try {
+                const res = await fetch(`${API_URL}/albums/${albumId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const album = await res.json();
+                
+                // Identify Featured Artists (excluding main album artist)
+                const mainArtistId = album.artists[0].id;
+                const allArtists = new Set();
+                album.tracks.items.forEach(t => t.artists.forEach(a => {
+                    if(a.id !== mainArtistId) allArtists.add(a);
+                }));
+
+                // Get unique featured artists
+                const uniqueFeaturedArtists = Array.from(allArtists).reduce((acc, current) => {
+                    const x = acc.find(item => item.id === current.id);
+                    if (!x) {
+                        return acc.concat([current]);
+                    }
+                    return acc;
+                }, []).slice(0, 5);
+
+
+                const content = document.getElementById('dynamic-content');
+                content.innerHTML = `
+                    <div class="flex flex-col md:flex-row gap-8 mb-10 animate-fade-in items-center md:items-end">
+                        <div class="w-64 h-64 md:w-72 md:h-72 shrink-0 shadow-2xl rounded-lg">
+                            <img src="${album.images[0]?.url || 'https://placehold.co/300x300'}" class="w-full h-full object-cover rounded-lg art-shadow">
+                        </div>
+                        <div class="text-center md:text-left">
+                            <h1 class="text-3xl md:text-5xl font-bold mb-2 leading-tight">${album.name}</h1>
+                            <p class="text-xl text-accent-cherry font-medium mb-1 cursor-pointer hover:underline" onclick="navigateTo('artist', '${mainArtistId}')">${album.artists[0].name}</p>
+                            <p class="text-sm text-gray-500 uppercase tracking-widest font-bold">${album.album_type.charAt(0).toUpperCase() + album.album_type.slice(1)} • ${album.release_date.split('-')[0]} • ${album.total_tracks} Songs</p>
+                            
+                            <div class="mt-6 flex items-center justify-center md:justify-start gap-4">
+                                <button class="bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center"
+                                    onclick='playCollection(${JSON.stringify(album.tracks.items.map(t => mapSpotifyTrack(t, album.images[0]?.url))).replace(/'/g, "")})'>
+                                    <i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play
+                                </button>
+                                <button class="p-3 bg-white/10 rounded-full hover:bg-white/20 transition"><i data-lucide="shuffle" class="w-6 h-6"></i></button>
+                                <button class="p-3 bg-white/10 rounded-full hover:bg-white/20 transition"><i data-lucide="plus" class="w-6 h-6"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${uniqueFeaturedArtists.length > 0 ? `
+                        <div class="mb-8">
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Featured Artists</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${uniqueFeaturedArtists.map(f => `
+                                    <span class="bg-[#1c1c1e] text-gray-300 px-3 py-1 rounded-full text-sm border border-white/5 cursor-pointer hover:bg-white/10" onclick="navigateTo('artist', '${f.id}')">${f.name}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <h2 class="text-2xl font-bold mb-4">Tracklist</h2>
+                    <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg animate-slide-up">
+                        ${album.tracks.items.map((t, i) => `
+                            <div class="flex items-center p-4 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer group"
+                                onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t, album.images[0]?.url)).replace(/'/g, "")})'>
+                                <span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span>
+                                <div class="flex-1 min-w-0 ml-4">
+                                    <p class="font-medium text-white truncate ${currentTrack?.id === t.id ? 'text-accent-cherry' : ''}">${t.name}</p>
+                                    <p class="text-xs text-gray-500 truncate">${t.artists.map(a => a.name).join(', ')}</p>
+                                </div>
+                                <span class="text-xs text-gray-500 font-mono ml-4">${formatTime(t.duration_ms/1000)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="mt-8 text-center text-xs text-gray-600">
+                        <p>${new Date(album.release_date).toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric'})}</p>
+                        <p class="mt-1">${album.copyrights?.[0]?.text || '© 2024 Record Label'}</p>
+                    </div>
+                `;
+                renderIcons();
+            } catch(e) { console.error(e); }
+        }
+
+
+        // --- RENDERERS ---
+
+        function renderHome() {
+            document.getElementById('dynamic-content').innerHTML = `
+                <div class="animate-fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Listen Now</h2>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-[#1c1c1e] p-4 rounded-xl flex flex-col justify-between h-32 cursor-pointer hover:bg-white/10 transition active-click shadow-lg" onclick="navigateTo('liked')">
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mb-2">
+                                <i data-lucide="heart" class="w-5 h-5 text-white fill-white"></i>
+                            </div>
+                            <span class="font-bold">Liked Songs</span>
+                        </div>
+                        <div class="bg-[#1c1c1e] p-4 rounded-xl flex flex-col justify-between h-32 cursor-pointer hover:bg-white/10 transition active-click shadow-lg" onclick="createPlaylistPrompt()">
+                             <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg flex items-center justify-center mb-2">
+                                <i data-lucide="plus" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <span class="font-bold">New Playlist</span>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold mb-4">Trending Now</h3>
+                    <div class="flex overflow-x-auto gap-4 pb-8 snap-x">
+                         ${[1,2,3,4,5].map(i => `
+                            <div class="min-w-[160px] snap-start cursor-pointer group" onclick="simulateRadio('Hit Mix ${i}')">
+                                <img src="https://placehold.co/300x300/1c1c1e/a1a1aa?text=Hits+${i}" class="w-full rounded-lg mb-3 shadow-lg group-hover:scale-105 transition duration-300">
+                                <p class="font-bold text-sm truncate">Hit Mix ${i}</p>
+                                <p class="text-xs text-gray-500">Trending • Pop</p>
+                            </div>
+                         `).join('')}
                     </div>
                 </div>
             `;
-            
-            setTimeout(() => {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.querySelector('div').classList.remove('translate-y-4');
-                renderIcons();
-            }, 10);
-
-            // Set the track to link globally
-            currentTrackToLink = track;
-        }
-
-
-        // --- PLAYBACK FUNCTIONS ---
-
-        /**
-         * Sets the current track and starts playback.
-         * @param {object} track - Standardized track object.
-         */
-        function playTrack(track) {
-            if (!track.previewUrl && track.isSpotify) {
-                // If it's a Spotify track but no 30-sec preview, prompt for MP3 link
-                renderMp3LinkPrompt(track);
-                return;
-            } else if (!track.previewUrl) {
-                 // For local files with no URL (shouldn't happen if file handler is used)
-                renderNotification("Playback Warning", "Playback failed. The local file appears invalid.");
-                return;
-            }
-
-            currentTrack = track;
-            audio.src = track.previewUrl;
-            
-            playerTrackName.textContent = track.name;
-            playerArtistName.textContent = track.artists.map(a => a.name).join(', ');
-            playerTrackImage.src = track.imageUrl;
-            playerLikeButtonContainer.innerHTML = renderLikedButton(track.id, 'w-6 h-6');
-
-            audio.play()
-                .then(() => {
-                    isPlaying = true;
-                    playPauseBtn.innerHTML = `<i data-lucide="pause" class="w-6 h-6"></i>`;
-                    renderIcons();
-                })
-                .catch(e => {
-                    console.error("Error playing audio:", e);
-                    renderNotification("Playback Error", "Could not start audio playback. Ensure media autoplay is enabled in your browser.");
-                });
-        }
-
-        /**
-         * Toggles the play/pause state.
-         */
-        function togglePlayPause() {
-            if (!currentTrack) return;
-
-            if (isPlaying) {
-                audio.pause();
-                isPlaying = false;
-                playPauseBtn.innerHTML = `<i data-lucide="play" class="w-6 h-6"></i>`;
-            } else {
-                audio.play()
-                    .then(() => {
-                        isPlaying = true;
-                        playPauseBtn.innerHTML = `<i data-lucide="pause" class="w-6 h-6">`;
-                    })
-                    .catch(e => {
-                        console.error("Error resuming audio:", e);
-                        renderNotification("Playback Error", "Failed to resume playback.");
-                    });
-            }
             renderIcons();
         }
 
-        /**
-         * Handles MP3 file selection in the Library view and prepares it for playback.
-         */
-        function handleMp3Upload(event) {
-            const file = event.target.files[0];
-            if (!file || !file.type.startsWith('audio/')) {
-                renderNotification("File Error", "Please select a valid audio file (e.g., MP3).");
-                return;
+        function renderSearch() {
+             document.getElementById('dynamic-content').innerHTML = `
+                <h2 class="text-3xl font-bold mb-6">Browse Categories</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
+                    ${['Pop', 'Hip-Hop', 'Rock', 'Electronic', 'Jazz', 'Classical', 'Focus', 'Fitness'].map((genre, i) => `
+                        <div class="aspect-video relative overflow-hidden rounded-xl cursor-pointer hover:scale-[1.02] transition shadow-lg active-click" 
+                             style="background: linear-gradient(135deg, hsl(${i * 45}, 70%, 20%), hsl(${i * 45}, 70%, 10%))"
+                             onclick="performSearch('${genre}')">
+                            <span class="absolute top-3 left-3 font-bold text-lg">${genre}</span>
+                            <i data-lucide="music" class="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 rotate-12"></i>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            renderIcons();
+        }
+        
+        // --- PLAYER LOGIC ---
+        function toggleFullscreenPlayer(show) {
+            const player = document.getElementById('fullscreen-player');
+            const mini = document.getElementById('mini-player');
+            if(show) {
+                player.classList.add('active');
+                mini.style.transform = "translateY(100%)";
+                updateFullscreenVisuals();
+            } else {
+                player.classList.remove('active');
+                mini.style.transform = "translateY(0)";
             }
-
-            const localTrack = {
-                localName: file.name.replace(/\.[^/.]+$/, ""), // Name without extension
-                localUrl: URL.createObjectURL(file),
-                localImage: 'https://placehold.co/60x60/282828/b3b3b3?text=MP3',
-                duration: 210, // 3:30 min guess for duration
-                duration_ms: 210 * 1000,
-                popularity: 60, 
-                artists: [{ name: 'Local Upload', id: 'local-artist' }]
-            };
-
-            const playbackTrack = createPlaybackTrack(localTrack, Date.now());
-            currentPlaylist = [playbackTrack];
-            currentTrackIndex = 0;
-            playTrack(playbackTrack);
-            renderNotification("Success", `Now playing: ${playbackTrack.name} (Local Upload)`);
         }
 
-        // --- AUDIO EVENT LISTENERS ---
+        function updateFullscreenVisuals() {
+            if (!currentTrack) return;
+            document.getElementById('fs-art').src = currentTrack.imageUrl;
+            document.getElementById('fs-bg').style.backgroundImage = `url(${currentTrack.imageUrl})`;
+            document.getElementById('fs-title').textContent = currentTrack.name;
+            document.getElementById('fs-artist').textContent = currentTrack.artists[0].name;
+            
+            // Icon Updates
+            document.getElementById('fs-play-btn').innerHTML = 
+                `<i data-lucide="${isPlaying ? 'pause-circle' : 'play-circle'}" class="w-20 h-20 fill-white text-black"></i>`;
+            renderIcons();
+        }
 
-        audio.addEventListener('timeupdate', () => {
-            if (!isNaN(audio.duration) && isFinite(audio.duration)) {
-                const progress = (audio.currentTime / audio.duration) * 100;
-                progressBar.value = progress;
-                currentTimeEl.textContent = formatTime(audio.currentTime);
-            }
-        });
-
-        audio.addEventListener('loadedmetadata', () => {
-            if (!isNaN(audio.duration) && isFinite(audio.duration)) {
-                durationEl.textContent = formatTime(audio.duration);
-            }
-        });
-
-        audio.addEventListener('ended', () => {
-            // Check for next track in playlist
-            if (currentPlaylist.length > 0 && currentTrackIndex < currentPlaylist.length - 1) {
-                currentTrackIndex++;
-                playTrack(currentPlaylist[currentTrackIndex]);
+        function playTrack(track) {
+            currentTrack = track;
+            if(track.previewUrl) {
+                audio.src = track.previewUrl;
+                audio.play();
+                isPlaying = true;
+                updateMiniPlayer();
+                updateFullscreenVisuals();
+                toggleFullscreenPlayer(true); // Open player on play
             } else {
-                // End of playlist or single track
+                // Use custom modal instead of alert
+                showModal('Playback Error', 'No preview available for this track.');
+            }
+        }
+
+        function playCollection(tracks) {
+            if(tracks.length) playTrack(tracks[0]);
+        }
+
+        function togglePlayPause() {
+            if(!currentTrack) return;
+            if(audio.paused) {
+                audio.play();
+                isPlaying = true;
+            } else {
+                audio.pause();
                 isPlaying = false;
-                playPauseBtn.innerHTML = `<i data-lucide="play" class="w-6 h-6"></i>`;
-                renderIcons();
-                // Reset player UI
-                playerTrackName.textContent = 'Nothing Playing';
-                playerArtistName.textContent = 'Select a song to play';
-                progressBar.value = 0;
-                currentTimeEl.textContent = '0:00';
-                durationEl.textContent = '0:00';
-                playerLikeButtonContainer.innerHTML = '';
             }
-        });
+            updateMiniPlayer();
+            updateFullscreenVisuals();
+        }
 
-        // Progress bar seeking
-        progressBar.addEventListener('input', () => {
-            const seekTime = (progressBar.value / 100) * audio.duration;
-            audio.currentTime = seekTime;
-        });
+        function updateMiniPlayer() {
+            if(!currentTrack) return;
+            document.getElementById('mini-img').src = currentTrack.imageUrl;
+            document.getElementById('mini-title').textContent = currentTrack.name;
+            document.getElementById('mini-artist').textContent = currentTrack.artists[0].name;
+            document.getElementById('mini-play-btn').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-6 h-6 fill-black ml-0.5"></i>`;
+            document.getElementById('mobile-mini-play').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-7 h-7 fill-current"></i>`;
+            renderIcons();
+        }
 
-        // Volume control
-        volumeBar.addEventListener('input', (e) => {
-            audio.volume = e.target.value / 100;
-        });
-
-        // --- SPOTIFY API FUNCTIONS ---
-
-        async function getToken() {
-            const expiry = localStorage.getItem('token_expiry');
-            if (accessToken && expiry && Date.now() < parseInt(expiry)) {
-                return accessToken;
-            }
-
-            const authString = btoa(CLIENT_ID + ':' + CLIENT_SECRET);
+        // --- SPOTIFY UTILS ---
+        async function getSpotifyToken() {
+            if (accessToken) return accessToken;
             try {
-                const response = await fetch(TOKEN_URL, {
+                const res = await fetch(TOKEN_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Basic ' + authString
-                    },
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + btoa(CLIENT_ID + ':' + CLIENT_SECRET) },
                     body: 'grant_type=client_credentials'
                 });
+                const data = await res.json();
+                accessToken = data.access_token;
+                return accessToken;
+            } catch (e) { return null; }
+        }
 
-                if (response.ok) {
-                    const data = await response.json();
-                    accessToken = data.access_token;
-                    localStorage.setItem('spotify_token', accessToken);
-                    localStorage.setItem('token_expiry', Date.now() + ((data.expires_in - 60) * 1000));
-                    return accessToken;
-                } else {
-                    console.error('Failed to get Spotify token:', response.status, await response.text());
-                    return null;
-                }
-            } catch (error) {
-                console.error('Network error during token fetch:', error);
-                return null;
-            }
+        function mapSpotifyTrack(t, fallbackImage) {
+            return {
+                id: t.id,
+                name: t.name,
+                artists: t.artists,
+                imageUrl: t.album?.images?.[0]?.url || fallbackImage || 'https://placehold.co/300x300',
+                previewUrl: t.preview_url,
+                duration: formatTime(t.duration_ms/1000)
+            };
         }
 
         async function performSearch(query) {
-            if (!query.trim()) return;
-            showLoading();
-            const token = await getToken();
-            if (!token) {
-                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
-                hideLoading();
-                return;
-            }
+            if (!query) return;
+            navigateTo('search'); // Show loader
+            const token = await getSpotifyToken();
+            if (!token) return;
 
             try {
-                const response = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=artist,album,track&limit=10`, {
+                const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=track,artist,album&limit=6`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    navigateTo('results', data);
-                } else {
-                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Full Library API Error: ${response.status}. Please try again later.</p>`;
-                }
-            } catch (error) {
-                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network connection failed. Check your internet.</p>`;
-            }
-            hideLoading();
-        }
-
-        async function getArtistDetails(artistId) {
-            showLoading();
-            const token = await getToken();
-            if (!token) {
-                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
-                hideLoading();
-                return;
-            }
-
-            try {
-                const [artistRes, topTracksRes, albumsRes] = await Promise.all([
-                    fetch(`${API_URL}/artists/${artistId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch(`${API_URL}/artists/${artistId}/top-tracks?market=US`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch(`${API_URL}/artists/${artistId}/albums?market=US&include_groups=album,single&limit=5`, { headers: { 'Authorization': `Bearer ${token}` } })
-                ]);
-
-                if (artistRes.ok && topTracksRes.ok && albumsRes.ok) {
-                    const artistData = await artistRes.json();
-                    const topTracksData = await topTracksRes.json();
-                    const albumsData = await albumsRes.json();
-
-                    // Standardize top tracks for playback. 
-                    const tracksForPlayback = topTracksData.tracks.map((t, i) => createPlaybackTrack(t, i, t.album.images?.[0]?.url));
-
-                    renderArtistPage(artistData, tracksForPlayback, albumsData.items);
-                } else {
-                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Failed to load artist details.</p>`;
-                }
-            } catch (error) {
-                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network error loading artist details.</p>`;
-            }
-            hideLoading();
-            renderIcons();
-        }
-
-        async function getAlbumDetails(albumId) {
-            showLoading();
-            const token = await getToken();
-            if (!token) {
-                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
-                hideLoading();
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_URL}/albums/${albumId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    const albumData = await response.json();
-                    renderAlbumPage(albumData);
-                } else {
-                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Failed to load album details.</p>`;
-                }
-            } catch (error) {
-                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network error loading album details.</p>`;
-            }
-            hideLoading();
-            renderIcons();
-        }
-
-        async function getFullArtistCatalog(artistId) {
-            showLoading();
-            const token = await getToken();
-            if (!token) {
-                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
-                hideLoading();
-                return;
-            }
-            
-            try {
-                const [artistRes, albumsRes] = await Promise.all([
-                    fetch(`${API_URL}/artists/${artistId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch(`${API_URL}/artists/${artistId}/albums?market=US&limit=50&include_groups=album,single,appears_on,compilation`, { headers: { 'Authorization': `Bearer ${token}` } })
-                ]);
-
-                if (artistRes.ok && albumsRes.ok) {
-                    const artistData = await artistRes.json();
-                    const albumsData = await albumsRes.json();
-                    renderFullCatalogPage(artistData, albumsData.items);
-                } else {
-                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Failed to load artist catalog.</p>`;
-                }
-
-            } catch (error) {
-                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network error loading artist catalog.</p>`;
-            }
-            hideLoading();
-            renderIcons();
-        }
-        
-        // --- RADIO/PLAYLIST GENERATION ---
-
-        async function generateRadioPlaylist(type) {
-            showLoading();
-            const token = await getToken();
-            if (!token) {
-                renderNotification("Error", "Could not authenticate to generate playlist.");
-                hideLoading();
-                return;
-            }
-
-            const followedArtists = JSON.parse(localStorage.getItem('followedPeyzaArtists') || '[]');
-            if (followedArtists.length === 0) {
-                 renderNotification("Follow Artists First", "Please follow some Verified Peyza Artists in the Library to create a radio based on your taste.");
-                 hideLoading();
-                 return;
-            }
-
-            const trackPromises = followedArtists.slice(0, 5).map(artist => 
-                fetch(`${API_URL}/artists/${artist.id}/top-tracks?market=US`, { headers: { 'Authorization': `Bearer ${token}` } })
-                    .then(res => res.json())
-                    .then(data => data.tracks.map(t => createPlaybackTrack(t, 0, t.album.images?.[0]?.url))) // Standardize tracks
-                    .catch(err => { console.error(`Failed to fetch top tracks for ${artist.name}`, err); return []; })
-            );
-
-            const allTracks = (await Promise.all(trackPromises)).flat();
-            
-            // Shuffle the tracks (Fisher-Yates)
-            for (let i = allTracks.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [allTracks[i], allTracks[j]] = [allTracks[j], allTracks[i]];
-            }
-
-            // Filter out tracks without a preview URL to avoid prompt loops on radio
-            const playableTracks = allTracks.filter(t => t.previewUrl);
-
-            if (playableTracks.length === 0) {
-                renderNotification("Empty Playlist", "Could not find any playable 30-second songs from your followed Verified Peyza Artists.");
-                hideLoading();
-                return;
-            }
-
-            currentPlaylist = playableTracks;
-            currentTrackIndex = 0;
-            
-            hideLoading();
-            renderNotification(`Starting ${type} Radio`, `Playing ${playableTracks.length} shuffled tracks from your followed artists. (30-sec previews only)`);
-            playTrack(currentPlaylist[currentTrackIndex]);
-        }
-
-        // --- SIMULATED FOLLOW LOGIC (Unchanged) ---
-
-        function isArtistFollowed(artistId) {
-            const followedArtists = JSON.parse(localStorage.getItem('followedPeyzaArtists') || '[]');
-            return followedArtists.some(a => a.id === artistId);
-        }
-
-        function toggleFollowArtist(artistId, artistName, imageUrl) {
-            const followedArtists = JSON.parse(localStorage.getItem('followedPeyzaArtists') || '[]');
-            const index = followedArtists.findIndex(a => a.id === artistId);
-
-            if (index > -1) {
-                followedArtists.splice(index, 1);
-            } else {
-                followedArtists.push({ id: artistId, name: artistName, image: imageUrl });
-            }
-
-            localStorage.setItem('followedPeyzaArtists', JSON.stringify(followedArtists));
-
-            renderLibrary();
-            const followButton = document.getElementById('follow-button');
-            if (followButton) {
-                followButton.outerHTML = renderFollowButton(artistId, artistName, imageUrl);
-                renderIcons();
-            }
-        }
-        
-        function renderFollowButton(artistId, artistName, imageUrl) {
-            const isFollowed = isArtistFollowed(artistId);
-            const buttonClass = isFollowed ? 'bg-secondary-dark border border-white text-white' : 'bg-transparent border border-light-gray text-light-gray';
-            const buttonText = isFollowed ? 'FOLLOWING' : 'FOLLOW';
-
-            return `
-                <button id="follow-button" 
-                    class="${buttonClass} font-bold py-2 px-4 rounded-full text-sm hover:scale-[1.02] hover:border-white hover:text-white transition duration-200"
-                    onclick="toggleFollowArtist('${artistId}', '${artistName.replace(/'/g, "\\'")}', '${imageUrl}')">
-                    ${buttonText}
-                </button>
-            `;
-        }
-
-        // --- UI RENDERING FUNCTIONS ---
-
-        function navigateTo(view, data = null) {
-            const contentArea = document.getElementById('dynamic-content');
-            contentArea.dataset.view = view; // Set current view for conditional rendering/updates
-            const searchContainer = document.getElementById('search-container');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            // Toggle search bar visibility
-            const isDesktop = window.innerWidth >= 768;
-            if (view === 'search' || isDesktop) {
-                searchContainer.classList.remove('hidden');
-                searchContainer.classList.add('block');
-            } else {
-                searchContainer.classList.remove('block');
-                searchContainer.classList.add('hidden');
-            }
-
-            showLoading();
-
-            setTimeout(() => {
-                hideLoading();
-                switch (view) {
-                    case 'home':
-                        renderHome();
-                        break;
-                    case 'search':
-                        contentArea.innerHTML = renderSearchPlaceholder();
-                        break;
-                    case 'results':
-                        renderSearchResults(data);
-                        break;
-                    case 'artist':
-                        getArtistDetails(data);
-                        break;
-                    case 'album':
-                        getAlbumDetails(data);
-                        break;
-                    case 'library':
-                        renderLibrary();
-                        break;
-                    case 'liked':
-                        renderLikedSongsPage();
-                        break;
-                    case 'catalog':
-                        getFullArtistCatalog(data);
-                        break;
-                    default:
-                        renderHome();
-                }
-                renderIcons();
-            }, 300);
-        }
-
-        function renderHome() {
-            const contentArea = document.getElementById('dynamic-content');
-            contentArea.innerHTML = `
-                <h1 class="text-4xl font-extrabold mb-8">Good evening</h1>
+                const data = await res.json();
                 
-                <!-- Quick Access Grid (Tablet/Desktop) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
-                    ${renderCardLink('Artist', 'Verified Peyza Artists', 'artist', '3TVXtAsR1Inumwj472Syg4', 'https://placehold.co/100x100/1DB954/ffffff?text=ARTIST')}
-                    ${renderCardLink('Album', 'Latest Hits', 'album', '6KspK9Qf90QfE45V2w5B5M', 'https://placehold.co/100x100/1DB954/ffffff?text=ALBUM')}
-                    ${renderCardLink('Radio', 'Your Daily Mix', 'radio', 'Daily Mix', 'https://placehold.co/100x100/A65A15/ffffff?text=RADIO')}
-                    ${renderCardLink('Playlist', 'Discover Weekly', 'playlist', 'Discover Weekly', 'https://placehold.co/100x100/7733FF/ffffff?text=LIST')}
-                </div>
+                document.getElementById('dynamic-content').innerHTML = `
+                    <h2 class="text-2xl font-bold mb-4">Results for "${query}"</h2>
+                    
+                    ${data.artists.items.length ? `
+                        <h3 class="text-xl font-bold mb-3">Artists</h3>
+                        <div class="mb-8 overflow-x-auto pb-4">
+                            <div class="flex gap-4">
+                                ${data.artists.items.map(a => `
+                                    <div class="min-w-[140px] text-center cursor-pointer group" onclick="navigateTo('artist', '${a.id}')">
+                                        <img src="${a.images[0]?.url || 'https://placehold.co/150'}" class="w-32 h-32 rounded-full object-cover mx-auto mb-2 shadow-lg group-hover:scale-105 transition">
+                                        <p class="font-bold text-sm truncate">${a.name}</p>
+                                        <p class="text-xs text-gray-500">Artist</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${data.albums.items.length ? `
+                        <h3 class="text-xl font-bold mb-3">Albums</h3>
+                        <div class="mb-8 overflow-x-auto pb-4">
+                            <div class="flex gap-4">
+                                ${data.albums.items.map(a => `
+                                    <div class="min-w-[140px] text-center cursor-pointer group" onclick="navigateTo('album', '${a.id}')">
+                                        <img src="${a.images[0]?.url || 'https://placehold.co/150'}" class="w-32 h-32 rounded-lg object-cover mx-auto mb-2 shadow-lg group-hover:scale-105 transition">
+                                        <p class="font-bold text-sm truncate">${a.name}</p>
+                                        <p class="text-xs text-gray-500">${a.artists[0].name}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
 
-                <!-- Suggested Sections -->
-                <h2 class="text-2xl font-bold mt-8 mb-4">Radios & Playlists for you</h2>
-                ${renderHorizontalSection([
-                    { title: 'Chill Radio', description: 'Smooth vibes for winding down.', image: 'https://placehold.co/150x150/4B77BE/ffffff?text=CHILL', action: 'radio', data: 'Chill Radio' },
-                    { title: 'Workout Radio', description: 'High energy from followed artists.', image: 'https://placehold.co/150x150/FF3860/ffffff?text=WORKOUT', action: 'radio', data: 'Workout Radio' },
-                    { title: 'Focus Playlist', description: 'Instrumental music for deep work.', image: 'https://placehold.co/150x150/34495E/ffffff?text=FOCUS', action: 'playlist', data: 'Focus Playlist' }
-                ])}
-            `;
-        }
-
-        function renderCardLink(type, title, action, data, imageUrl) {
-            const clickHandler = action === 'radio' || action === 'playlist' ? `generateRadioPlaylist('${title}')` : `MapsTo('${action}', '${data}')`;
-            return `
-                <a href="#" class="bg-card-dark/50 hover:bg-card-dark transition duration-200 rounded-lg overflow-hidden flex items-center shadow-lg"
-                   onclick="event.preventDefault(); ${clickHandler}">
-                    <img src="${imageUrl}" class="w-20 h-20 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/80x80/282828/b3b3b3?text=${type[0]}'">
-                    <span class="text-white font-semibold p-4 truncate">${title}</span>
-                </a>
-            `;
-        }
-
-        function renderHorizontalSection(items) {
-            return `
-                <div class="overflow-x-auto whitespace-nowrap pb-4">
-                    <div class="flex space-x-4">
-                        ${items.map(item => {
-                            const clickHandler = item.action === 'radio' || item.action === 'playlist' ? `generateRadioPlaylist('${item.title}')` : `MapsTo('${item.action}', '${item.data}')`;
-                            return `
-                                <div class="inline-block w-40 p-4 bg-card-dark rounded-xl shadow-xl hover:bg-[#333] transition duration-200 cursor-pointer"
-                                     onclick="${clickHandler}">
-                                    <img src="${item.image}" alt="${item.title}" class="w-full h-40 object-cover rounded-lg mb-3 shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/160x160/282828/b3b3b3?text=IMG'">
-                                    <p class="text-white font-bold truncate">${item.title}</p>
-                                    <p class="text-light-gray text-sm whitespace-normal mt-1">${item.description}</p>
+                    ${data.tracks.items.length ? `
+                        <h3 class="text-xl font-bold mb-3">Songs</h3>
+                        <div class="bg-[#1c1c1e] rounded-xl overflow-hidden shadow-lg">
+                            ${data.tracks.items.map((t, i) => `
+                                 <div class="flex items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer" 
+                                      onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'>
+                                    <img src="${t.album.images[0]?.url || 'https://placehold.co/60x60'}" class="w-12 h-12 rounded-md mr-4">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="font-semibold text-white truncate">${t.name}</p>
+                                        <p class="text-xs text-gray-500 truncate">${t.artists[0].name}</p>
+                                    </div>
                                 </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        function renderSearchPlaceholder() {
-            return `
-                <h1 class="text-3xl font-extrabold mb-6">Search</h1>
-                <h2 class="text-xl font-bold mb-4">Browse All</h2>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    ${renderSearchCategoryCard('Pop', '#D91E47')}
-                    ${renderSearchCategoryCard('Hip Hop', '#1E3AD9')}
-                    ${renderSearchCategoryCard('Rock', '#D96A1E')}
-                    ${renderSearchCategoryCard('Chill', '#1ED9AD')}
-                    ${renderSearchCategoryCard('Workout', '#7D1ED9')}
-                    ${renderSearchCategoryCard('Jazz', '#1E47D9')}
-                    ${renderSearchCategoryCard('Electronic', '#D9AD1E')}
-                    ${renderSearchCategoryCard('Classical', '#3A1ED9')}
-                </div>
-            `;
-        }
-
-        function renderSearchCategoryCard(title, color) {
-            // Placeholder: clicking a category will start a search for the title
-            const imageUrl = `https://placehold.co/100x100/${color.replace('#', '')}/ffffff?text=${title.toUpperCase().replace(/\s/g, '+')}`;
-            return `
-                <div class="aspect-square rounded-xl overflow-hidden shadow-xl cursor-pointer transform hover:scale-[1.03] transition duration-200"
-                     style="background-color: ${color};"
-                     onclick="performSearch('${title}')">
-                    <div class="p-4">
-                        <h3 class="text-xl font-bold text-white">${title}</h3>
-                    </div>
-                    <!-- Placeholder image tilted to look like a category cover -->
-                    <img src="${imageUrl}" class="w-1/2 h-1/2 object-cover float-right transform rotate-12 -mt-4 mr-1" onerror="this.onerror=null;this.src='https://placehold.co/100x100/282828/b3b3b3?text=IMG'">
-                </div>
-            `;
-        }
-
-        function renderSearchResults(data) {
-            const contentArea = document.getElementById('dynamic-content');
-            const artists = data.artists?.items || [];
-            const albums = data.albums?.items || [];
-            const tracks = (data.tracks?.items || []).map((t, i) => createPlaybackTrack(t, i, t.album.images?.[0]?.url));
-            
-            // Define likedSongsFromList globally for access in renderLikedButton
-            window.likedSongsFromList = getLikedSongs();
-
-            contentArea.innerHTML = `
-                <h1 class="text-3xl font-extrabold mb-8">Search Results</h1>
-
-                <!-- Artists -->
-                ${artists.length > 0 ? `
-                    <h2 class="text-2xl font-bold mb-4">Verified Peyza Artists</h2>
-                    <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
-                        ${artists.map(renderArtistCard).join('')}
-                    </div>
-                ` : ''}
-
-                <!-- Albums -->
-                ${albums.length > 0 ? `
-                    <h2 class="text-2xl font-bold mb-4">Albums, EPs, and Compilations</h2>
-                    <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
-                        ${albums.map(renderAlbumCard).join('')}
-                    </div>
-                ` : ''}
-
-                <!-- Tracks (Top 5) -->
-                ${tracks.length > 0 ? `
-                    <h2 class="text-2xl font-bold mb-4">Top Tracks</h2>
-                    <div class="space-y-1">
-                        ${tracks.slice(0, 5).map((track, index) => renderTrackRow(track, index + 1)).join('')}
-                    </div>
-                ` : ''}
-
-                ${artists.length === 0 && albums.length === 0 && tracks.length === 0 ? `
-                    <div class="text-center p-10 text-light-gray">
-                        <i data-lucide="frown" class="w-12 h-12 mx-auto mb-3"></i>
-                        <h2 class="text-xl font-bold mb-2">No results found</h2>
-                        <p>Please try a different search term in the Full Library.</p>
-                    </div>
-                ` : ''}
-            `;
-        }
-
-        function renderArtistCard(artist) {
-            const imageUrl = artist.images?.[0]?.url || 'https://placehold.co/160x160/282828/b3b3b3?text=ARTIST';
-            return `
-                <div class="p-3 bg-card-dark rounded-xl shadow-xl hover:bg-[#333] transition duration-200 cursor-pointer"
-                     onclick="navigateTo('artist', '${artist.id}')">
-                    <img src="${imageUrl}" alt="${artist.name}" class="w-full h-auto rounded-full aspect-square object-cover mb-3 shadow-md">
-                    <p class="text-white font-bold truncate">${artist.name}</p>
-                    <p class="text-light-gray text-sm">Verified Peyza Artist</p>
-                </div>
-            `;
-        }
-
-        function renderAlbumCard(album) {
-            const imageUrl = album.images?.[0]?.url || 'https://placehold.co/160x160/282828/b3b3b3?text=ALBUM';
-            const releaseType = album.album_type.charAt(0).toUpperCase() + album.album_type.slice(1);
-            return `
-                <div class="p-3 bg-card-dark rounded-xl shadow-xl hover:bg-[#333] transition duration-200 cursor-pointer"
-                     onclick="navigateTo('album', '${album.id}')">
-                    <img src="${imageUrl}" alt="${album.name}" class="w-full h-auto rounded-lg aspect-square object-cover mb-3 shadow-md">
-                    <p class="text-white font-bold truncate">${album.name}</p>
-                    <p class="text-light-gray text-sm truncate">${album.release_date.substring(0, 4)} &middot; ${releaseType}</p>
-                </div>
-            `;
-        }
-
-        function renderTrackRow(track, index) {
-            // Encode the track object for the click handler
-            const trackJson = JSON.stringify(track).replace(/'/g, "\\'");
-            return `
-                <div class="track-row flex items-center p-2 rounded-lg hover:bg-card-dark transition duration-150 cursor-pointer group"
-                     onclick='playTrack(${trackJson})' data-track-id="${track.id}">
-                    <span class="text-light-gray w-6 text-center text-sm mr-2">${index}</span>
-                    <img src="${track.imageUrl}" class="w-12 h-12 object-cover rounded mr-3" alt="Album Cover">
-                    <div class="flex-grow min-w-0">
-                        <p class="text-white font-medium truncate">${track.name}</p>
-                        <p class="text-light-gray text-xs truncate">
-                            ${track.artists.map(a => `<span onclick="event.stopPropagation(); ${a.id ? `MapsTo('artist', '${a.id}')` : 'void(0)'}" class="hover:underline">${a.name}</span>`).join(', ')}
-                        </p>
-                    </div>
-                    <!-- Like Button -->
-                    <div class="w-8 mr-4 opacity-0 group-hover:opacity-100 sm:opacity-100 transition duration-300">
-                        <button class="${isTrackLiked(track.id) ? 'text-liked-red fill-liked-red' : 'text-light-gray hover:text-white'}" 
-                            onclick="event.stopPropagation(); toggleLike(${trackJson})">
-                            <i data-lucide="heart" class="w-5 h-5 transition duration-150"></i>
-                        </button>
-                    </div>
-                    <div class="text-light-gray text-sm hidden sm:block w-32 text-right">
-                        ${track.streams} Streams
-                    </div>
-                    <div class="text-light-gray text-sm w-12 text-right ml-4">
-                        ${track.duration}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderArtistPage(artist, topTracks, albums) {
-            const contentArea = document.getElementById('dynamic-content');
-            const imageUrl = artist.images?.[0]?.url || 'https://placehold.co/500x300/282828/b3b3b3?text=ARTIST';
-            const monthlyListeners = generateMonthlyListeners(artist.popularity);
-            const followers = generateFollowers(artist.popularity);
-
-            // Calculate Total Streams for top tracks (Simulated)
-            const totalStreams = topTracks.reduce((sum, track) => sum + parseInt(track.streams.replace(/,/g, ''), 10), 0);
-
-            // Define likedSongsFromList globally for access in renderLikedButton
-            window.likedSongsFromList = topTracks;
-
-            contentArea.innerHTML = `
-                <!-- Artist Header -->
-                <div class="relative pt-20 pb-8 px-4 md:px-6 rounded-t-xl" style="background-image: linear-gradient(to bottom, rgba(50, 50, 50, 0.5), rgba(18, 18, 18, 1));">
-                    <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('${imageUrl}');"></div>
-                    <div class="relative z-10">
-                        <p class="text-white font-bold text-sm flex items-center mb-2">
-                            <i data-lucide="check-circle" class="w-4 h-4 text-accent-green mr-1"></i>
-                            Verified Peyza Artist
-                        </p>
-                        <h1 class="text-4xl md:text-7xl font-extrabold mb-4">${artist.name}</h1>
-                        <p class="text-light-gray text-lg">${monthlyListeners} Monthly Listeners</p>
-                        <p class="text-light-gray text-md">${followers} Followers</p>
-                        <p class="text-light-gray text-md mt-1">Total Top Tracks Streams: <span class="text-white font-bold">${formatNumber(totalStreams)}</span> (Simulated)</p>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="p-4 md:p-6 flex items-center space-x-4">
-                    <button class="bg-accent-green text-black font-bold py-3 px-6 rounded-full shadow-lg hover:scale-[1.02] transition duration-200"
-                        onclick="if(topTracks.length > 0) { currentPlaylist = topTracks; currentTrackIndex = 0; playTrack(topTracks[0]); }">
-                        <i data-lucide="play" class="inline-block w-6 h-6 mr-1"></i> PLAY
-                    </button>
-                    ${renderFollowButton(artist.id, artist.name, imageUrl)}
-                </div>
-
-                <!-- Top Tracks -->
-                <div class="p-4 md:p-6">
-                    <h2 class="text-2xl font-bold mb-4">Popular Tracks</h2>
-                    <div class="space-y-2">
-                        ${topTracks.slice(0, 5).map((track, index) => renderTrackRow(track, index + 1)).join('')}
-                    </div>
-                </div>
-
-                <!-- Albums/Singles -->
-                <div class="p-4 md:p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold">Albums & Singles</h2>
-                        <button class="text-light-gray text-sm font-semibold hover:underline" onclick="navigateTo('catalog', '${artist.id}')">
-                            VIEW FULL CATALOG
-                        </button>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        ${albums.map(album => renderAlbumCard(album)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderFullCatalogPage(artist, allAlbums) {
-            const contentArea = document.getElementById('dynamic-content');
-            let albums = [...allAlbums]; // Mutable copy for sorting
-
-            contentArea.innerHTML = `
-                <h1 class="text-4xl font-extrabold mb-2">${artist.name}</h1>
-                <h2 class="text-2xl font-bold mb-8 text-light-gray">Full Discography</h2>
-
-                <div class="flex flex-wrap items-center space-x-4 mb-6">
-                    <label for="sort-select" class="text-light-gray">Sort by:</label>
-                    <select id="sort-select" class="bg-card-dark text-white p-2 rounded-lg" onchange="sortCatalog(this.value)">
-                        <option value="popularity" selected>Popularity (Simulated)</option>
-                        <option value="date-desc">Release Date (Newest)</option>
-                        <option value="date-asc">Release Date (Oldest)</option>
-                    </select>
-                    <label for="filter-select" class="text-light-gray ml-4">Filter:</label>
-                    <select id="filter-select" class="bg-card-dark text-white p-2 rounded-lg" onchange="filterCatalog(this.value)">
-                        <option value="all" selected>All Types</option>
-                        <option value="album">Albums</option>
-                        <option value="single">Singles</option>
-                        <option value="compilation">Compilations</option>
-                    </select>
-                </div>
-                
-                <div id="catalog-list" class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    <!-- Albums will be rendered here -->
-                </div>
-            `;
-
-            // Store original data globally for filtering/sorting
-            contentArea.dataset.albums = JSON.stringify(albums);
-            contentArea.dataset.artistId = artist.id;
-
-            // Initial render
-            renderCatalogList(albums);
-        }
-
-        function renderCatalogList(albums) {
-            const listEl = document.getElementById('catalog-list');
-            if (listEl) {
-                listEl.innerHTML = albums.map(album => renderAlbumCard(album)).join('');
-                renderIcons();
-            }
-        }
-
-        function sortCatalog(sortBy) {
-            const contentArea = document.getElementById('dynamic-content');
-            const albums = JSON.parse(contentArea.dataset.albums || '[]');
-            const filterValue = document.getElementById('filter-select').value;
-            
-            let filteredAlbums = albums;
-            if (filterValue !== 'all') {
-                filteredAlbums = albums.filter(a => a.album_type === filterValue);
-            }
-
-            switch(sortBy) {
-                case 'date-desc':
-                    filteredAlbums.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
-                    break;
-                case 'date-asc':
-                    filteredAlbums.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
-                    break;
-                case 'popularity':
-                default:
-                    // Simulated popularity sort (Spotify's API doesn't provide album popularity directly)
-                    filteredAlbums.sort((a, b) => (b.popularity || 0) - (a.popularity || 0)); 
-            }
-
-            renderCatalogList(filteredAlbums);
-        }
-
-        function filterCatalog(filterBy) {
-            const contentArea = document.getElementById('dynamic-content');
-            const albums = JSON.parse(contentArea.dataset.albums || '[]');
-            
-            let filteredAlbums = albums;
-            if (filterBy !== 'all') {
-                filteredAlbums = albums.filter(a => a.album_type === filterBy);
-            }
-
-            const sortValue = document.getElementById('sort-select').value;
-            sortCatalog(sortValue); // Re-run sort on the filtered list
-        }
-
-        function renderAlbumPage(album) {
-            const contentArea = document.getElementById('dynamic-content');
-            const imageUrl = album.images?.[0]?.url || 'https://placehold.co/300x300/282828/b3b3b3?text=ALBUM';
-            const releaseDate = album.release_date.substring(0, 4);
-            const albumPopularity = album.popularity || 50;
-            const albumImage = album.images?.[0]?.url;
-
-            let totalStreams = 0;
-            const tracksForPlayback = album.tracks.items.map((track, index) => {
-                // Pass the album's image to ensure tracks have a cover
-                const playbackTrack = createPlaybackTrack(track, index, albumImage, albumPopularity);
-                totalStreams += parseInt(playbackTrack.streams.replace(/,/g, ''), 10);
-                return playbackTrack;
-            });
-
-            // Collect all unique featured artists
-            const allArtists = new Map();
-            tracksForPlayback.forEach(track => {
-                track.artists.forEach(artist => {
-                    if (artist.id) allArtists.set(artist.id, artist);
-                });
-            });
-
-            const mainArtist = album.artists[0];
-            allArtists.delete(mainArtist.id);
-            const featuredArtists = Array.from(allArtists.values());
-
-            // Define likedSongsFromList globally for access in renderLikedButton
-            window.likedSongsFromList = tracksForPlayback;
-
-            contentArea.innerHTML = `
-                <!-- Album Header -->
-                <div class="flex flex-col md:flex-row items-center md:items-end p-6 md:p-8 bg-card-dark rounded-xl shadow-2xl mb-6" style="background-image: linear-gradient(to bottom, rgba(70, 70, 70, 0.4), rgba(40, 40, 40, 1));">
-                    <img src="${imageUrl}" alt="${album.name}" class="w-48 h-48 md:w-64 md:h-64 object-cover rounded-lg shadow-2xl mb-4 md:mb-0 md:mr-6">
-                    <div>
-                        <p class="text-sm font-semibold uppercase text-light-gray mt-4 md:mt-0">${album.album_type}</p>
-                        <h1 class="text-4xl md:text-6xl font-extrabold mb-2">${album.name}</h1>
-                        <p class="text-light-gray font-semibold mb-2">${releaseDate} &middot; ${album.total_tracks} songs &middot; <span class="text-white">${formatNumber(totalStreams)} Total Streams</span> (Simulated)</p>
-                        <div class="flex items-center space-x-2 text-white font-bold">
-                            <i data-lucide="verified" class="w-4 h-4 text-accent-green"></i>
-                            <a href="#" onclick="event.preventDefault(); navigateTo('artist', '${mainArtist.id}')" class="hover:underline">${mainArtist.name}</a>
+                            `).join('')}
                         </div>
-                    </div>
-                </div>
+                    ` : ''}
 
-                <!-- Play Button & Actions -->
-                <div class="p-4 flex items-center space-x-4">
-                    <button class="bg-accent-green text-black p-3 rounded-full shadow-lg hover:scale-[1.05] transition duration-200" 
-                        onclick="if(tracksForPlayback.length > 0) { currentPlaylist = tracksForPlayback; currentTrackIndex = 0; playTrack(tracksForPlayback[0]); }">
-                        <i data-lucide="play" class="w-8 h-8"></i>
-                    </button>
-                    <!-- Like button for the entire album (not functional, just for aesthetic) -->
-                    <button class="text-light-gray hover:text-white transition duration-200">
-                        <i data-lucide="heart" class="w-7 h-7"></i>
-                    </button>
-                </div>
-
-                <!-- Featured Artists Section -->
-                ${featuredArtists.length > 0 ? `
-                <div class="p-4">
-                    <h2 class="text-xl font-bold mb-3">Featured Verified Peyza Artists</h2>
-                    <div class="flex flex-wrap gap-3">
-                        ${featuredArtists.map(artist => `
-                            <button class="bg-card-dark/70 text-white py-2 px-4 rounded-full text-sm hover:bg-[#333] transition duration-200"
-                                    onclick="navigateTo('artist', '${artist.id}')">
-                                ${artist.name}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-                ` : ''}
-
-                <!-- Track List -->
-                <div class="p-4 md:p-6">
-                    <div class="space-y-1">
-                        ${tracksForPlayback.map((track, index) => renderTrackRow(track, index + 1)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        function renderLikedSongsPage() {
-            const contentArea = document.getElementById('dynamic-content');
-            const likedSongs = getLikedSongs();
-            
-            // Define likedSongsFromList globally for access in renderLikedButton
-            window.likedSongsFromList = likedSongs;
-
-            contentArea.innerHTML = `
-                <div class="flex flex-col md:flex-row items-center md:items-end p-6 md:p-8 bg-gradient-to-br from-indigo-500 to-primary-dark rounded-xl shadow-2xl mb-6">
-                    <div class="w-48 h-48 md:w-64 md:h-64 bg-white/10 rounded-lg shadow-2xl flex items-center justify-center mb-4 md:mb-0 md:mr-6">
-                        <i data-lucide="heart" class="w-20 h-20 text-white"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-semibold uppercase text-white mt-4 md:mt-0">Playlist</p>
-                        <h1 class="text-4xl md:text-6xl font-extrabold mb-2">Liked Songs</h1>
-                        <p class="text-white font-semibold mb-2">The best of your music.</p>
-                        <p class="text-light-gray font-semibold">${likedSongs.length} songs</p>
-                    </div>
-                </div>
-
-                <!-- Play Button -->
-                <div class="p-4 flex items-center space-x-4">
-                    <button class="bg-accent-green text-black p-3 rounded-full shadow-lg hover:scale-[1.05] transition duration-200" 
-                        onclick="if(likedSongs.length > 0) { currentPlaylist = likedSongs; currentTrackIndex = 0; playTrack(likedSongs[0]); }">
-                        <i data-lucide="play" class="w-8 h-8"></i>
-                    </button>
-                    <!-- Shuffle Button (simple aesthetic version) -->
-                     <button class="text-light-gray hover:text-white transition duration-200">
-                        <i data-lucide="shuffle" class="w-7 h-7"></i>
-                    </button>
-                </div>
-                
-                <!-- Track List -->
-                <div class="p-4 md:p-6">
-                    <div class="space-y-1">
-                        ${likedSongs.length > 0 
-                            ? likedSongs.map((track, index) => renderTrackRow(track, index + 1)).join('')
-                            : `<div class="text-center p-10 text-light-gray"><p>You haven't liked any songs yet. Start browsing the Full Library!</p></div>`
-                        }
-                    </div>
-                </div>
-            `;
-            renderIcons();
-        }
-
-        // --- CUSTOM NOTIFICATION MODAL (Unchanged) ---
-        function renderNotification(title, message) {
-            const modalId = 'peyza-notification-modal';
-            let modal = document.getElementById(modalId);
-            
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = modalId;
-                modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4 transition-opacity duration-300 opacity-0 pointer-events-none';
-                document.body.appendChild(modal);
-            }
-
-            modal.innerHTML = `
-                <div class="bg-card-dark p-6 rounded-xl shadow-2xl max-w-sm w-full transform translate-y-4 transition-transform duration-300">
-                    <h3 class="text-xl font-bold mb-3 text-white">${title}</h3>
-                    <p class="text-light-gray mb-4">${message}</p>
-                    <button class="bg-accent-green text-black font-bold py-2 px-4 rounded-full float-right" onclick="closeNotification('${modalId}')">
-                        Close
-                    </button>
-                </div>
-            `;
-            
-            // Show the modal with a small delay for animation
-            setTimeout(() => {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.querySelector('div').classList.remove('translate-y-4');
-            }, 10);
-            renderIcons();
-        }
-
-        function closeNotification(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.querySelector('div').classList.add('translate-y-4');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                // Remove from DOM after transition
-                setTimeout(() => {
-                    modal.remove();
-                }, 300); 
-            }
-        }
-
-
-        // --- INITIALIZATION ---
-
-        window.onload = () => {
-            navigateTo('home');
-            renderLibrary();
-            updateLikedSongsCount();
-        };
-
-        function renderLibrary() {
-            const followedArtists = JSON.parse(localStorage.getItem('followedPeyzaArtists') || '[]');
-            const librarySidebar = document.getElementById('library-content');
-            
-            // Existing content (Liked Songs) is already in the HTML. Prepend artists.
-            const artistListHtml = followedArtists.map(artist => `
-                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-card-dark/50 transition duration-150 cursor-pointer"
-                     onclick="navigateTo('artist', '${artist.id}')">
-                    <img src="${artist.image || 'https://placehold.co/40x40/282828/b3b3b3?text=A'}" class="w-10 h-10 rounded-full object-cover" alt="${artist.name}">
-                    <div class="min-w-0">
-                        <p class="text-white font-semibold truncate">${artist.name}</p>
-                        <p class="text-light-gray text-xs truncate">Verified Peyza Artist</p>
-                    </div>
-                </div>
-            `).join('');
-
-            // Update the main Library view content
-             const contentArea = document.getElementById('dynamic-content');
-             if (contentArea.dataset.view === 'library') {
-                 contentArea.innerHTML = `
-                    <h1 class="text-3xl md:text-4xl font-extrabold mb-8">Your Library</h1>
-                    
-                    <!-- MP3 UPLOAD SECTION -->
-                    <div class="p-6 bg-card-dark rounded-xl shadow-xl mb-8">
-                        <h2 class="text-xl font-bold mb-3 flex items-center"><i data-lucide="upload" class="w-5 h-5 mr-2 text-accent-green"></i> Local Playback</h2>
-                        <p class="text-light-gray mb-4">Upload an MP3 file from your device to listen to it directly in Peyza. Only you can access this track.</p>
-                        <label for="mp3-upload" class="inline-block bg-accent-green text-black font-bold py-2 px-4 rounded-full cursor-pointer hover:bg-green-600 transition">
-                            Select MP3 File
-                        </label>
-                        <input type="file" id="mp3-upload" accept="audio/mp3" class="hidden" onchange="handleMp3Upload(event)">
-                    </div>
-
-                    ${followedArtists.length > 0 ? `
-                        <h2 class="text-2xl font-bold mb-4">Verified Peyza Artists You Follow</h2>
-                        <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                            ${followedArtists.map(artist => renderArtistCard(artist)).join('')}
+                    ${!data.tracks.items.length && !data.artists.items.length && !data.albums.items.length ? `
+                        <div class="text-center py-20 text-gray-500">
+                            <i data-lucide="frown" class="w-10 h-10 mx-auto mb-4"></i>
+                            <p class="text-lg">No results found for "${query}"</p>
                         </div>
-                    ` : `
-                        <div class="p-10 bg-card-dark rounded-xl text-center">
-                            <i data-lucide="mic" class="w-12 h-12 mx-auto text-light-gray mb-3"></i>
-                            <h2 class="text-xl font-bold mb-2">Find something to follow</h2>
-                            <p class="text-light-gray mb-4">Search for your favorite Verified Peyza Artists and follow them to add them here.</p>
-                            <button class="bg-white text-black font-bold py-2 px-4 rounded-full hover:bg-light-gray transition" onclick="navigateTo('search')">
-                                Search Full Library
-                            </button>
-                        </div>
-                    `}
+                    ` : ''}
+
                 `;
-             }
-            
-            // Update the sidebar content, keeping the Liked Songs element
-            const likedSongsElement = librarySidebar.querySelector('[onclick="navigateTo(\'liked\')"]');
-            librarySidebar.innerHTML = '';
-            if (likedSongsElement) {
-                librarySidebar.appendChild(likedSongsElement);
-            }
-            librarySidebar.insertAdjacentHTML('beforeend', artistListHtml);
-            
-            renderIcons();
+                renderIcons();
+            } catch(e) { console.error(e); }
         }
 
-        document.getElementById('search-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch(e.target.value);
-            }
-            
+        // --- PLAYLISTS (Mock Implementation for UI) ---
+        function loadUserPlaylists() {
+            const container = document.getElementById('user-playlists-sidebar');
+            const playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]');
+            container.innerHTML = playlists.map(pl => `
+                <a href="#" class="nav-item block px-3 py-2 text-sm text-gray-400 hover:text-white truncate rounded-lg transition active-click">
+                    ${pl.name}
+                </a>
+            `).join('');
+            renderIcons();
+        }
+        function createNewPlaylist() {
+            const name = document.getElementById('new-playlist-name').value;
+            if(!name) return;
+            const pls = JSON.parse(localStorage.getItem('peyza_playlists') || '[]');
+            pls.push({ name, tracks: [] });
+            localStorage.setItem('peyza_playlists', JSON.stringify(pls));
+            closePlaylistModal();
+            loadUserPlaylists();
+        }
+        function showAddToPlaylistModal() {
+            document.getElementById('playlist-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('playlist-modal-content').classList.remove('scale-95', 'opacity-0'), 10);
+            const container = document.getElementById('playlist-list-container');
+            const pls = JSON.parse(localStorage.getItem('peyza_playlists') || '[]');
+            container.innerHTML = pls.length ? pls.map(pl => `
+                <div class="p-3 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer flex justify-between items-center" onclick="closePlaylistModal()">
+                    <span class="font-medium text-sm">${pl.name}</span>
+                    <i data-lucide="plus" class="w-4 h-4 text-gray-500"></i>
+                </div>
+            `).join('') : '<p class="text-gray-500 text-sm text-center py-4">No playlists yet</p>';
+            renderIcons();
+        }
+        function closePlaylistModal() {
+            document.getElementById('playlist-modal-content').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => document.getElementById('playlist-modal').classList.add('hidden'), 200);
+            document.getElementById('new-playlist-input-div').classList.add('hidden');
+        }
+        function createPlaylistPrompt() {
+            showAddToPlaylistModal();
+            document.getElementById('playlist-modal-content').querySelector('h3').textContent = 'Create Playlist';
+            document.getElementById('playlist-list-container').innerHTML = '';
+            document.querySelector('#playlist-modal-content > button:first-of-type').classList.add('hidden');
+            document.getElementById('new-playlist-input-div').classList.remove('hidden');
+            document.getElementById('new-playlist-name').value = '';
+            document.getElementById('new-playlist-name').focus();
+            document.querySelector('#new-playlist-input-div button').onclick = createNewPlaylist;
+        }
+
+        function showModal(title, message) {
+            // A quick mock for a non-alert message box
+            const existing = document.getElementById('temp-modal');
+            if(existing) existing.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'temp-modal';
+            modal.className = 'fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in';
+            modal.innerHTML = `
+                <div class="bg-card-dark w-full max-w-xs rounded-xl p-6 shadow-2xl border border-white/10">
+                    <h3 class="text-lg font-bold text-accent-cherry mb-2">${title}</h3>
+                    <p class="text-gray-300 text-sm mb-6">${message}</p>
+                    <button onclick="document.getElementById('temp-modal').remove()" class="w-full py-2 bg-accent-cherry text-white font-semibold rounded-lg active-click">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function simulateRadio(name) { showModal('Starting Radio', `Starting a mix based on ${name}.`); }
+        function renderLibrary() { renderHome(); } // Placeholder reuse
+        function renderLiked() { renderHome(); }   // Placeholder reuse
+
+        // AUDIO LISTENERS
+        audio.addEventListener('timeupdate', () => {
+            if(!currentTrack) return;
+            const pct = (audio.currentTime / audio.duration) * 100 || 0;
+            document.getElementById('mini-progress').style.width = pct + '%';
+            document.getElementById('mobile-progress-bar').style.width = pct + '%';
+            document.getElementById('fs-progress').value = pct;
+            document.getElementById('fs-curr-time').textContent = formatTime(audio.currentTime);
+            document.getElementById('fs-duration').textContent = formatTime(audio.duration || 0);
         });
-        
+        document.getElementById('fs-progress').addEventListener('input', (e) => audio.currentTime = (e.target.value/100) * audio.duration);
+        audio.addEventListener('play', () => { isPlaying = true; updateMiniPlayer(); updateFullscreenVisuals(); });
+        audio.addEventListener('pause', () => { isPlaying = false; updateMiniPlayer(); updateFullscreenVisuals(); });
+        audio.addEventListener('ended', () => { isPlaying = false; updateMiniPlayer(); updateFullscreenVisuals(); /* Implement next song logic here */ });
+
     </script>
-    
-    <script>
-        
-document.head.insertAdjacentHTML('beforeend', '<link rel="icon" type="image/png" href="favicon.png">');
-</script>
-<script>
-  // Register service worker
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js");
-  }
-
-  let deferredPrompt;
-
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    // OPTIONAL: show your own install button here
-    const installBtn = document.getElementById("installBtn");
-    if (installBtn) installBtn.style.display = "block";
-  });
-
-  // OPTIONAL install button click
-  const installBtn = document.getElementById("installBtn");
-  if (installBtn) {
-    installBtn.addEventListener("click", async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      installBtn.style.display = "none";
-    });
-  }
-</script>
-    
 </body>
 </html>
