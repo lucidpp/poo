@@ -44,6 +44,23 @@
     },
   };
 </script>
+
+<!-- Tailwind CSS helper classes for buttons -->
+<style>
+  /* General button style for dark backgrounds */
+  .btn-dark {
+    @apply bg-white text-black border border-white px-4 py-2 rounded cursor-pointer transition duration-200;
+  }
+
+  .btn-dark:hover {
+    @apply bg-gray-200;
+  }
+
+  /* Optional: small button variant */
+  .btn-dark-sm {
+    @apply bg-white text-black border border-white px-2 py-1 rounded cursor-pointer transition duration-200 text-sm;
+  }
+</style>
     <style>
         /* Custom scrollbar for a modern look */
         ::-webkit-scrollbar {
