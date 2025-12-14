@@ -8,108 +8,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Lucide Icons for aesthetic icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-<!-- SAFE Universal Tailwind Config (Cherry + Light/Dark) -->
-<script>
-  tailwind.config = {
-    darkMode: 'class', // enables light/dark switching
-    theme: {
-      extend: {
-        /* Accent colors ONLY (opt-in) */
-        colors: {
-          cherry: {
-            500: '#c1121f',
-            600: '#a30f1a',
-          },
-
-          /* Explicit solid surfaces (NO transparency) */
-          surface: {
-            dark: '#121212',
-            darker: '#181818',
-            card: '#242424',
-            light: '#ffffff',
-            lightCard: '#f5f5f5',
-          },
-
-          /* Text helpers */
-          textbase: {
-            dark: '#ffffff',
-            muted: '#b3b3b3',
-            light: '#000000',
-            lightMuted: '#4b5563',
-          }
-        },
-
-        /* Shadows (solid, safe) */
-        boxShadow: {
-          soft: '0 8px 24px rgba(0,0,0,0.35)',
-          cherry: '0 0 12px rgba(193,18,31,0.35)',
-        },
-
-        /* New font (modern, Spotify-safe) */
-        fontFamily: {
-          sans: [
-            'Manrope',
-            'Inter',
-            'system-ui',
-            '-apple-system',
-            'sans-serif'
-          ],
-        },
-
-        screens: {
-          xs: '475px',
-        },
-      },
-    },
-  }
-</script>
-
-  .btn-dark:hover {
-    @apply bg-off-white !important;
-  }
-
-  /* If you have icons inside (like SVG) */
-  .btn-dark svg {
-    fill: black !important;         /* ensures the play icon is black */
-    filter: none !important;
-    opacity: 1 !important;
-  }
-</style>
-
-<!-- Button Styles -->
-<style>
-  /* Force contrast buttons for dark backgrounds */
-  .btn-dark {
-    @apply bg-pure-white text-pure-black border border-pure-white px-4 py-2 rounded cursor-pointer font-sans font-bold;
-  }
-
-  .btn-dark:hover {
-    @apply bg-off-white;
-  }
-
-  /* Small variant */
-  .btn-dark-sm {
-    @apply bg-pure-white text-pure-black border border-pure-white px-2 py-1 rounded cursor-pointer font-sans font-bold text-sm;
-  }
-</style>
-
-<!-- Tailwind CSS helper classes for buttons -->
-<style>
-  /* General button style for dark backgrounds */
-  .btn-dark {
-    @apply bg-white text-black border border-white px-4 py-2 rounded cursor-pointer transition duration-200;
-  }
-
-  .btn-dark:hover {
-    @apply bg-gray-200;
-  }
-
-  /* Optional: small button variant */
-  .btn-dark-sm {
-    @apply bg-white text-black border border-white px-2 py-1 rounded cursor-pointer transition duration-200 text-sm;
-  }
-</style>
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-dark': '#121212',
+                        'secondary-dark': '#181818',
+                        'card-dark': '#282828',
+                        'accent-green': '#1DB954',
+                        'light-gray': '#b3b3b3',
+                        'text-white': '#ffffff',
+                        'liked-red': '#C8102E', 
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    screens: {
+                        'xs': '475px',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         /* Custom scrollbar for a modern look */
         ::-webkit-scrollbar {
