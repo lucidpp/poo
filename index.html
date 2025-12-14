@@ -8,74 +8,48 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Lucide Icons for aesthetic icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Cherry Dark Tailwind Configuration -->
+    <!-- Universal Cherry Dark Tailwind Config -->
 <script>
   tailwind.config = {
     theme: {
       extend: {
         colors: {
-          /* Core backgrounds */
-          'bg-main': '#0b0b0e',
-          'bg-panel': '#121216',
-          'bg-card': '#141418',
-          'bg-hover': '#1a1a20',
+          /* Cherry accents (opt-in only) */
+          cherry: {
+            50:  '#fff1f2',
+            100: '#ffe4e6',
+            200: '#fecdd3',
+            300: '#fda4af',
+            400: '#fb7185',
+            500: '#ef4444',
+            600: '#dc2626',
+            700: '#b91c1c',
+            800: '#991b1b',
+            900: '#7f1d1d',
+          },
 
-          /* Cherry reds */
-          'cherry-main': '#c1121f',
-          'cherry-soft': '#ff4d5a',
-          'cherry-dark': '#8a0e18',
-          'cherry-glow': 'rgba(193, 18, 31, 0.45)',
+          /* Spotify-safe dark tones */
+          'spotify-dark': '#121212',
+          'spotify-panel': '#181818',
+          'spotify-card': '#242424',
+        },
 
-          /* Text */
-          'text-main': '#ffffff',
-          'text-muted': '#9a9aa3',
-          'text-soft': '#c7c7cf',
+        boxShadow: {
+          'cherry': '0 0 20px rgba(220,38,38,0.35)',
+          'soft': '0 10px 30px rgba(0,0,0,0.45)',
+        },
 
-          /* Borders */
-          'border-soft': 'rgba(255,255,255,0.06)',
-
-          /* States */
-          'liked-red': '#c1121f',
+        backgroundImage: {
+          'cherry-accent':
+            'linear-gradient(90deg, #dc2626, #ef4444)',
         },
 
         fontFamily: {
           sans: ['Inter', 'system-ui', 'sans-serif'],
         },
 
-        boxShadow: {
-          'cherry-sm': '0 0 12px rgba(193,18,31,0.25)',
-          'cherry-md': '0 0 24px rgba(193,18,31,0.35)',
-          'cherry-lg': '0 0 40px rgba(193,18,31,0.45)',
-          'soft': '0 10px 30px rgba(0,0,0,0.45)',
-        },
-
-        borderRadius: {
-          'xl': '1rem',
-          '2xl': '1.25rem',
-          '3xl': '1.75rem',
-        },
-
-        backdropBlur: {
-          'xs': '2px',
-          'md': '12px',
-          'lg': '20px',
-        },
-
-        backgroundImage: {
-          'cherry-gradient':
-            'radial-gradient(circle at top, #1a0d12, #0b0b0e)',
-          'cherry-btn':
-            'linear-gradient(135deg, #ff4d5a, #c1121f)',
-          'cherry-progress':
-            'linear-gradient(90deg, #c1121f, #ff4d5a)',
-        },
-
-        transitionTimingFunction: {
-          'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
-        },
-
         screens: {
-          'xs': '475px',
+          xs: '475px',
         },
       },
     },
