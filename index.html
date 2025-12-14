@@ -20,7 +20,7 @@
                         'accent-green': '#1DB954',
                         'light-gray': '#b3b3b3',
                         'text-white': '#ffffff',
-                        'liked-red': '#C8102E', // New color for liked songs
+                        'liked-red': '#C8102E', 
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -53,7 +53,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #000000;
             color: #ffffff;
-            min-height: 100vh;
+            min-height: 100vh; /* Ensures full screen height */
             display: flex;
             flex-direction: column;
             padding-bottom: 90px; /* Space for the fixed player bar */
@@ -64,6 +64,15 @@
             padding: 16px;
             /* Gradient for the top edge like Spotify */
             background-image: linear-gradient(to bottom, rgba(40, 40, 40, 0.5) 0%, rgba(18, 18, 18, 1) 20%);
+        }
+
+        /* Heart Click Animation */
+        @keyframes heart-bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        .heart-bounce {
+            animation: heart-bounce 0.3s ease-in-out;
         }
 
         /* Mobile Specific Styles */
@@ -82,6 +91,9 @@
             }
             .player-bar {
                 bottom: 64px; /* Move player above mobile nav */
+            }
+            .app-container {
+                min-height: calc(100vh - 150px);
             }
         }
 
@@ -296,6 +308,7 @@
         let currentTrack = null;
         let currentPlaylist = [];
         let currentTrackIndex = 0;
+        let currentTrackToLink = null; // New global state for linking MP3 to track metadata
 
 
         // --- UTILITY & DATA FUNCTIONS ---
@@ -371,11 +384,15 @@
         function createPlaybackTrack(track, index, albumImage = 'https://placehold.co/60x60/282828/b3b3b3?text=🎶', albumPopularity = 50) {
             const popularity = track.popularity || albumPopularity;
             const streams = generateStreams(popularity);
-            const durationMs = track.duration_ms || (track.duration * 1000);
+            // Use track duration if available, otherwise guess a duration for local files (3:30)
+            const durationMs = track.duration_ms || (track.duration * 1000) || (210 * 1000); 
             const duration = formatTime(Math.floor(durationMs / 1000));
             
             // Prioritize specific track image, then album image, then placeholder
             const finalImage = track.album?.images?.[2]?.url || albumImage || track.localImage || 'https://placehold.co/60x60/282828/b3b3b3?text=🎶';
+            
+            // Check if the track already has a local URL (from a previous link operation)
+            const finalPreviewUrl = track.localUrl || track.preview_url || null;
 
             return {
                 id: track.id || `local-${index}-${Date.now()}`,
@@ -386,7 +403,7 @@
                 durationMs: durationMs,
                 streams: streams,
                 isSpotify: !!track.id,
-                previewUrl: track.preview_url || track.localUrl // Playable URL
+                previewUrl: finalPreviewUrl // Playable URL (30-sec preview or local blob)
             };
         }
 
@@ -409,6 +426,7 @@
             if (!track || !track.id) return;
             let likedSongs = getLikedSongs();
             const index = likedSongs.findIndex(t => t.id === track.id);
+            const trackId = track.id; // Use trackId for selector
 
             if (index > -1) {
                 // Unlike
@@ -432,6 +450,13 @@
             }
 
             localStorage.setItem('peyzaLikedSongs', JSON.stringify(likedSongs));
+            
+            // Apply heart-bounce animation to all visible heart icons for this track ID
+            const likeButtons = document.querySelectorAll(`[onclick*="toggleLike"][onclick*="${trackId}"] i`);
+            likeButtons.forEach(icon => {
+                icon.classList.add('heart-bounce');
+                setTimeout(() => icon.classList.remove('heart-bounce'), 300);
+            });
             
             // Update UI elements
             updateLikedSongsCount();
@@ -457,16 +482,108 @@
         function renderLikedButton(trackId, size = 'w-5 h-5') {
             const isLiked = isTrackLiked(trackId);
             const colorClass = isLiked ? 'text-liked-red fill-liked-red' : 'text-light-gray hover:text-white';
-
-            // We must encode the track data in the onclick handler for tracks not currently playing
-            const trackData = currentTrack && currentTrack.id === trackId ? JSON.stringify(currentTrack).replace(/'/g, "\\'") : 'null';
+            
+            // Get the track data that is currently visible or playing to pass to toggleLike
+            // We use the safer method of querying currentTrack if playing, otherwise relying on the ID.
+            const trackData = currentTrack && currentTrack.id === trackId 
+                ? JSON.stringify(currentTrack).replace(/'/g, "\\'") 
+                : 'null'; 
 
             return `
                 <button class="${colorClass}" 
-                    onclick="event.stopPropagation(); toggleLike(currentTrack || ${trackData})">
+                    onclick="event.stopPropagation(); toggleLike(currentTrack && currentTrack.id === '${trackId}' ? currentTrack : likedSongsFromList.find(t => t.id === '${trackId}') || likedSongsFromList[0] || currentTrack)">
                     <i data-lucide="heart" class="${size} transition duration-150"></i>
                 </button>
             `;
+        }
+        
+        // --- LOCAL MP3 LINKING LOGIC ---
+
+        function handleMp3LinkUpload(event) {
+            const file = event.target.files[0];
+            const track = currentTrackToLink;
+            closeNotification('mp3-link-modal'); // Close the linking modal
+
+            if (!track || !file || !file.type.startsWith('audio/')) {
+                renderNotification("Error", "Could not link file: Track data missing or invalid file selected.");
+                return;
+            }
+
+            // 1. Create a new playback track object, overriding the previewUrl with the local blob URL
+            const playbackTrack = {
+                ...track,
+                previewUrl: URL.createObjectURL(file), // Use the local file URL
+                isSpotify: true, // It's still a Spotify track object
+                localUrl: URL.createObjectURL(file) // Store local URL for reference
+            };
+
+            // 2. Update the current playlist with the playable track (if it was part of a list)
+            if (currentPlaylist.length > 0) {
+                const index = currentPlaylist.findIndex(t => t.id === track.id);
+                if (index !== -1) {
+                    currentPlaylist[index] = playbackTrack;
+                    currentTrackIndex = index;
+                } else {
+                    currentPlaylist = [playbackTrack];
+                    currentTrackIndex = 0;
+                }
+            } else {
+                currentPlaylist = [playbackTrack];
+                currentTrackIndex = 0;
+            }
+
+            // 3. Reset linking state and start playback
+            currentTrackToLink = null;
+            playTrack(playbackTrack);
+            renderNotification("Success", `File linked! Now playing: ${playbackTrack.name}`);
+        }
+
+        function renderMp3LinkPrompt(track) {
+            const modalId = 'mp3-link-modal';
+            let modal = document.getElementById(modalId);
+            
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = modalId;
+                modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4 transition-opacity duration-300 opacity-0 pointer-events-none';
+                document.body.appendChild(modal);
+            }
+
+            modal.innerHTML = `
+                <div class="bg-card-dark p-6 rounded-xl shadow-2xl max-w-lg w-full transform translate-y-4 transition-transform duration-300">
+                    <h3 class="text-xl font-bold mb-3 text-white flex items-center"><i data-lucide="alert-triangle" class="w-5 h-5 mr-2 text-yellow-400"></i> No 30-Second Preview Available</h3>
+                    <p class="text-light-gray mb-4">The track <strong>${track.name}</strong> has no playable 30-second preview on the Full Library.</p>
+                    <p class="text-white mb-6">To listen to this song, please link a local MP3 file from your device. The album art and metadata will be used.</p>
+
+                    <div class="flex items-center space-x-4 mb-6 p-4 bg-secondary-dark rounded-lg">
+                         <img src="${track.imageUrl}" class="w-16 h-16 object-cover rounded shadow-md" alt="Album Cover">
+                         <div class="min-w-0">
+                            <p class="text-white font-semibold truncate">${track.name}</p>
+                            <p class="text-light-gray text-sm truncate">${track.artists.map(a => a.name).join(', ')}</p>
+                         </div>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <label for="mp3-link-upload" class="inline-block bg-accent-green text-black font-bold py-2 px-4 rounded-full cursor-pointer hover:bg-green-600 transition">
+                            <i data-lucide="music" class="w-5 h-5 inline-block mr-1"></i> Link MP3
+                        </label>
+                        <input type="file" id="mp3-link-upload" accept="audio/mp3" class="hidden" onchange="handleMp3LinkUpload(event)">
+                        
+                        <button class="bg-secondary-dark text-white font-bold py-2 px-4 rounded-full hover:bg-[#333] transition" onclick="closeNotification('${modalId}')">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.querySelector('div').classList.remove('translate-y-4');
+                renderIcons();
+            }, 10);
+
+            // Set the track to link globally
+            currentTrackToLink = track;
         }
 
 
@@ -477,23 +594,13 @@
          * @param {object} track - Standardized track object.
          */
         function playTrack(track) {
-            if (!track.previewUrl) {
-                // Display a custom modal/message box instead of alert()
-                const message = track.isSpotify
-                    ? `The track "${track.name}" has no available 30-second preview. Please upload an MP3 via the Library for full playback.`
-                    : "Playback failed. Check if the uploaded MP3 file is valid.";
-                renderNotification("Playback Warning", message);
-                
-                // If part of a playlist, try to skip
-                if (currentPlaylist.length > 0 && currentTrackIndex < currentPlaylist.length - 1) {
-                    currentTrackIndex++;
-                    playTrack(currentPlaylist[currentTrackIndex]);
-                } else if (!track.isSpotify) {
-                    // For local file, just stop
-                    audio.src = "";
-                    audio.pause();
-                    return;
-                }
+            if (!track.previewUrl && track.isSpotify) {
+                // If it's a Spotify track but no 30-sec preview, prompt for MP3 link
+                renderMp3LinkPrompt(track);
+                return;
+            } else if (!track.previewUrl) {
+                 // For local files with no URL (shouldn't happen if file handler is used)
+                renderNotification("Playback Warning", "Playback failed. The local file appears invalid.");
                 return;
             }
 
@@ -542,7 +649,7 @@
         }
 
         /**
-         * Handles MP3 file selection and prepares it for playback.
+         * Handles MP3 file selection in the Library view and prepares it for playback.
          */
         function handleMp3Upload(event) {
             const file = event.target.files[0];
@@ -555,8 +662,8 @@
                 localName: file.name.replace(/\.[^/.]+$/, ""), // Name without extension
                 localUrl: URL.createObjectURL(file),
                 localImage: 'https://placehold.co/60x60/282828/b3b3b3?text=MP3',
-                duration: 0, 
-                duration_ms: 0,
+                duration: 210, // 3:30 min guess for duration
+                duration_ms: 210 * 1000,
                 popularity: 60, 
                 artists: [{ name: 'Local Upload', id: 'local-artist' }]
             };
@@ -698,7 +805,7 @@
                     const topTracksData = await topTracksRes.json();
                     const albumsData = await albumsRes.json();
 
-                    // Standardize top tracks for playback. Passing the artist's first image as a very general fallback.
+                    // Standardize top tracks for playback. 
                     const tracksForPlayback = topTracksData.tracks.map((t, i) => createPlaybackTrack(t, i, t.album.images?.[0]?.url));
 
                     renderArtistPage(artistData, tracksForPlayback, albumsData.items);
@@ -802,17 +909,20 @@
                 [allTracks[i], allTracks[j]] = [allTracks[j], allTracks[i]];
             }
 
-            if (allTracks.length === 0) {
-                renderNotification("Empty Playlist", "Could not find any playable songs from your followed Verified Peyza Artists.");
+            // Filter out tracks without a preview URL to avoid prompt loops on radio
+            const playableTracks = allTracks.filter(t => t.previewUrl);
+
+            if (playableTracks.length === 0) {
+                renderNotification("Empty Playlist", "Could not find any playable 30-second songs from your followed Verified Peyza Artists.");
                 hideLoading();
                 return;
             }
 
-            currentPlaylist = allTracks;
+            currentPlaylist = playableTracks;
             currentTrackIndex = 0;
             
             hideLoading();
-            renderNotification(`Starting ${type} Radio`, `Playing ${allTracks.length} shuffled tracks from your followed artists. (30-sec previews only)`);
+            renderNotification(`Starting ${type} Radio`, `Playing ${playableTracks.length} shuffled tracks from your followed artists. (30-sec previews only)`);
             playTrack(currentPlaylist[currentTrackIndex]);
         }
 
@@ -1002,8 +1112,10 @@
             const contentArea = document.getElementById('dynamic-content');
             const artists = data.artists?.items || [];
             const albums = data.albums?.items || [];
-            // Tracks need to be standardized using the album image if the track itself is missing one
             const tracks = (data.tracks?.items || []).map((t, i) => createPlaybackTrack(t, i, t.album.images?.[0]?.url));
+            
+            // Define likedSongsFromList globally for access in renderLikedButton
+            window.likedSongsFromList = getLikedSongs();
 
             contentArea.innerHTML = `
                 <h1 class="text-3xl font-extrabold mb-8">Search Results</h1>
@@ -1071,8 +1183,8 @@
             // Encode the track object for the click handler
             const trackJson = JSON.stringify(track).replace(/'/g, "\\'");
             return `
-                <div class="track-row flex items-center p-2 rounded-lg hover:bg-card-dark transition duration-150 cursor-pointer"
-                     onclick='playTrack(${trackJson})'>
+                <div class="track-row flex items-center p-2 rounded-lg hover:bg-card-dark transition duration-150 cursor-pointer group"
+                     onclick='playTrack(${trackJson})' data-track-id="${track.id}">
                     <span class="text-light-gray w-6 text-center text-sm mr-2">${index}</span>
                     <img src="${track.imageUrl}" class="w-12 h-12 object-cover rounded mr-3" alt="Album Cover">
                     <div class="flex-grow min-w-0">
@@ -1082,8 +1194,11 @@
                         </p>
                     </div>
                     <!-- Like Button -->
-                    <div class="w-8 mr-4 hidden sm:block">
-                        ${renderLikedButton(track.id, 'w-5 h-5')}
+                    <div class="w-8 mr-4 opacity-0 group-hover:opacity-100 sm:opacity-100 transition duration-300">
+                        <button class="${isTrackLiked(track.id) ? 'text-liked-red fill-liked-red' : 'text-light-gray hover:text-white'}" 
+                            onclick="event.stopPropagation(); toggleLike(${trackJson})">
+                            <i data-lucide="heart" class="w-5 h-5 transition duration-150"></i>
+                        </button>
                     </div>
                     <div class="text-light-gray text-sm hidden sm:block w-32 text-right">
                         ${track.streams} Streams
@@ -1101,6 +1216,12 @@
             const monthlyListeners = generateMonthlyListeners(artist.popularity);
             const followers = generateFollowers(artist.popularity);
 
+            // Calculate Total Streams for top tracks (Simulated)
+            const totalStreams = topTracks.reduce((sum, track) => sum + parseInt(track.streams.replace(/,/g, ''), 10), 0);
+
+            // Define likedSongsFromList globally for access in renderLikedButton
+            window.likedSongsFromList = topTracks;
+
             contentArea.innerHTML = `
                 <!-- Artist Header -->
                 <div class="relative pt-20 pb-8 px-4 md:px-6 rounded-t-xl" style="background-image: linear-gradient(to bottom, rgba(50, 50, 50, 0.5), rgba(18, 18, 18, 1));">
@@ -1113,6 +1234,7 @@
                         <h1 class="text-4xl md:text-7xl font-extrabold mb-4">${artist.name}</h1>
                         <p class="text-light-gray text-lg">${monthlyListeners} Monthly Listeners</p>
                         <p class="text-light-gray text-md">${followers} Followers</p>
+                        <p class="text-light-gray text-md mt-1">Total Top Tracks Streams: <span class="text-white font-bold">${formatNumber(totalStreams)}</span> (Simulated)</p>
                     </div>
                 </div>
 
@@ -1260,6 +1382,9 @@
             allArtists.delete(mainArtist.id);
             const featuredArtists = Array.from(allArtists.values());
 
+            // Define likedSongsFromList globally for access in renderLikedButton
+            window.likedSongsFromList = tracksForPlayback;
+
             contentArea.innerHTML = `
                 <!-- Album Header -->
                 <div class="flex flex-col md:flex-row items-center md:items-end p-6 md:p-8 bg-card-dark rounded-xl shadow-2xl mb-6" style="background-image: linear-gradient(to bottom, rgba(70, 70, 70, 0.4), rgba(40, 40, 40, 1));">
@@ -1267,7 +1392,7 @@
                     <div>
                         <p class="text-sm font-semibold uppercase text-light-gray mt-4 md:mt-0">${album.album_type}</p>
                         <h1 class="text-4xl md:text-6xl font-extrabold mb-2">${album.name}</h1>
-                        <p class="text-light-gray font-semibold mb-2">${releaseDate} &middot; ${album.total_tracks} songs &middot; <span class="text-white">${formatNumber(totalStreams)} Total Streams</span></p>
+                        <p class="text-light-gray font-semibold mb-2">${releaseDate} &middot; ${album.total_tracks} songs &middot; <span class="text-white">${formatNumber(totalStreams)} Total Streams</span> (Simulated)</p>
                         <div class="flex items-center space-x-2 text-white font-bold">
                             <i data-lucide="verified" class="w-4 h-4 text-accent-green"></i>
                             <a href="#" onclick="event.preventDefault(); navigateTo('artist', '${mainArtist.id}')" class="hover:underline">${mainArtist.name}</a>
@@ -1315,6 +1440,9 @@
             const contentArea = document.getElementById('dynamic-content');
             const likedSongs = getLikedSongs();
             
+            // Define likedSongsFromList globally for access in renderLikedButton
+            window.likedSongsFromList = likedSongs;
+
             contentArea.innerHTML = `
                 <div class="flex flex-col md:flex-row items-center md:items-end p-6 md:p-8 bg-gradient-to-br from-indigo-500 to-primary-dark rounded-xl shadow-2xl mb-6">
                     <div class="w-48 h-48 md:w-64 md:h-64 bg-white/10 rounded-lg shadow-2xl flex items-center justify-center mb-4 md:mb-0 md:mr-6">
@@ -1380,6 +1508,7 @@
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.querySelector('div').classList.remove('translate-y-4');
             }, 10);
+            renderIcons();
         }
 
         function closeNotification(modalId) {
