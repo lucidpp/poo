@@ -163,6 +163,7 @@
             font-weight: 600;
             text-align: center;
             outline: none;
+            scroll-behavior: smooth;
         }
         .lyrics-textarea::placeholder {
             color: rgba(255,255,255,0.3);
@@ -360,7 +361,8 @@
                 <!-- Lyrics (Hidden by default) -->
                 <div id="lyrics-container" class="hidden w-full h-full max-w-[500px] bg-black/40 backdrop-blur-md rounded-2xl p-6 border border-white/5 shadow-2xl overflow-hidden flex flex-col">
                     <p class="text-xs text-gray-400 text-center mb-2 uppercase tracking-wider font-bold">Lyrics</p>
-                    <textarea id="lyrics-text" class="lyrics-textarea no-scrollbar" placeholder="Tap to insert lyrics for this song..."></textarea>
+                    <textarea id="lyrics-text" class="lyrics-textarea no-scrollbar" placeholder="Paste your lyrics here..."></textarea>
+                    <button id="start-lyrics-btn" class="w-full mt-2 py-3 bg-accent-cherry text-white font-bold rounded-xl hidden" onclick="startSongFromLyrics()">Start Song</button>
                 </div>
                 <!-- Recommendations (Hidden by default) -->
                 <div id="recs-container" class="hidden w-full h-full max-w-[500px] bg-black/40 backdrop-blur-md rounded-2xl p-4 border border-white/5 shadow-2xl overflow-hidden flex flex-col">
@@ -464,7 +466,7 @@
             <h3 id="modal-title" class="text-xl font-bold text-white mb-2">Message</h3>
             <p id="modal-msg" class="text-gray-300 text-sm mb-6 leading-relaxed">Details</p>
             <div id="modal-actions" class="flex gap-3">
-                <button onclick="closeGenericModal()" class="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg">Cancel</button>
+                <button id="modal-cancel-btn" onclick="closeGenericModal()" class="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg">Cancel</button>
                 <button id="modal-confirm-btn" class="flex-1 py-3 bg-accent-cherry text-white font-semibold rounded-lg shadow-glow">OK</button>
             </div>
         </div>
@@ -488,6 +490,7 @@
         let currentTrack = null;
         let likedTracks = new Set(); 
         let activeView = 'art'; // 'art', 'lyrics', 'recs'
+        let pendingTrackStart = null; // Store track data if waiting for lyrics
         
         // --- UTILS ---
         function renderIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
@@ -550,12 +553,7 @@
                 const file = e.target.files[0];
                 if (file) {
                     const objectUrl = URL.createObjectURL(file);
-                    audio.src = objectUrl;
-                    audio.play();
-                    isPlaying = true;
-                    updateMiniPlayer();
-                    updateFullscreenVisuals();
-                    toggleFullscreenPlayer(true);
+                    startPlayback(objectUrl);
                 }
             });
 
@@ -566,6 +564,86 @@
                 }
             });
         };
+
+        // --- PLAYBACK ENGINE ---
+        function stopAudio() {
+            audio.pause();
+            audio.src = "";
+            audio.load();
+            isPlaying = false;
+        }
+
+        function startPlayback(sourceUrl) {
+            // Stop any existing playback first to prevent glitches
+            stopAudio();
+            
+            // Allow a brief tick for the browser to clear the buffer
+            setTimeout(() => {
+                audio.src = sourceUrl;
+                audio.play()
+                    .then(() => {
+                        isPlaying = true;
+                        updateMiniPlayer();
+                        updateFullscreenVisuals();
+                        toggleFullscreenPlayer(true); 
+                    })
+                    .catch(e => {
+                        console.error("Playback failed:", e);
+                        isPlaying = false;
+                        updateMiniPlayer();
+                    });
+            }, 50);
+        }
+
+        function playTrack(track) {
+            // 1. Set current track immediately
+            currentTrack = track;
+            
+            // 2. Ensure stats exist immediately so UI updates work
+            if(!currentTrack.stats) {
+                currentTrack.stats = generateStats(track.popularity || 50);
+            }
+
+            // 3. Prompt for lyrics
+            confirmModal("Lyrics", "Would you like to add lyrics before the song starts?", 
+                // YES Callback
+                () => {
+                    toggleFullscreenPlayer(true);
+                    toggleView('lyrics');
+                    document.getElementById('start-lyrics-btn').classList.remove('hidden'); // Show start button
+                    // Update visuals but DO NOT play yet
+                    updateMiniPlayer();
+                    updateFullscreenVisuals();
+                },
+                // NO Callback (Start Immediately)
+                () => {
+                    initiateTrackAudio();
+                },
+                "Yes, add lyrics",
+                "No, play now"
+            );
+        }
+
+        function startSongFromLyrics() {
+            document.getElementById('start-lyrics-btn').classList.add('hidden');
+            initiateTrackAudio();
+        }
+
+        function initiateTrackAudio() {
+            if(!currentTrack) return;
+
+            if(currentTrack.previewUrl) {
+                startPlayback(currentTrack.previewUrl);
+            } else {
+                confirmModal(
+                    'Preview Unavailable', 
+                    `Spotify does not provide a preview for "${currentTrack.name}".<br><br>Would you like to play a local MP3 file?`,
+                    () => {
+                        document.getElementById('mp3-upload').click();
+                    }
+                );
+            }
+        }
 
         // --- NAVIGATION ---
         function navigateTo(view, id = null) {
@@ -588,7 +666,7 @@
             content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>';
             
             setTimeout(() => {
-                refreshIndicator.classList.add('hidden'); // Hide refresh after "load"
+                refreshIndicator.classList.add('hidden'); 
                 switch(view) {
                     case 'home': renderHome(); break;
                     case 'search': renderSearch(); break;
@@ -952,7 +1030,9 @@
                     '<span class="font-bold">Bedroom Speaker</span> <span class="text-xs text-gray-400">Google Nest</span>' +
                 '</div>' +
                 '</div>',
-                () => { /* Mock Connect */ }
+                () => { /* Mock Connect */ },
+                "Close",
+                "Cancel"
             );
             setTimeout(renderIcons, 50);
         }
@@ -967,18 +1047,20 @@
             const likeBtn = document.getElementById('fs-like-btn');
             const likeCount = document.getElementById('fs-like-count');
             
-            // Handle Heart Icon State
-            const icon = likeBtn.querySelector('i');
+            // Handle Heart Icon State - Fix for SVG replacement
+            let icon = likeBtn.querySelector('svg') || likeBtn.querySelector('i');
             
             // Remove animation to reset it if needed
-            icon.classList.remove('animate-heart-pop');
+            if (icon) icon.classList.remove('animate-heart-pop');
 
             if(likedTracks.has(currentTrack.id)) {
                 likeBtn.classList.add('like-active');
             } else {
                 likeBtn.classList.remove('like-active');
             }
-            likeCount.textContent = currentTrack.stats ? currentTrack.stats.likesFormatted : '0';
+            // Ensure stats exist, or use a default
+            const stats = currentTrack.stats || generateStats(50);
+            likeCount.textContent = stats.likesFormatted;
             likeCount.classList.remove('opacity-0');
             
             const playBtn = document.getElementById('fs-play-btn');
@@ -998,19 +1080,20 @@
         function toggleLike() {
             if(!currentTrack) return;
             const btn = document.getElementById('fs-like-btn');
-            const icon = btn.querySelector('i');
+            let icon = btn.querySelector('svg') || btn.querySelector('i');
             const count = document.getElementById('fs-like-count');
             
             if(likedTracks.has(currentTrack.id)) {
                 likedTracks.delete(currentTrack.id);
                 btn.classList.remove('like-active');
-                icon.classList.remove('animate-heart-pop');
+                if(icon) icon.classList.remove('animate-heart-pop');
             } else {
                 likedTracks.add(currentTrack.id);
                 btn.classList.add('like-active');
-                // Trigger reflow to restart animation if it was already played
-                void icon.offsetWidth; 
-                icon.classList.add('animate-heart-pop');
+                if(icon) {
+                    void icon.offsetWidth; 
+                    icon.classList.add('animate-heart-pop');
+                }
             }
             
             if(currentTrack.stats) {
@@ -1019,28 +1102,6 @@
                 count.textContent = base.toLocaleString();
             }
             renderIcons();
-        }
-
-        function playTrack(track) {
-            currentTrack = track;
-            if(!currentTrack.stats) currentTrack.stats = generateStats(track.popularity || 50);
-
-            if(track.previewUrl) {
-                audio.src = track.previewUrl;
-                audio.play();
-                isPlaying = true;
-                updateMiniPlayer();
-                updateFullscreenVisuals();
-                toggleFullscreenPlayer(true); 
-            } else {
-                confirmModal(
-                    'Preview Unavailable', 
-                    `Spotify does not provide a preview for "${track.name}".<br><br>Would you like to play a local MP3 file for this song instead? (Metadata will be preserved)`,
-                    () => {
-                        document.getElementById('mp3-upload').click();
-                    }
-                );
-            }
         }
 
         function playCollection(tracks) {
@@ -1100,24 +1161,18 @@
         async function performSearch(query) {
             if (!query) return;
             
-            // Update UI to show we are in search mode, but don't trigger the generic renderSearch
-            // This prevents the race condition where navigateTo's timeout clears results
             updateSidebarActiveState('search');
             
             const content = document.getElementById('dynamic-content');
             const searchContainer = document.getElementById('search-bar-container');
-            
-            // Ensure search bar is visible
             searchContainer?.classList.remove('opacity-0', 'pointer-events-none');
             
-            // Show Spinner
             content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>';
 
             const token = await getSpotifyToken();
             if (!token) return;
 
             try {
-                // Fetch Artists, Albums, and Tracks
                 const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=artist,album,track&limit=5`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -1125,7 +1180,6 @@
                 
                 let html = `<div class="space-y-4 pt-4 md:pt-0 animate-fade-in">`; 
 
-                // 1. Artists Section
                 if (data.artists && data.artists.items.length > 0) {
                      html += `
                         <h3 class="text-xl font-bold mb-3">Artists</h3>
@@ -1141,7 +1195,6 @@
                     `;
                 }
 
-                // 2. Albums Section
                 if (data.albums && data.albums.items.length > 0) {
                      html += `
                         <h3 class="text-xl font-bold mb-3 mt-4">Albums</h3>
@@ -1157,7 +1210,6 @@
                     `;
                 }
 
-                // 3. Songs Section
                 if (data.tracks && data.tracks.items.length > 0) {
                     html += `
                         <h3 class="text-xl font-bold mb-3 mt-4">Songs</h3>
@@ -1184,17 +1236,30 @@
         }
 
         // --- MODALS ---
-        function confirmModal(title, msg, onConfirm) {
+        function confirmModal(title, msg, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel") {
             const m = document.getElementById('generic-modal');
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-msg').innerHTML = msg;
             
             const btn = document.getElementById('modal-confirm-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+            
+            btn.textContent = confirmText;
+            cancelBtn.textContent = cancelText;
+
             const newBtn = btn.cloneNode(true);
+            const newCancelBtn = cancelBtn.cloneNode(true);
+            
             btn.parentNode.replaceChild(newBtn, btn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
             
             newBtn.addEventListener('click', () => {
                 onConfirm();
+                closeGenericModal();
+            });
+            
+            newCancelBtn.addEventListener('click', () => {
+                if (onCancel) onCancel();
                 closeGenericModal();
             });
             
@@ -1249,12 +1314,24 @@
         // AUDIO LISTENERS
         audio.addEventListener('timeupdate', () => {
             if(!currentTrack) return;
+            
+            // Progress Bar
             const pct = (audio.currentTime / audio.duration) * 100 || 0;
             document.getElementById('mini-progress').style.width = pct + '%';
             document.getElementById('mobile-progress-bar').style.width = pct + '%';
             document.getElementById('fs-progress').value = pct;
             document.getElementById('fs-curr-time').textContent = formatTime(audio.currentTime);
             document.getElementById('fs-duration').textContent = formatTime(audio.duration || 0);
+
+            // Auto-scroll Lyrics
+            if (activeView === 'lyrics' && !audio.paused && audio.duration > 0) {
+                const lyricsEl = document.getElementById('lyrics-text');
+                const scrollHeight = lyricsEl.scrollHeight - lyricsEl.clientHeight;
+                if (scrollHeight > 0) {
+                    // Linear scroll based on percentage
+                    lyricsEl.scrollTop = (audio.currentTime / audio.duration) * scrollHeight;
+                }
+            }
         });
         document.getElementById('fs-progress').addEventListener('input', (e) => {
             const duration = audio.duration;
