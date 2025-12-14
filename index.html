@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Lucide Icons for aesthetic icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Custom Tailwind Configuration -->
+    <!-- Tailwind Config (unchanged black/white + cartoon font) -->
 <script>
   tailwind.config = {
     theme: {
@@ -33,7 +33,6 @@
         },
 
         fontFamily: {
-          /* Sans + Cartoon Font */
           sans: ['Comic Neue', 'Inter', 'ui-sans-serif', 'system-ui'],
         },
 
@@ -44,6 +43,23 @@
     },
   };
 </script>
+
+<!-- Button Styles -->
+<style>
+  /* Force contrast buttons for dark backgrounds */
+  .btn-dark {
+    @apply bg-pure-white text-pure-black border border-pure-white px-4 py-2 rounded cursor-pointer font-sans font-bold;
+  }
+
+  .btn-dark:hover {
+    @apply bg-off-white;
+  }
+
+  /* Small variant */
+  .btn-dark-sm {
+    @apply bg-pure-white text-pure-black border border-pure-white px-2 py-1 rounded cursor-pointer font-sans font-bold text-sm;
+  }
+</style>
 
 <!-- Tailwind CSS helper classes for buttons -->
 <style>
