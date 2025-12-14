@@ -44,6 +44,26 @@
   };
 </script>
 
+<style>
+  /* Force visible play button */
+  .btn-dark {
+    @apply bg-pure-white text-pure-black border border-pure-white px-4 py-2 rounded cursor-pointer font-sans font-bold !important;
+    filter: none !important;        /* removes any darkening filter */
+    opacity: 1 !important;          /* removes inherited transparency */
+  }
+
+  .btn-dark:hover {
+    @apply bg-off-white !important;
+  }
+
+  /* If you have icons inside (like SVG) */
+  .btn-dark svg {
+    fill: black !important;         /* ensures the play icon is black */
+    filter: none !important;
+    opacity: 1 !important;
+  }
+</style>
+
 <!-- Button Styles -->
 <style>
   /* Force contrast buttons for dark backgrounds */
