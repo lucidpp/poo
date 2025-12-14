@@ -2,959 +2,939 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Peyza v1.3 | Worlds & Economy Update</title>
-    <meta name="description" content="Peyza is a user-generated gaming platform. Play, create, and imagine.">
-    <meta name="theme-color" content="#5865F2">
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peyza - Music Player</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js for 3D Games -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
+    <!-- Load Lucide Icons for aesthetic icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Tailwind Configuration -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Fredoka', 'sans-serif'] },
                     colors: {
-                        peyza: { blue: '#00A2FF', dark: '#1E1E24', card: '#2B2B36', hover: '#3A3A45', accent: '#00D86C', legendary: '#FFA500', epic: '#A335EE', rare: '#0070DD' }
+                        'primary-dark': '#121212',
+                        'secondary-dark': '#181818',
+                        'card-dark': '#282828',
+                        'accent-green': '#1DB954',
+                        'light-gray': '#b3b3b3',
+                        'text-white': '#ffffff',
                     },
-                    animation: {
-                        'bounce-slight': 'bounceSlight 2s infinite',
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'slide-up': 'slideUp 0.4s ease-out forwards',
-                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
                     },
-                    keyframes: {
-                        bounceSlight: { '0%, 100%': { transform: 'translateY(-2%)' }, '50%': { transform: 'translateY(0)' } },
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-                        pop: { '0%': { transform: 'scale(0.8)' }, '100%': { transform: 'scale(1)' } }
+                    screens: {
+                        'xs': '475px',
                     }
                 }
             }
         }
     </script>
-
     <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1E1E24; }
-        ::-webkit-scrollbar-thumb { background: #3A3A45; border-radius: 4px; }
-        .glass { background: rgba(43, 43, 54, 0.9); backdrop-filter: blur(10px); }
-        canvas { image-rendering: pixelated; } /* Retro feel for 2D */
-        .rarity-legendary { border-color: #FFA500; box-shadow: 0 0 10px rgba(255, 165, 0, 0.3); }
-        .rarity-epic { border-color: #A335EE; }
-        .rarity-common { border-color: #4B5563; }
-        * { -webkit-tap-highlight-color: transparent; }
-        
-        /* Stamina Bar */
-        .stamina-container { width: 200px; height: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; overflow: hidden; }
-        .stamina-fill { height: 100%; background: #00D86C; width: 100%; transition: width 0.1s; }
+        /* Custom scrollbar for a modern look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #535353;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6a6a6a;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        /* General Body and Main Content Styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 16px;
+            /* Gradient for the top edge like Spotify */
+            background-image: linear-gradient(to bottom, rgba(40, 40, 40, 0.5) 0%, rgba(18, 18, 18, 1) 20%);
+        }
+
+        /* Mobile Specific Styles */
+        @media (max-width: 767px) {
+            .desktop-sidebar {
+                display: none;
+            }
+            .mobile-nav-bar {
+                display: flex;
+            }
+            .main-content-area {
+                padding-bottom: 72px; /* Space for the mobile nav */
+            }
+        }
+
+        /* Desktop/Tablet Specific Styles */
+        @media (min-width: 768px) {
+            .mobile-nav-bar {
+                display: none;
+            }
+            .desktop-sidebar {
+                display: flex;
+            }
+            .app-container {
+                display: grid;
+                grid-template-columns: 20rem 1fr; /* Sidebar width and main content */
+                grid-template-rows: 1fr;
+                min-height: 100vh;
+            }
+        }
+
+        /* Animation for loading spinner */
+        .spinner {
+            border-top-color: #1DB954;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body class="bg-peyza-dark text-white overflow-hidden h-screen w-screen select-none">
+<body class="bg-primary-dark">
 
-    <!-- TOASTS -->
-    <div id="toast-container" class="fixed top-4 right-4 z-[999] flex flex-col gap-2 pointer-events-none"></div>
+    <!-- Main Application Container (Desktop Grid Layout) -->
+    <div id="app-container" class="app-container md:p-2 space-x-2 w-full">
 
-    <!-- DAILY REWARD MODAL -->
-    <div id="daily-reward-modal" class="fixed inset-0 z-[80] bg-black/90 hidden flex items-center justify-center backdrop-blur">
-        <div class="bg-gradient-to-b from-peyza-card to-gray-900 p-1 w-full max-w-sm rounded-3xl animate-pop">
-            <div class="bg-peyza-dark rounded-[20px] p-6 text-center border border-gray-700 relative overflow-hidden">
-                <div class="absolute inset-0 bg-yellow-500/10 animate-pulse"></div>
-                <h2 class="text-3xl font-black text-yellow-400 mb-2 relative z-10">DAILY LOGIN</h2>
-                <div class="text-6xl mb-4 animate-bounce-slight relative z-10">🎁</div>
-                <p class="text-gray-300 mb-6 relative z-10">Streak: <span id="streak-count" class="text-peyza-blue font-bold">1</span> Days</p>
-                <button onclick="app.claimDailyReward()" class="w-full bg-peyza-accent hover:bg-green-500 text-black font-bold py-3 rounded-xl shadow-lg transform transition active:scale-95 relative z-10">
-                    Claim +100 PB
-                </button>
+        <!-- Desktop Sidebar (Hidden on Mobile) -->
+        <aside class="desktop-sidebar p-2 space-y-2 bg-primary-dark rounded-lg flex-col">
+            <!-- Navigation Links -->
+            <div class="bg-secondary-dark p-6 rounded-xl space-y-5">
+                <a href="#" class="flex items-center space-x-4 text-white hover:text-light-gray transition duration-150" onclick="navigateTo('home')">
+                    <i data-lucide="home" class="w-6 h-6"></i>
+                    <span class="font-bold">Home</span>
+                </a>
+                <a href="#" class="flex items-center space-x-4 text-light-gray hover:text-white transition duration-150" onclick="navigateTo('search')">
+                    <i data-lucide="search" class="w-6 h-6"></i>
+                    <span class="font-bold">Search</span>
+                </a>
             </div>
-        </div>
-    </div>
 
-    <!-- SETTINGS MODAL -->
-    <div id="settings-modal" class="fixed inset-0 z-[70] bg-black/80 hidden flex items-center justify-center backdrop-blur-sm" onclick="if(event.target === this) app.toggleSettings()">
-        <div class="bg-peyza-card w-full max-w-md rounded-2xl border border-gray-700 shadow-2xl overflow-hidden animate-slide-up">
-            <div class="p-4 border-b border-gray-700 flex justify-between items-center">
-                <h3 class="font-bold text-xl">Settings</h3>
-                <button onclick="app.toggleSettings()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <div class="flex justify-between items-center">
-                    <span>Performance Mode</span>
-                    <button id="toggle-perf" onclick="app.toggleSetting('performance')" class="w-12 h-6 bg-gray-600 rounded-full relative transition-colors"><div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform"></div></button>
+            <!-- Your Library Section -->
+            <div class="bg-secondary-dark rounded-xl flex-grow overflow-y-auto p-4">
+                <div class="flex items-center justify-between text-light-gray mb-4">
+                    <a href="#" class="flex items-center space-x-2 hover:text-white transition duration-150" onclick="navigateTo('library')">
+                        <i data-lucide="library" class="w-6 h-6"></i>
+                        <span class="font-bold">Your Library</span>
+                    </a>
                 </div>
-                <div class="flex justify-between items-center">
-                    <span>Music</span>
-                    <button id="toggle-music" onclick="app.toggleSetting('music')" class="w-12 h-6 bg-peyza-accent rounded-full relative transition-colors"><div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform translate-x-6"></div></button>
-                </div>
-                <div class="pt-4 border-t border-gray-700">
-                    <p class="text-xs text-gray-500 mb-2">Account ID: <span id="settings-uid" class="font-mono text-gray-400">Loading...</span></p>
-                    <button class="text-red-400 text-sm hover:underline" onclick="app.logout()">Log Out</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- LANDING PAGE -->
-    <section id="landing-view" class="absolute inset-0 z-40 bg-peyza-dark flex flex-col items-center justify-center p-4">
-        <div class="absolute inset-0 overflow-hidden opacity-20">
-            <div class="absolute top-10 left-10 w-20 h-20 bg-peyza-blue rounded-lg animate-bounce-slight" style="animation-delay: 0s;"></div>
-            <div class="absolute bottom-20 right-10 w-32 h-32 bg-peyza-accent rounded-xl animate-bounce-slight" style="animation-delay: 1s;"></div>
-        </div>
-        <div class="z-10 text-center max-w-md w-full animate-slide-up">
-            <h1 class="text-6xl font-black mb-2 tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-peyza-blue to-purple-400 drop-shadow-lg">PEYZA</h1>
-            <p class="text-gray-400 text-lg mb-8">v1.3 - 3D Worlds Update</p>
-            <div class="bg-peyza-card p-8 rounded-3xl shadow-2xl border border-gray-700">
-                <div id="login-form">
-                    <input type="text" id="username-input" class="w-full bg-peyza-dark border border-gray-600 rounded-xl py-3 px-4 mb-4 focus:outline-none focus:border-peyza-blue transition-colors text-white" placeholder="Username">
-                    <button onclick="app.login()" class="w-full bg-peyza-blue hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg flex justify-center items-center gap-2">Play Now <i class="fa-solid fa-gamepad"></i></button>
-                    <button onclick="app.guestLogin()" class="mt-3 w-full text-gray-400 hover:text-white text-sm">Guest Login</button>
-                </div>
-                <div id="login-loader" class="hidden flex-col items-center py-4">
-                    <div class="loader-spinner mb-3"></div>
-                    <p class="text-sm text-gray-400">Loading Worlds...</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- APP SHELL -->
-    <div id="app-shell" class="hidden h-full flex flex-col md:flex-row relative">
-        <!-- SIDEBAR -->
-        <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-peyza-card border-r border-gray-800 z-30 h-full p-4">
-            <div class="flex items-center gap-3 mb-8 px-2 cursor-pointer" onclick="app.navigate('home')">
-                <div class="w-8 h-8 bg-gradient-to-br from-peyza-blue to-purple-500 rounded-lg flex items-center justify-center font-bold text-lg">P</div>
-                <span class="text-2xl font-bold tracking-tight">Peyza</span>
-            </div>
-            <nav class="flex-1 space-y-2">
-                <button onclick="app.navigate('home')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-peyza-hover text-gray-300 hover:text-white transition flex items-center gap-3" data-page="home"><i class="fa-solid fa-house w-6 text-center"></i> Home</button>
-                <button onclick="app.navigate('games')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-peyza-hover text-gray-300 hover:text-white transition flex items-center gap-3" data-page="games"><i class="fa-solid fa-gamepad w-6 text-center"></i> Games</button>
-                <button onclick="app.navigate('avatar')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-peyza-hover text-gray-300 hover:text-white transition flex items-center gap-3" data-page="avatar"><i class="fa-solid fa-shirt w-6 text-center"></i> Shop</button>
-                <button onclick="app.navigate('leaderboard')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-peyza-hover text-gray-300 hover:text-white transition flex items-center gap-3" data-page="leaderboard"><i class="fa-solid fa-trophy w-6 text-center"></i> Leaderboard</button>
-                <button onclick="app.toggleSettings()" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-peyza-hover text-gray-300 hover:text-white transition flex items-center gap-3"><i class="fa-solid fa-gear w-6 text-center"></i> Settings</button>
-            </nav>
-            <div class="mt-auto pt-4 border-t border-gray-700">
-                <div class="flex items-center gap-3 px-2">
-                    <div class="w-10 h-10 rounded-full bg-gray-600 overflow-hidden border-2 border-peyza-blue relative">
-                         <canvas id="mini-avatar-canvas" width="40" height="40"></canvas>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p id="sidebar-username" class="font-bold truncate text-sm">Player</p>
-                        <div class="flex items-center gap-1 text-xs text-peyza-blue">
-                            <i class="fa-solid fa-star"></i> Lvl <span id="sidebar-level">1</span>
-                        </div>
-                    </div>
+                <!-- Library Content (Followed Artists) -->
+                <div id="library-content" class="space-y-4">
+                    <!-- Artists will be rendered here -->
                 </div>
             </div>
         </aside>
 
-        <!-- CONTENT -->
-        <div class="flex-1 flex flex-col h-full relative overflow-hidden bg-peyza-dark">
-            <!-- HEADER -->
-            <header class="h-16 border-b border-gray-800 bg-peyza-dark/95 backdrop-blur z-20 flex items-center justify-between px-4 md:px-8">
-                <button class="md:hidden text-gray-300" onclick="app.showToast('Use bottom nav', 'info')"><i class="fa-solid fa-bars text-xl"></i></button>
-                <div class="hidden md:flex relative w-96 mx-4">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                    <input type="text" placeholder="Search games, items..." id="global-search" oninput="app.handleSearch(this.value)" class="w-full bg-peyza-card border border-gray-700 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-peyza-blue transition">
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="bg-gray-800 rounded-full px-4 py-1.5 flex items-center gap-2 border border-gray-700 cursor-pointer hover:bg-gray-700 transition" onclick="app.addPeyBucks(100)">
-                        <div class="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-yellow-800 text-xs font-bold">P</div>
-                        <span id="header-balance" class="font-bold text-sm">0</span>
+        <!-- Main Content & Search Area -->
+        <main class="flex flex-col rounded-lg md:overflow-y-hidden">
+
+            <!-- Search Bar & Header (Always visible) -->
+            <header id="main-header" class="sticky top-0 z-10 bg-secondary-dark p-4 rounded-t-xl flex items-center shadow-lg">
+                <div class="flex items-center space-x-4 w-full">
+                    <!-- Desktop Back/Forward buttons (optional for this simple app) -->
+                    <div class="hidden md:flex space-x-2">
+                        <button class="bg-black/50 p-1 rounded-full text-light-gray opacity-50"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                        <button class="bg-black/50 p-1 rounded-full text-light-gray opacity-50"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+                    </div>
+
+                    <!-- Search Input (Visible only on 'search' or 'home' screen on mobile) -->
+                    <div id="search-container" class="w-full max-w-lg hidden md:block">
+                        <div class="relative">
+                            <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-light-gray"></i>
+                            <input type="text" id="search-input" placeholder="What do you want to listen to?" class="w-full py-2 pl-10 pr-4 rounded-full bg-card-dark text-white placeholder-light-gray focus:ring-2 focus:ring-accent-green focus:outline-none transition" onkeyup="if(event.key === 'Enter') performSearch(this.value)">
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <!-- VIEWS -->
-            <main id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 relative">
-                
-                <!-- HOME VIEW -->
-                <div id="page-home" class="page-view animate-fade-in space-y-8">
-                    <div class="flex justify-between items-center mb-[-1rem]">
-                        <h2 class="text-2xl font-bold">Featured Worlds</h2>
-                        <span class="text-xs bg-peyza-blue px-2 py-1 rounded text-white font-bold">v1.3 LIVE</span>
-                    </div>
-                    
-                    <!-- Pickle Farm 3D Hero -->
-                    <div class="w-full h-64 md:h-80 rounded-3xl overflow-hidden relative group cursor-pointer border border-gray-700" onclick="app.launchGame('pickle_3d')">
-                        <div class="absolute inset-0 bg-gradient-to-r from-green-900/90 to-transparent z-10 p-8 flex flex-col justify-end items-start">
-                            <span class="bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded mb-2">3D EXPERIENCE</span>
-                            <h2 class="text-4xl font-black mb-2 text-white">Pickle Farm 3D</h2>
-                            <p class="text-gray-200 max-w-lg mb-4">Explore a fully 3D open world. Farm pickles, drive tractors (soon), and build your empire.</p>
-                            <button class="bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-play"></i> Play Now</button>
-                        </div>
-                        <div class="absolute inset-0 bg-[url('https://picsum.photos/seed/farm_bg/1200/600')] bg-cover bg-center transition duration-700 group-hover:scale-110 opacity-60"></div>
-                    </div>
-
-                    <!-- Games Grid -->
-                    <div>
-                        <h3 class="text-xl font-bold mb-4">Trending</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4" id="home-games-grid"></div>
-                    </div>
+            <!-- Content Area (Scrollable) -->
+            <div id="content-area" class="main-content-area bg-primary-dark rounded-b-xl md:rounded-b-none md:rounded-r-xl">
+                <!-- Dynamic content (Home, Search Results, Artist, Album) will be injected here -->
+                <div id="loading-indicator" class="hidden flex justify-center items-center py-10">
+                    <div class="spinner w-10 h-10 border-4 border-gray-700 border-solid rounded-full"></div>
                 </div>
-
-                <!-- GAMES VIEW -->
-                <div id="page-games" class="page-view hidden animate-fade-in">
-                    <h2 class="text-3xl font-bold mb-6">Discover Worlds</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" id="all-games-grid"></div>
+                <div id="dynamic-content">
+                    <!-- Default to Home View -->
                 </div>
+            </div>
 
-                <!-- LEADERBOARD VIEW -->
-                <div id="page-leaderboard" class="page-view hidden animate-fade-in">
-                    <h2 class="text-3xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-trophy text-yellow-400"></i> Global Leaderboard</h2>
-                    <div class="bg-peyza-card rounded-2xl border border-gray-700 overflow-hidden">
-                        <div class="grid grid-cols-4 p-4 bg-gray-800 font-bold text-gray-400 border-b border-gray-700">
-                            <div>Rank</div>
-                            <div>Player</div>
-                            <div>Level</div>
-                            <div class="text-right">Net Worth</div>
-                        </div>
-                        <div id="leaderboard-list" class="divide-y divide-gray-700">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
-                </div>
+        </main>
 
-                <!-- AVATAR/SHOP VIEW -->
-                <div id="page-avatar" class="page-view hidden animate-fade-in h-full flex flex-col md:flex-row gap-6">
-                    <div class="w-full md:w-1/2 bg-gradient-to-b from-gray-800 to-peyza-card rounded-3xl flex items-center justify-center relative overflow-hidden shadow-inner border border-gray-700 min-h-[300px]">
-                        <canvas id="avatar-editor-canvas" width="400" height="400" class="relative z-10"></canvas>
-                    </div>
-
-                    <div class="w-full md:w-1/2 flex flex-col h-[500px]">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-3xl font-bold">Catalog</h2>
-                            <button onclick="app.toggleBundles()" class="text-xs bg-purple-600 px-2 py-1 rounded">View Bundles</button>
-                        </div>
-                        <div class="flex gap-2 overflow-x-auto pb-2 mb-2 border-b border-gray-700" id="avatar-tabs">
-                            <button onclick="app.filterAvatar('all')" class="avatar-tab active px-3 py-1 text-sm font-bold rounded-full transition bg-white text-black" data-tab="all">All</button>
-                            <button onclick="app.filterAvatar('clothing')" class="avatar-tab px-3 py-1 text-sm font-bold rounded-full transition text-gray-400 hover:text-white" data-tab="clothing">Clothes</button>
-                            <button onclick="app.filterAvatar('accessories')" class="avatar-tab px-3 py-1 text-sm font-bold rounded-full transition text-gray-400 hover:text-white" data-tab="accessories">Hats</button>
-                            <button onclick="app.filterAvatar('backbling')" class="avatar-tab px-3 py-1 text-sm font-bold rounded-full transition text-gray-400 hover:text-white" data-tab="backbling">Back</button>
-                            <button onclick="app.filterAvatar('skin')" class="avatar-tab px-3 py-1 text-sm font-bold rounded-full transition text-gray-400 hover:text-white" data-tab="skin">Skin</button>
-                        </div>
-
-                        <div class="grid grid-cols-4 gap-3 overflow-y-auto p-2 bg-gray-900/50 rounded-xl flex-1" id="avatar-grid"></div>
-
-                        <div class="mt-4 p-3 bg-gray-800 rounded-xl flex justify-between items-center">
-                            <div>
-                                <p class="text-xs text-gray-400">Inventory</p>
-                                <p class="font-bold text-lg" id="inventory-count">0</p>
-                            </div>
-                            <button class="bg-peyza-blue px-4 py-2 rounded-lg font-bold text-sm" onclick="app.saveAvatar()">Save Layout</button>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
-        </div>
-
-        <!-- MOBILE NAV -->
-        <div class="md:hidden fixed bottom-0 w-full bg-peyza-card border-t border-gray-800 flex justify-around p-3 z-50">
-            <button onclick="app.navigate('home')" class="text-gray-400 hover:text-white flex flex-col items-center gap-1 active-nav-mobile"><i class="fa-solid fa-house text-xl"></i></button>
-            <button onclick="app.navigate('games')" class="text-gray-400 hover:text-white flex flex-col items-center gap-1"><i class="fa-solid fa-gamepad text-xl"></i></button>
-            <button onclick="app.navigate('avatar')" class="text-gray-400 hover:text-white flex flex-col items-center gap-1"><i class="fa-solid fa-shirt text-xl"></i></button>
-        </div>
     </div>
 
-    <!-- GAME OVERLAY -->
-    <div id="game-overlay" class="fixed inset-0 z-[100] bg-black hidden flex-col">
-        <!-- Overlay Header -->
-        <div id="game-ui-header" class="absolute top-0 w-full z-20 bg-gradient-to-b from-black/80 to-transparent px-4 py-2 flex items-center justify-between pointer-events-none">
-            <div class="pointer-events-auto flex gap-2 items-center">
-                 <button onclick="app.exitGame()" class="bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1 rounded text-xs font-bold transition">EXIT</button>
-                 <button onclick="app.toggleFullscreen()" class="text-white/50 hover:text-white"><i class="fa-solid fa-expand"></i></button>
-            </div>
-            <div class="flex flex-col items-end text-white pointer-events-none">
-                <div class="flex items-center gap-2">
-                    <span class="text-yellow-400 font-bold"><i class="fa-solid fa-coins"></i> <span id="ingame-money">0</span></span>
-                </div>
-                <!-- Stamina -->
-                <div class="stamina-container mt-1">
-                    <div id="stamina-bar" class="stamina-fill"></div>
-                </div>
-            </div>
-        </div>
+    <!-- Mobile Navigation Bar (Fixed at Bottom) -->
+    <nav class="mobile-nav-bar fixed bottom-0 left-0 right-0 h-16 bg-card-dark border-t border-primary-dark z-20 flex justify-around items-center">
+        <button class="flex flex-col items-center justify-center p-1 text-light-gray hover:text-white transition duration-150" onclick="navigateTo('home')">
+            <i data-lucide="home" class="w-6 h-6"></i>
+            <span class="text-xs">Home</span>
+        </button>
+        <button class="flex flex-col items-center justify-center p-1 text-light-gray hover:text-white transition duration-150" onclick="navigateTo('search')">
+            <i data-lucide="search" class="w-6 h-6"></i>
+            <span class="text-xs">Search</span>
+        </button>
+        <button class="flex flex-col items-center justify-center p-1 text-light-gray hover:text-white transition duration-150" onclick="navigateTo('library')">
+            <i data-lucide="library" class="w-6 h-6"></i>
+            <span class="text-xs">Library</span>
+        </button>
+    </nav>
 
-        <!-- 3D & 2D Canvas Container -->
-        <div class="flex-1 relative bg-gray-900 flex items-center justify-center overflow-hidden">
-            <canvas id="game-canvas" class="outline-none focus:outline-none"></canvas>
-            
-            <!-- In-Game Chat Overlay -->
-            <div id="chat-overlay" class="absolute bottom-20 left-4 w-64 max-h-48 flex flex-col gap-1 pointer-events-none z-10">
-                <div id="chat-messages" class="flex-col gap-1 overflow-y-auto max-h-40 bg-black/40 p-2 rounded-lg text-xs text-white shadow-lg pointer-events-auto hidden"></div>
-                <input type="text" id="chat-input" placeholder="Press Enter to chat..." class="bg-black/60 border border-gray-600 rounded px-2 py-1 text-xs text-white pointer-events-auto focus:outline-none focus:border-peyza-blue" onkeydown="if(event.key === 'Enter') app.sendChat(this)">
-            </div>
-
-            <!-- Interaction Prompt -->
-            <div id="interaction-prompt" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white text-black px-4 py-2 rounded-full font-bold shadow-lg animate-bounce hidden z-30">
-                Press E to Interact
-            </div>
-            
-            <!-- Mini Map (3D Games only) -->
-            <div id="minimap" class="absolute bottom-4 right-4 w-32 h-32 bg-black/50 border-2 border-white/20 rounded-full overflow-hidden hidden z-10">
-                <div class="absolute inset-0 flex items-center justify-center text-white/20 text-[10px]">RADAR</div>
-                <div class="absolute top-1/2 left-1/2 w-2 h-2 bg-yellow-400 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
-            </div>
-
-            <!-- Mobile Controls -->
-            <div id="mobile-controls" class="absolute inset-0 pointer-events-none md:hidden hidden z-20">
-                <div class="absolute bottom-8 left-8 w-32 h-32 bg-white/10 rounded-full backdrop-blur pointer-events-auto touch-manipulation relative">
-                    <div id="dpad-up" class="absolute top-0 left-1/3 w-1/3 h-1/3 bg-white/20 rounded-t-lg"></div>
-                    <div id="dpad-down" class="absolute bottom-0 left-1/3 w-1/3 h-1/3 bg-white/20 rounded-b-lg"></div>
-                    <div id="dpad-left" class="absolute top-1/3 left-0 w-1/3 h-1/3 bg-white/20 rounded-l-lg"></div>
-                    <div id="dpad-right" class="absolute top-1/3 right-0 w-1/3 h-1/3 bg-white/20 rounded-r-lg"></div>
-                </div>
-                <div id="action-btn" class="absolute bottom-10 right-8 w-20 h-20 bg-peyza-accent/80 rounded-full shadow-lg flex items-center justify-center pointer-events-auto active:scale-95 transition">
-                    <i class="fa-solid fa-hand text-black text-2xl"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCRIPTS -->
+    <!-- JavaScript for Logic -->
     <script>
-        // --- EXPANDED DATA CATALOG (50+ Items Simulated) ---
-        const BASE_CATALOG = [
-            { id: 'skin_yellow', type: 'skin', name: 'Classic Yellow', color: '#FFE135', rarity: 'common', price: 0 },
-            { id: 'skin_blue', type: 'skin', name: 'Ice Blue', color: '#35A1FF', rarity: 'rare', price: 500 },
-            { id: 'skin_red', type: 'skin', name: 'Magma Red', color: '#FF3535', rarity: 'epic', price: 1200 },
-            { id: 'cloth_suit', type: 'clothing', name: 'Tuxedo', color: '#1a1a1a', rarity: 'rare', price: 800 },
-            { id: 'back_wings', type: 'backbling', name: 'Angel Wings', color: '#fff', shape: 'wings', rarity: 'legendary', price: 5000 },
-        ];
-        
-        // Procedural Generator for "50 New Items"
-        const COLORS = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFFFFF', '#000000'];
-        const ADJ = ['Neon', 'Dark', 'Cyber', 'Retro', 'Golden', 'Mystic'];
-        const TYPES = ['clothing', 'skin', 'accessories'];
-        
-        for(let i=0; i<45; i++) {
-            const type = TYPES[i % 3];
-            const color = COLORS[i % COLORS.length];
-            const adj = ADJ[i % ADJ.length];
-            const name = `${adj} ${type === 'clothing' ? 'Shirt' : type === 'skin' ? 'Skin' : 'Hat'}`;
-            BASE_CATALOG.push({
-                id: `gen_${i}`,
-                type: type,
-                name: name,
-                color: color,
-                rarity: i % 5 === 0 ? 'legendary' : (i % 3 === 0 ? 'rare' : 'common'),
-                price: (i % 5 === 0 ? 2000 : 100) + (i*10),
-                subType: type === 'accessories' ? 'hat' : null
-            });
+        // --- CONSTANTS ---
+        // NOTE: Exposing client secrets in client-side code is INSECURE for production applications.
+        const CLIENT_ID = '24d71c5bae0e407a98cd3cff0ccb33ff';
+        const CLIENT_SECRET = '15e5882a39f049edaec7de7bbc62f407';
+        const API_URL = 'https://api.spotify.com/v1';
+        const TOKEN_URL = 'https://accounts.spotify.com/api/token';
+
+        let accessToken = localStorage.getItem('spotify_token') || null;
+
+        // --- UI UTILITY FUNCTIONS ---
+
+        /**
+         * Shows the loading spinner and hides the dynamic content.
+         */
+        function showLoading() {
+            document.getElementById('loading-indicator').classList.remove('hidden');
+            document.getElementById('loading-indicator').classList.add('flex');
+            document.getElementById('dynamic-content').innerHTML = '';
         }
-        
-        const CATALOG = BASE_CATALOG;
 
-        class PeyzaApp {
-            constructor() {
-                const savedUser = localStorage.getItem('peyza_user');
-                this.user = savedUser ? JSON.parse(savedUser) : null;
-                this.state = {
-                    peyBucks: parseInt(localStorage.getItem('peyza_balance')) || 50,
-                    level: parseInt(localStorage.getItem('peyza_level')) || 1,
-                    xp: parseInt(localStorage.getItem('peyza_xp')) || 0,
-                    settings: { performance: false, music: true },
-                    equipped: JSON.parse(localStorage.getItem('peyza_equipped')) || { skin: '#FFE135' },
-                    inventory: JSON.parse(localStorage.getItem('peyza_inventory')) || [],
-                    lastLogin: localStorage.getItem('peyza_last_login') || 0,
-                    streak: parseInt(localStorage.getItem('peyza_streak')) || 0
-                };
-                this.gameEngine = null;
-                this.init();
+        /**
+         * Hides the loading spinner.
+         */
+        function hideLoading() {
+            document.getElementById('loading-indicator').classList.add('hidden');
+            document.getElementById('loading-indicator').classList.remove('flex');
+        }
+
+        /**
+         * Renders Lucide icons after dynamic content has been inserted.
+         */
+        function renderIcons() {
+            lucide.createIcons();
+        }
+
+        /**
+         * Handles navigation logic, updates the UI, and manages mobile search bar visibility.
+         * @param {string} view - The view to navigate to ('home', 'search', 'library').
+         */
+        function navigateTo(view, data = null) {
+            const contentArea = document.getElementById('dynamic-content');
+            const searchContainer = document.getElementById('search-container');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Toggle search bar visibility based on view and screen size
+            if (view === 'search') {
+                searchContainer.classList.remove('hidden');
+                searchContainer.classList.add('block');
+            } else if (window.innerWidth < 768 && view === 'home') {
+                searchContainer.classList.remove('block');
+                searchContainer.classList.add('hidden');
+            } else if (window.innerWidth >= 768) {
+                // Always show search on desktop
+                searchContainer.classList.remove('hidden');
+                searchContainer.classList.add('block');
+            } else {
+                searchContainer.classList.remove('block');
+                searchContainer.classList.add('hidden');
             }
 
-            init() {
-                this.renderGames();
-                // Initialize Avatar Renderers regardless of login state
-                this.avatarRenderer = new AvatarRenderer('avatar-editor-canvas', 400);
-                this.miniAvatarRenderer = new AvatarRenderer('mini-avatar-canvas', 40);
-                this.avatarLoop();
-                this.filterAvatar('all');
 
-                // Only perform user-specific actions if a user is logged in
-                if (this.user) {
-                    this.showApp();
-                    this.checkDailyReward();
-                    this.loadLeaderboard();
-                    // updateStatsUI is now called within showApp()
+            showLoading();
+
+            // Render the specific view
+            setTimeout(() => {
+                hideLoading();
+                switch (view) {
+                    case 'home':
+                        renderHome();
+                        break;
+                    case 'search':
+                        contentArea.innerHTML = renderSearchPlaceholder();
+                        break;
+                    case 'results':
+                        renderSearchResults(data);
+                        break;
+                    case 'artist':
+                        getArtistDetails(data); // data is artist ID
+                        break;
+                    case 'album':
+                        getAlbumDetails(data); // data is album ID
+                        break;
+                    case 'library':
+                        renderLibrary();
+                        break;
+                    default:
+                        renderHome();
                 }
+                renderIcons();
+            }, 300); // Small delay to show "loading" feel
+        }
+
+        // --- SPOTIFY API FUNCTIONS ---
+
+        /**
+         * Gets the Spotify Access Token using Client Credentials flow.
+         * Stores the token and expiry in localStorage.
+         * @returns {Promise<string|null>} Access Token or null on failure.
+         */
+        async function getToken() {
+            const expiry = localStorage.getItem('token_expiry');
+            // Check if token exists and is not expired
+            if (accessToken && expiry && Date.now() < parseInt(expiry)) {
+                return accessToken;
             }
 
-            // Function to show the main application shell
-            showApp() {
-                if (!this.user) return; // Safety check
-                document.getElementById('landing-view').classList.add('hidden');
-                document.getElementById('app-shell').classList.remove('hidden');
-                document.getElementById('sidebar-username').innerText = this.user.username;
-                document.getElementById('settings-uid').innerText = this.user.username; // Use username as pseudo-ID
-                this.updateStatsUI(); // Ensure stats load immediately after login/check
-                this.navigate('home');
-            }
-
-            // --- CORE LOGIC ---
-            login() {
-                const username = document.getElementById('username-input').value || "Guest";
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('login-loader').classList.remove('hidden');
-                document.getElementById('login-loader').classList.add('flex');
-                setTimeout(() => {
-                    this.user = { username };
-                    localStorage.setItem('peyza_user', JSON.stringify(this.user));
-                    this.showApp();
-                    this.checkDailyReward();
-                    this.loadLeaderboard(); // Call explicitly after user is set
-                }, 1000);
-            }
-            guestLogin() {
-                document.getElementById('username-input').value = `Guest_${Math.floor(Math.random()*1000)}`;
-                this.login();
-            }
-            logout() { 
-                localStorage.removeItem('peyza_user'); 
-                location.reload(); 
-            }
-            
-            toggleSetting(key) {
-                this.state.settings[key] = !this.state.settings[key];
-                const toggleBtn = document.getElementById(`toggle-${key}`);
-                if (toggleBtn) {
-                    const circle = toggleBtn.querySelector('div');
-                    if (this.state.settings[key]) {
-                        toggleBtn.classList.remove('bg-gray-600');
-                        toggleBtn.classList.add('bg-peyza-accent');
-                        circle.classList.add('translate-x-6');
-                        circle.classList.remove('translate-x-0');
-                    } else {
-                        toggleBtn.classList.remove('bg-peyza-accent');
-                        toggleBtn.classList.add('bg-gray-600');
-                        circle.classList.remove('translate-x-6');
-                        circle.classList.add('translate-x-0');
-                    }
-                }
-                this.showToast(`${key} is now ${this.state.settings[key] ? 'ON' : 'OFF'}`, 'info');
-            }
-
-            // --- LEADERBOARD & ECONOMY ---
-            loadLeaderboard() {
-                if (!this.user) return; // Prevent crash if user is null on initial load
-
-                // Generate fake data mixed with user data
-                let data = [
-                    { name: "NinjaPickle", lvl: 99, bal: 500000 },
-                    { name: "PeyzaAdmin", lvl: 100, bal: 999999 },
-                    { name: "NoobMaster69", lvl: 5, bal: 20 },
-                    { name: "BuilderMan", lvl: 45, bal: 12000 },
-                    { name: this.user.username, lvl: this.state.level, bal: this.state.peyBucks }
-                ];
-                // Sort
-                data.sort((a,b) => b.bal - a.bal);
-                // Render
-                const html = data.map((p, i) => `
-                    <div class="grid grid-cols-4 p-4 ${p.name === this.user.username ? 'bg-peyza-blue/20 border-l-4 border-peyza-blue' : ''}">
-                        <div class="font-bold">#${i+1}</div>
-                        <div class="flex items-center gap-2">
-                             <div class="w-6 h-6 rounded-full bg-gray-600"></div> ${p.name}
-                        </div>
-                        <div>${p.lvl}</div>
-                        <div class="text-right text-green-400 font-mono">$${p.bal.toLocaleString()}</div>
-                    </div>
-                `).join('');
-                document.getElementById('leaderboard-list').innerHTML = html;
-            }
-
-            // --- SHOP & AVATAR ---
-            filterAvatar(cat) {
-                // UI Toggles omitted for brevity, functionality remains
-                document.querySelectorAll('.avatar-tab').forEach(btn => {
-                    btn.classList.remove('bg-white', 'text-black');
-                    btn.classList.add('text-gray-400', 'hover:text-white');
-                    if (btn.dataset.tab === cat) {
-                        btn.classList.add('bg-white', 'text-black', 'active');
-                        btn.classList.remove('text-gray-400', 'hover:text-white');
-                    }
+            const authString = btoa(CLIENT_ID + ':' + CLIENT_SECRET);
+            try {
+                const response = await fetch(TOKEN_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + authString
+                    },
+                    body: 'grant_type=client_credentials'
                 });
 
-
-                const grid = document.getElementById('avatar-grid');
-                grid.innerHTML = '';
-                const filtered = cat === 'all' ? CATALOG : CATALOG.filter(i => i.type === cat);
-                
-                filtered.forEach(item => {
-                    // Check if owned
-                    const owned = this.state.inventory.includes(item.id) || item.price === 0;
-                    const isEquipped = this.state.equipped[item.type]?.id === item.id || (item.type === 'skin' && this.state.equipped.skin === item.color);
-                    
-                    const div = document.createElement('div');
-                    div.className = `aspect-square bg-gray-800 rounded-xl border-2 cursor-pointer flex flex-col items-center justify-center relative group hover:scale-105 transition ${isEquipped ? 'border-peyza-accent' : `rarity-${item.rarity}`}`;
-                    div.innerHTML = `
-                        <div class="w-8 h-8 rounded-full shadow-lg mb-1" style="background:${item.color}"></div>
-                        <span class="text-[10px] text-gray-400 text-center leading-none">${item.name}</span>
-                        ${!owned ? `<span class="absolute top-1 right-1 text-xs bg-black/80 px-1 rounded text-green-400">$${item.price}</span>` : ''}
-                        ${isEquipped ? '<div class="absolute top-1 left-1 text-peyza-accent text-xs"><i class="fa-solid fa-check-circle"></i></div>' : ''}
-                    `;
-                    div.onclick = () => {
-                        if (owned) this.equipItem(item);
-                        else this.buyItem(item);
-                    };
-                    grid.appendChild(div);
-                });
-                document.getElementById('inventory-count').innerText = this.state.inventory.length;
-            }
-
-            buyItem(item) {
-                if(this.state.peyBucks >= item.price) {
-                    this.state.peyBucks -= item.price;
-                    this.state.inventory.push(item.id);
-                    localStorage.setItem('peyza_inventory', JSON.stringify(this.state.inventory));
-                    this.addPeyBucks(0); // Sync UI
-                    this.showToast(`Bought ${item.name}!`, 'success');
-                    this.filterAvatar(document.querySelector('.avatar-tab.active')?.dataset.tab || 'all');
+                if (response.ok) {
+                    const data = await response.json();
+                    accessToken = data.access_token;
+                    localStorage.setItem('spotify_token', accessToken);
+                    // Set expiry time 1 minute before actual expiry for safety
+                    localStorage.setItem('token_expiry', Date.now() + ((data.expires_in - 60) * 1000));
+                    console.log('New Spotify Token obtained.');
+                    return accessToken;
                 } else {
-                    this.showToast("Not enough PeyBucks!", "error");
+                    console.error('Failed to get Spotify token:', response.status, await response.text());
+                    return null;
                 }
+            } catch (error) {
+                console.error('Network error during token fetch:', error);
+                return null;
             }
-            
-            equipItem(item) {
-                if (item.type === 'skin') this.state.equipped.skin = item.color;
-                else this.state.equipped[item.type] = item;
-                localStorage.setItem('peyza_equipped', JSON.stringify(this.state.equipped));
-                this.filterAvatar(item.type);
-            }
-            
-            saveAvatar() { this.showToast('Avatar saved!', 'info'); }
-            toggleBundles() { this.showToast('Bundles feature coming soon!', 'info'); }
+        }
 
-            // --- GAMES LAUNCHER (3D & 2D) ---
-            renderGames() {
-                const list = [
-                    { id: 'pickle_3d', title: 'Pickle Farm 3D', players: '24K', img: 'https://picsum.photos/seed/pickle/300/200', tag: '3D' },
-                    { id: 'mansion_3d', title: 'Halloween Mansion', players: '12K', img: 'https://picsum.photos/seed/mansion/300/200', tag: '3D' },
-                    { id: 'iron_3d', title: 'Iron World', players: '5K', img: 'https://picsum.photos/seed/iron/300/200', tag: '3D' },
-                    { id: 'tumble_2d', title: 'Tumble Town (Classic)', players: '2K', img: 'https://picsum.photos/seed/tumble/300/200', tag: '2D' },
-                    { id: 'pizza_2d', title: 'Pizza Tycoon', players: '8K', img: 'https://picsum.photos/seed/pizza/300/200', tag: '2D' }
-                ];
-                const html = list.map(g => `
-                    <div class="bg-peyza-card rounded-xl overflow-hidden hover:translate-y-[-5px] transition shadow-lg border border-gray-800 cursor-pointer group" onclick="app.launchGame('${g.id}')">
-                        <div class="aspect-video bg-gray-700 relative overflow-hidden">
-                            <img src="${g.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                            <div class="absolute bottom-2 left-2 bg-black/60 px-2 rounded text-[10px] font-bold backdrop-blur flex items-center gap-1">
-                                <span class="bg-blue-600 px-1 rounded mr-1">${g.tag}</span> ${g.players}
+        /**
+         * Performs a search across artists, tracks, and albums.
+         * @param {string} query - The search term.
+         */
+        async function performSearch(query) {
+            if (!query.trim()) return;
+
+            showLoading();
+            const token = await getToken();
+            if (!token) {
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
+                hideLoading();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=artist,album,track&limit=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    navigateTo('results', data);
+                } else {
+                    console.error('Search API error:', response.status, await response.text());
+                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Full Library API Error: ${response.status}. Please try again later.</p>`;
+                }
+            } catch (error) {
+                console.error('Network error during search:', error);
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network connection failed. Check your internet.</p>`;
+            }
+            hideLoading();
+        }
+
+        /**
+         * Fetches full details for an artist and their top tracks.
+         * @param {string} artistId - The Spotify ID of the artist.
+         */
+        async function getArtistDetails(artistId) {
+            showLoading();
+            const token = await getToken();
+            if (!token) {
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
+                hideLoading();
+                return;
+            }
+
+            try {
+                const [artistRes, topTracksRes, albumsRes] = await Promise.all([
+                    fetch(`${API_URL}/artists/${artistId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${API_URL}/artists/${artistId}/top-tracks?market=US`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${API_URL}/artists/${artistId}/albums?market=US&limit=6&include_groups=album,single`, { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+
+                if (artistRes.ok && topTracksRes.ok && albumsRes.ok) {
+                    const artistData = await artistRes.json();
+                    const topTracksData = await topTracksRes.json();
+                    const albumsData = await albumsRes.json();
+                    renderArtistPage(artistData, topTracksData.tracks, albumsData.items);
+                } else {
+                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Failed to load artist details.</p>`;
+                }
+            } catch (error) {
+                console.error('Error fetching artist details:', error);
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network error loading artist details.</p>`;
+            }
+            hideLoading();
+            renderIcons();
+        }
+
+        /**
+         * Fetches full details for an album and its tracks.
+         * @param {string} albumId - The Spotify ID of the album.
+         */
+        async function getAlbumDetails(albumId) {
+            showLoading();
+            const token = await getToken();
+            if (!token) {
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Error: Could not authenticate with Full Library.</p>`;
+                hideLoading();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/albums/${albumId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const albumData = await response.json();
+                    renderAlbumPage(albumData);
+                } else {
+                    document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Failed to load album details.</p>`;
+                }
+            } catch (error) {
+                console.error('Error fetching album details:', error);
+                document.getElementById('dynamic-content').innerHTML = `<p class="text-red-500 p-4">Network error loading album details.</p>`;
+            }
+            hideLoading();
+            renderIcons();
+        }
+
+        // --- DATA GENERATION / SIMULATION FUNCTIONS ---
+
+        /**
+         * Formats a number with commas.
+         * @param {number} num - The number to format.
+         * @returns {string} Formatted number string.
+         */
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        /**
+         * Generates monthly listeners based on Spotify popularity (0-100).
+         * @param {number} popularity - The popularity score (0-100).
+         * @returns {string} Formatted listener count.
+         */
+        function generateMonthlyListeners(popularity) {
+            let base = 500;
+            if (popularity > 70) base = 1000000; // Big artists
+            else if (popularity > 50) base = 10000; // Mid artists
+            else if (popularity > 30) base = 1000; // Small artists
+
+            // Scale factor: 0.5 for low pop, up to 50 for high pop
+            const factor = Math.pow(popularity / 100, 3) * 50 + 0.5;
+            const listeners = Math.floor(base * factor) + (Math.floor(Math.random() * 1000));
+            return formatNumber(listeners);
+        }
+
+        /**
+         * Generates followers based on Spotify popularity (0-100).
+         * @param {number} popularity - The popularity score (0-100).
+         * @returns {string} Formatted follower count.
+         */
+        function generateFollowers(popularity) {
+            let base = 100;
+            if (popularity > 80) base = 5000000;
+            else if (popularity > 60) base = 500000;
+            else if (popularity > 40) base = 10000;
+            const factor = Math.pow(popularity / 100, 2) * 20 + 0.5;
+            const followers = Math.floor(base * factor) + (Math.floor(Math.random() * 5000));
+            return formatNumber(followers);
+        }
+
+        /**
+         * Generates stream count based on track popularity (0-100).
+         * @param {number} popularity - The popularity score (0-100).
+         * @returns {string} Formatted stream count.
+         */
+        function generateStreams(popularity) {
+            let base = 1000;
+            if (popularity > 80) base = 50000000;
+            else if (popularity > 60) base = 5000000;
+            else if (popularity > 40) base = 500000;
+            const factor = Math.pow(popularity / 100, 2) * 5 + 0.1;
+            const streams = Math.floor(base * factor) + (Math.floor(Math.random() * 10000));
+            return formatNumber(streams);
+        }
+
+        /**
+         * Checks if an artist is currently "followed" (simulated via localStorage).
+         * @param {string} artistId - The artist's Spotify ID.
+         * @returns {boolean} True if followed, false otherwise.
+         */
+        function isArtistFollowed(artistId) {
+            const followedArtists = JSON.parse(localStorage.getItem('followedPeyzaArtists') || '[]');
+            return followedArtists.some(a => a.id === artistId);
+        }
+
+        /**
+         * Toggles the "follow" state for an artist (simulated via localStorage).
+         * @param {string} artistId - The artist's Spotify ID.
+         * @param {string} artistName - The artist's name.
+         * @param {string} imageUrl - The artist's image URL.
+         */
+        function toggleFollowArtist(artistId, artistName, imageUrl) {
+            const followedArtists = JSON.parse(localStorage.getItem('followedPeyzaArtists') || '[]');
+            const index = followedArtists.findIndex(a => a.id === artistId);
+
+            if (index > -1) {
+                // Unfollow
+                followedArtists.splice(index, 1);
+            } else {
+                // Follow
+                followedArtists.push({ id: artistId, name: artistName, image: imageUrl });
+            }
+
+            localStorage.setItem('followedPeyzaArtists', JSON.stringify(followedArtists));
+
+            // Re-render relevant parts of the UI
+            renderLibrary();
+            // Optional: Re-render the follow button on the current page if it's an artist page
+            const followButton = document.getElementById('follow-button');
+            if (followButton) {
+                followButton.outerHTML = renderFollowButton(artistId, artistName, imageUrl);
+                renderIcons();
+            }
+        }
+
+        // --- UI RENDERING FUNCTIONS ---
+
+        /**
+         * Renders the Home View with some suggested content.
+         */
+        function renderHome() {
+            const contentArea = document.getElementById('dynamic-content');
+            contentArea.innerHTML = `
+                <h1 class="text-4xl font-extrabold mb-8">Good evening</h1>
+                
+                <!-- Quick Access Grid (Tablet/Desktop) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
+                    ${renderCardLink('Artist', 'Verified Peyza Artists', 'artist', '3TVXtAsR1Inumwj472Syg4', 'https://placehold.co/100x100/1DB954/ffffff?text=ARTIST')}
+                    ${renderCardLink('Album', 'Latest Hits', 'album', '6KspK9Qf90QfE45V2w5B5M', 'https://placehold.co/100x100/1DB954/ffffff?text=ALBUM')}
+                    ${renderCardLink('Playlist', 'Morning Drive', 'search', 'drive', 'https://placehold.co/100x100/1DB954/ffffff?text=PLAYLIST')}
+                    ${renderCardLink('Podcast', 'Tech Weekly', 'search', 'tech', 'https://placehold.co/100x100/1DB954/ffffff?text=PODCAST')}
+                </div>
+
+                <!-- Suggested Sections -->
+                <h2 class="text-2xl font-bold mt-8 mb-4">Made for you</h2>
+                ${renderHorizontalSection([
+                    { title: 'Chill Vibes', description: 'Relax and unwind with smooth tunes.', image: 'https://placehold.co/150x150/4B77BE/ffffff?text=CHILL' },
+                    { title: 'Workout Mix', description: 'High energy for your training.', image: 'https://placehold.co/150x150/FF3860/ffffff?text=WORKOUT' },
+                    { title: 'Focus Flow', description: 'Instrumental music for deep work.', image: 'https://placehold.co/150x150/34495E/ffffff?text=FOCUS' }
+                ])}
+
+                <h2 class="text-2xl font-bold mt-8 mb-4">Recently Played</h2>
+                ${renderHorizontalSection([
+                    { title: 'The Road Less Traveled', description: 'By Verified Peyza Artist 1', image: 'https://placehold.co/150x150/F39C12/ffffff?text=ROAD' },
+                    { title: 'Midnight City', description: 'Album by Synthwave Co.', image: 'https://placehold.co/150x150/8E44AD/ffffff?text=MIDNIGHT' },
+                ])}
+            `;
+        }
+
+        /**
+         * Renders a quick access card link.
+         */
+        function renderCardLink(type, title, action, data, imageUrl) {
+            return `
+                <a href="#" class="bg-card-dark/50 hover:bg-card-dark transition duration-200 rounded-lg overflow-hidden flex items-center shadow-lg"
+                   onclick="event.preventDefault(); navigateTo('${action}', '${data}');">
+                    <img src="${imageUrl}" class="w-20 h-20 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/80x80/282828/b3b3b3?text=${type[0]}'">
+                    <span class="text-white font-semibold p-4 truncate">${title}</span>
+                </a>
+            `;
+        }
+
+        /**
+         * Renders a horizontal scrolling section of content cards.
+         */
+        function renderHorizontalSection(items) {
+            return `
+                <div class="overflow-x-auto whitespace-nowrap pb-4">
+                    <div class="flex space-x-4">
+                        ${items.map(item => `
+                            <div class="inline-block w-40 p-4 bg-card-dark rounded-xl shadow-xl hover:bg-[#333] transition duration-200 cursor-pointer">
+                                <img src="${item.image}" alt="${item.title}" class="w-full h-40 object-cover rounded-lg mb-3 shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/160x160/282828/b3b3b3?text=IMG'">
+                                <p class="text-white font-bold truncate">${item.title}</p>
+                                <p class="text-light-gray text-sm whitespace-normal mt-1">${item.description}</p>
                             </div>
-                        </div>
-                        <div class="p-3"><h4 class="font-bold text-sm truncate">${g.title}</h4></div>
+                        `).join('')}
                     </div>
-                `).join('');
-                document.getElementById('home-games-grid').innerHTML = html;
-                document.getElementById('all-games-grid').innerHTML = html;
-            }
-
-            launchGame(id) {
-                const overlay = document.getElementById('game-overlay');
-                overlay.classList.remove('hidden');
-                overlay.classList.add('flex');
-                
-                // Cleanup old engine
-                if (this.gameEngine && this.gameEngine.dispose) this.gameEngine.dispose();
-                
-                // Route to Engine
-                const canvasId = 'game-canvas';
-                document.getElementById('chat-messages').classList.remove('hidden');
-                document.getElementById('minimap').classList.remove('hidden');
-
-                if (id === 'pickle_3d') this.gameEngine = new PickleFarmGame(canvasId);
-                else if (id === 'mansion_3d') this.gameEngine = new MansionGame(canvasId);
-                else if (id === 'iron_3d') this.gameEngine = new IronWorldGame(canvasId);
-                else if (id === 'tumble_2d') this.gameEngine = new TumbleTownGame(canvasId);
-                else if (id === 'pizza_2d') this.gameEngine = new PizzaTycoonGame(canvasId);
-                
-                if(this.gameEngine.start) this.gameEngine.start();
-            }
-
-            exitGame() {
-                if (this.gameEngine && this.gameEngine.stop) this.gameEngine.stop();
-                document.getElementById('game-overlay').classList.add('hidden');
-                document.getElementById('game-overlay').classList.remove('flex');
-                document.exitFullscreen().catch(()=>{});
-            }
-
-            // --- UTILS ---
-            showToast(msg, type='info') {
-                const c = document.getElementById('toast-container');
-                const t = document.createElement('div');
-                const col = type === 'success' ? 'bg-peyza-accent text-black' : (type === 'error' ? 'bg-red-500 text-white' : 'bg-gray-800 text-white border border-gray-600');
-                t.className = `${col} px-4 py-3 rounded-lg shadow-xl animate-slide-up font-bold text-sm flex items-center gap-2`;
-                t.innerHTML = msg;
-                c.appendChild(t);
-                setTimeout(() => t.remove(), 3000);
-            }
-            
-            // Stats helpers
-            addPeyBucks(amount) {
-                // Simple animation effect on counter
-                const currentBalance = this.state.peyBucks;
-                const newBalance = currentBalance + amount;
-                
-                if (amount > 0) {
-                    this.state.peyBucks = newBalance;
-                    document.getElementById('header-balance').classList.add('animate-pop', 'text-peyza-accent');
-                    setTimeout(() => {
-                         document.getElementById('header-balance').classList.remove('animate-pop', 'text-peyza-accent');
-                    }, 300);
-                } else {
-                     this.state.peyBucks = newBalance;
-                }
-
-                localStorage.setItem('peyza_balance', this.state.peyBucks);
-                this.updateStatsUI();
-            }
-            updateStatsUI() {
-                if (!this.user) return; // Guard clause
-
-                document.getElementById('header-balance').innerText = this.state.peyBucks.toLocaleString();
-                document.getElementById('ingame-money').innerText = this.state.peyBucks.toLocaleString();
-                document.getElementById('sidebar-level').innerText = this.state.level;
-                this.loadLeaderboard(); // Keep leaderboard synced
-            }
-            navigate(page) {
-                document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden'));
-                document.getElementById('page-'+page).classList.remove('hidden');
-                document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('bg-peyza-hover'));
-                document.querySelector(`.nav-btn[data-page="${page}"]`)?.classList.add('bg-peyza-hover');
-            }
-            checkDailyReward() {
-                const today = new Date().toDateString();
-                if (this.state.lastLogin !== today) {
-                    document.getElementById('daily-reward-modal').classList.remove('hidden');
-                    document.getElementById('streak-count').innerText = this.state.streak + 1;
-                }
-            }
-            claimDailyReward() {
-                const today = new Date().toDateString();
-                this.addPeyBucks(100);
-                this.state.lastLogin = today;
-                this.state.streak++;
-                localStorage.setItem('peyza_last_login', today);
-                localStorage.setItem('peyza_streak', this.state.streak);
-                document.getElementById('daily-reward-modal').classList.add('hidden');
-                this.showToast('+100 PB claimed!', 'success');
-            }
-            toggleSettings() { document.getElementById('settings-modal').classList.toggle('hidden'); }
-            toggleFullscreen() {
-                 if (!document.fullscreenElement) document.getElementById('game-overlay').requestFullscreen();
-                 else document.exitFullscreen();
-            }
-            sendChat(input) {
-                const msg = input.value;
-                if(!msg) return;
-                const container = document.getElementById('chat-messages');
-                const line = document.createElement('div');
-                line.innerHTML = `<span class="text-blue-400 font-bold">${this.user.username}:</span> ${msg}`;
-                container.appendChild(line);
-                input.value = '';
-                container.scrollTop = container.scrollHeight;
-            }
-            avatarLoop() {
-                requestAnimationFrame(() => this.avatarLoop());
-                this.avatarRenderer.draw(this.state.equipped);
-                this.miniAvatarRenderer.draw(this.state.equipped);
-            }
+                </div>
+            `;
         }
 
-        /* --- 3D ENGINE BASE (THREE.JS) --- */
-        class ThreeGameBase {
-            constructor(canvasId) {
-                this.canvas = document.getElementById(canvasId);
-                this.scene = new THREE.Scene();
-                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-                this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.running = false;
-                this.keys = {};
-                this.player = new THREE.Group();
-                this.stamina = 100;
-                
-                // Basic Inputs
-                window.addEventListener('keydown', e => this.keys[e.key.toLowerCase()] = true);
-                window.addEventListener('keyup', e => this.keys[e.key.toLowerCase()] = false);
-                window.addEventListener('resize', () => this.resize());
-            }
-            
-            initPlayer() {
-                // Simple Voxel Player
-                const matBody = new THREE.MeshLambertMaterial({ color: app.state.equipped.skin });
-                const matShirt = new THREE.MeshLambertMaterial({ color: app.state.equipped.clothing?.color || app.state.equipped.skin });
-                
-                const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.5), matShirt);
-                body.position.y = 1.5;
-                const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), matBody);
-                head.position.y = 2.6;
-                
-                this.player.add(body);
-                this.player.add(head);
-                this.scene.add(this.player);
-                this.camera.position.set(0, 4, 5);
-            }
-
-            resize() {
-                if(!this.camera) return;
-                this.camera.aspect = window.innerWidth / window.innerHeight;
-                this.camera.updateProjectionMatrix();
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-
-            handleMovement(baseSpeed = 0.1) {
-                let speed = baseSpeed;
-                if(this.keys['shift'] && this.stamina > 0) { 
-                    speed *= 2; 
-                    this.stamina = Math.max(0, this.stamina - 1); 
-                }
-                else if(this.stamina < 100) {
-                    this.stamina = Math.min(100, this.stamina + 0.5);
-                }
-                
-                // Update UI Stamina
-                document.getElementById('stamina-bar').style.width = this.stamina + '%';
-
-                const dir = new THREE.Vector3();
-                this.camera.getWorldDirection(dir);
-                dir.y = 0; dir.normalize();
-
-                if(this.keys['w'] && this.stamina > 0) this.player.position.add(dir.clone().multiplyScalar(speed));
-                if(this.keys['s'] && this.stamina > 0) this.player.position.add(dir.clone().multiplyScalar(-speed));
-                if(this.keys['a']) { this.player.rotation.y += 0.05; }
-                if(this.keys['d']) { this.player.rotation.y -= 0.05; }
-
-                // Camera follow
-                const offset = new THREE.Vector3(0, 4, 6);
-                offset.applyAxisAngle(new THREE.Vector3(0,1,0), this.player.rotation.y);
-                this.camera.position.copy(this.player.position).add(offset);
-                this.camera.lookAt(this.player.position.clone().add(new THREE.Vector3(0, 2, 0)));
-            }
-
-            start() { this.running = true; this.loop(); }
-            stop() { this.running = false; }
-            dispose() { this.renderer.dispose(); }
-            loop() { if(this.running) { requestAnimationFrame(()=>this.loop()); this.update(); this.renderer.render(this.scene, this.camera); } }
-            update() {} // Override
+        /**
+         * Renders the content when no search query has been made.
+         */
+        function renderSearchPlaceholder() {
+            return `
+                <h1 class="text-2xl md:text-3xl font-bold mb-6">Search Full Library</h1>
+                <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    ${renderSearchCategoryCard('Podcasts', 'bg-red-500', 'podcast')}
+                    ${renderSearchCategoryCard('Made For You', 'bg-green-500', 'playlist')}
+                    ${renderSearchCategoryCard('Charts', 'bg-blue-500', 'chart')}
+                    ${renderSearchCategoryCard('New Releases', 'bg-yellow-500', 'new')}
+                    ${renderSearchCategoryCard('Hip Hop', 'bg-purple-500', 'hip hop')}
+                    ${renderSearchCategoryCard('Pop', 'bg-pink-500', 'pop')}
+                </div>
+            `;
         }
 
-        /* --- 3D GAME: PICKLE FARM --- */
-        class PickleFarmGame extends ThreeGameBase {
-            constructor(cid) {
-                super(cid);
-                this.pickles = [];
-                this.carryCount = 0;
-                this.setupWorld();
-            }
-
-            setupWorld() {
-                // Sky
-                this.scene.background = new THREE.Color(0x87CEEB);
-                this.scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
-
-                // Ground
-                const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({ color: 0x4CAF50 }));
-                ground.rotation.x = -Math.PI/2;
-                this.scene.add(ground);
-
-                // Lighting
-                const light = new THREE.DirectionalLight(0xffffff, 1);
-                light.position.set(10, 20, 10);
-                this.scene.add(light);
-                this.scene.add(new THREE.AmbientLight(0x404040));
-
-                // Barn (Sell Zone)
-                this.barn = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), new THREE.MeshLambertMaterial({ color: 0x8B0000 }));
-                this.barn.position.set(0, 2.5, -20);
-                this.scene.add(this.barn);
-
-                // Pickles
-                const pickleGeo = new THREE.CylinderGeometry(0.2, 0.2, 1, 8);
-                const pickleMat = new THREE.MeshLambertMaterial({ color: 0x006400 });
-                for(let i=0; i<30; i++) {
-                    const p = new THREE.Mesh(pickleGeo, pickleMat);
-                    p.position.set((Math.random()-0.5)*80, 0.5, (Math.random()-0.5)*80);
-                    p.rotation.z = Math.random();
-                    this.scene.add(p);
-                    this.pickles.push(p);
-                }
-
-                this.initPlayer();
-            }
-
-            update() {
-                this.handleMovement();
-                
-                // Collection Logic
-                const pPos = this.player.position;
-                const prompt = document.getElementById('interaction-prompt');
-                prompt.classList.add('hidden');
-
-                // Check Pickles
-                for(let i=this.pickles.length-1; i>=0; i--) {
-                    if(pPos.distanceTo(this.pickles[i].position) < 2) {
-                        this.scene.remove(this.pickles[i]);
-                        this.pickles.splice(i, 1);
-                        this.carryCount++;
-                        app.showToast('Picked up pickle!', 'success');
-                    }
-                }
-
-                // Check Barn
-                if(pPos.distanceTo(this.barn.position) < 6) {
-                    prompt.classList.remove('hidden');
-                    prompt.innerText = `Press E to Sell (${this.carryCount})`;
-                    if(this.keys['e'] && this.carryCount > 0) {
-                        const earn = this.carryCount * 5;
-                        app.addPeyBucks(earn);
-                        this.carryCount = 0;
-                        app.showToast(`Sold pickles for $${earn}!`, 'success');
-                    }
-                }
-            }
+        function renderSearchCategoryCard(title, bgColor, search) {
+            return `
+                <div class="h-32 rounded-xl p-4 cursor-pointer relative overflow-hidden shadow-lg ${bgColor} hover:opacity-90 transition"
+                     onclick="document.getElementById('search-input').value='${search}'; performSearch('${search}');">
+                    <p class="text-xl font-extrabold">${title}</p>
+                    <img src="https://placehold.co/70x70/${bgColor.replace('bg-', '')}/ffffff?text=🎧" class="absolute -bottom-2 -right-2 transform rotate-12" alt="icon">
+                </div>
+            `;
         }
 
-        /* --- 3D GAME: MANSION --- */
-        class MansionGame extends ThreeGameBase {
-            constructor(cid) {
-                super(cid);
-                this.setupWorld();
-            }
-            setupWorld() {
-                this.scene.background = new THREE.Color(0x111111);
-                this.scene.fog = new THREE.FogExp2(0x111111, 0.1); // Spooky fog
+        /**
+         * Renders the search results page.
+         * @param {object} data - The Spotify search response object.
+         */
+        function renderSearchResults(data) {
+            const contentArea = document.getElementById('dynamic-content');
+            const tracks = data.tracks.items;
+            const artists = data.artists.items.filter(a => a.images.length > 0);
+            const albums = data.albums.items.filter(a => a.images.length > 0);
 
-                // Floor
-                const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshPhongMaterial({ color: 0x222222 }));
-                floor.rotation.x = -Math.PI/2;
-                this.scene.add(floor);
+            contentArea.innerHTML = `
+                <h1 class="text-3xl font-bold mb-6">Full Library Search Results</h1>
 
-                // Walls (Random Maze)
-                const wallGeo = new THREE.BoxGeometry(4, 4, 4);
-                const wallMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
-                for(let i=0; i<40; i++) {
-                    const w = new THREE.Mesh(wallGeo, wallMat);
-                    w.position.set((Math.random()-0.5)*50, 2, (Math.random()-0.5)*50);
-                    this.scene.add(w);
-                }
+                <!-- Top Result (If available) -->
+                ${artists.length > 0 ? `
+                <h2 class="text-xl font-bold mb-4">Top Verified Peyza Artist</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-card-dark p-6 rounded-xl shadow-xl hover:bg-[#333] transition duration-200 cursor-pointer col-span-1 md:col-span-1"
+                         onclick="navigateTo('artist', '${artists[0].id}')">
+                        <img src="${artists[0].images[0].url}" alt="${artists[0].name}" class="w-32 h-32 rounded-full object-cover mb-4 mx-auto md:mx-0 shadow-2xl">
+                        <p class="text-xl font-bold text-center md:text-left">${artists[0].name}</p>
+                        <p class="text-light-gray text-sm text-center md:text-left">Verified Peyza Artist</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <h3 class="text-lg font-bold mb-2">Top Tracks</h3>
+                        ${tracks.slice(0, 3).map((track, index) => renderTrackRow(track, index + 1)).join('')}
+                    </div>
+                </div>` : ''}
 
-                // Ghosts (Simple Floating Spheres)
-                this.ghosts = [];
-                const ghostGeo = new THREE.SphereGeometry(1, 16, 16);
-                const ghostMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
-                for(let i=0; i<5; i++) {
-                    const g = new THREE.Mesh(ghostGeo, ghostMat);
-                    g.position.set((Math.random()-0.5)*40, 2, (Math.random()-0.5)*40);
-                    this.scene.add(g);
-                    this.ghosts.push({ mesh: g, dir: new THREE.Vector3(Math.random()-0.5, 0, Math.random()-0.5).normalize() });
-                }
+                <!-- Artists Section -->
+                ${artists.length > 0 ? `
+                <h2 class="text-2xl font-bold mt-8 mb-4">Verified Peyza Artists</h2>
+                <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    ${artists.slice(0, 6).map(artist => renderArtistCard(artist)).join('')}
+                </div>` : ''}
 
-                const light = new THREE.PointLight(0xffaa00, 1, 20); // Flashlight feel
-                light.position.set(0, 5, 0);
-                this.player.add(light);
-                
-                this.initPlayer();
-            }
-            update() {
-                this.handleMovement(0.08);
-                // Move Ghosts
-                this.ghosts.forEach(g => {
-                    g.mesh.position.add(g.dir.clone().multiplyScalar(0.05));
-                    // Bounce bounds
-                    if(g.mesh.position.x > 25 || g.mesh.position.x < -25) g.dir.x *= -1;
-                    if(g.mesh.position.z > 25 || g.mesh.position.z < -25) g.dir.z *= -1;
-                    
-                    // Collision
-                    if(this.player.position.distanceTo(g.mesh.position) < 2) {
-                        this.player.position.set(0, 0, 0); // Respawn
-                        app.addPeyBucks(-50); // Lose partial PBucks
-                        app.showToast('Caught by a ghost! Lost 50 PB.', 'error');
+                <!-- Tracks Section -->
+                ${tracks.length > 0 ? `
+                <h2 class="text-2xl font-bold mt-8 mb-4">Tracks</h2>
+                <div class="space-y-2">
+                    ${tracks.slice(0, 5).map((track, index) => renderTrackRow(track, index + 1)).join('')}
+                </div>` : ''}
+
+                <!-- Albums Section -->
+                ${albums.length > 0 ? `
+                <h2 class="text-2xl font-bold mt-8 mb-4">Albums</h2>
+                <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    ${albums.slice(0, 6).map(album => renderAlbumCard(album)).join('')}
+                </div>` : ''}
+
+                ${(tracks.length + artists.length + albums.length) === 0 ? '<p class="text-light-gray p-8 text-center">No results found in Full Library.</p>' : ''}
+            `;
+            renderIcons();
+        }
+
+        /**
+         * Renders a card for an Artist.
+         * @param {object} artist - Spotify artist object.
+         */
+        function renderArtistCard(artist) {
+            const imageUrl = artist.images?.[0]?.url || 'https://placehold.co/160x160/282828/b3b3b3?text=ARTIST';
+            return `
+                <div class="p-3 bg-card-dark rounded-xl shadow-xl hover:bg-[#333] transition duration-200 cursor-pointer"
+                     onclick="navigateTo('artist', '${artist.id}')">
+                    <img src="${imageUrl}" alt="${artist.name}" class="w-full h-auto rounded-full aspect-square object-cover mb-3 shadow-md">
+                    <p class="text-white font-bold truncate">${artist.name}</p>
+                    <p class="text-light-gray text-sm">Verified Peyza Artist</p>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders a card for an Album.
+         * @param {object} album - Spotify album object.
+         */
+        function renderAlbumCard(album) {
+            const imageUrl = album.images?.[0]?.url || 'https://placehold.co/160x160/282828/b3b3b3?text=ALBUM';
+            return `
+                <div class="p-3 bg-card-dark rounded-xl shadow-xl hover:bg-[#333] transition duration-200 cursor-pointer"
+                     onclick="navigateTo('album', '${album.id}')">
+                    <img src="${imageUrl}" alt="${album.name}" class="w-full h-auto rounded-lg aspect-square object-cover mb-3 shadow-md">
+                    <p class="text-white font-bold truncate">${album.name}</p>
+                    <p class="text-light-gray text-sm truncate">${album.artists[0].name}</p>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders a single row for a track.
+         * @param {object} track - Spotify track object.
+         * @param {number} index - Track number in a list.
+         */
+        function renderTrackRow(track, index) {
+            const streams = generateStreams(track.popularity);
+            const albumImage = track.album?.images?.[2]?.url || 'https://placehold.co/60x60/282828/b3b3b3?text=🎶';
+            const duration = new Date(track.duration_ms).toISOString().slice(14, 19).replace('00:', ''); // MM:SS or S:SS
+
+            return `
+                <div class="flex items-center p-2 rounded-lg hover:bg-card-dark transition duration-150 cursor-pointer">
+                    <span class="text-light-gray w-6 text-center text-sm mr-2">${index}</span>
+                    <img src="${albumImage}" class="w-12 h-12 object-cover rounded mr-3" alt="Album Cover">
+                    <div class="flex-grow min-w-0">
+                        <p class="text-white font-medium truncate">${track.name}</p>
+                        <p class="text-light-gray text-xs truncate">
+                            ${track.artists.map(a => `<span onclick="event.stopPropagation(); navigateTo('artist', '${a.id}')" class="hover:underline">${a.name}</span>`).join(', ')}
+                        </p>
+                    </div>
+                    <div class="text-light-gray text-sm hidden sm:block w-32 text-right">
+                        ${streams} Streams
+                    </div>
+                    <div class="text-light-gray text-sm w-12 text-right ml-4">
+                        ${duration}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders the dedicated Artist Page.
+         */
+        function renderArtistPage(artist, topTracks, albums) {
+            const contentArea = document.getElementById('dynamic-content');
+            const imageUrl = artist.images?.[0]?.url || 'https://placehold.co/500x300/282828/b3b3b3?text=ARTIST';
+            const monthlyListeners = generateMonthlyListeners(artist.popularity);
+            const followers = generateFollowers(artist.popularity);
+            const isFollowed = isArtistFollowed(artist.id);
+
+            contentArea.innerHTML = `
+                <!-- Artist Header -->
+                <div class="relative pt-20 pb-8 px-4 md:px-6 rounded-t-xl" style="background-image: linear-gradient(to bottom, rgba(50, 50, 50, 0.5), rgba(18, 18, 18, 1));">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('${imageUrl}');"></div>
+                    <div class="relative z-10">
+                        <p class="text-white font-bold text-sm flex items-center mb-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-accent-green mr-1"></i>
+                            Verified Peyza Artist
+                        </p>
+                        <h1 class="text-4xl md:text-7xl font-extrabold mb-4">${artist.name}</h1>
+                        <p class="text-light-gray text-lg">${monthlyListeners} Monthly Listeners</p>
+                        <p class="text-light-gray text-md">${followers} Followers</p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="p-4 md:p-6 flex items-center space-x-4">
+                    <button class="bg-accent-green text-black font-bold py-3 px-6 rounded-full shadow-lg hover:scale-[1.02] transition duration-200">
+                        <i data-lucide="play" class="inline-block w-6 h-6 mr-1"></i> PLAY
+                    </button>
+                    ${renderFollowButton(artist.id, artist.name, imageUrl)}
+                </div>
+
+                <!-- Top Tracks -->
+                <div class="p-4 md:p-6">
+                    <h2 class="text-2xl font-bold mb-4">Popular Tracks</h2>
+                    <div class="space-y-2">
+                        ${topTracks.slice(0, 5).map((track, index) => renderTrackRow(track, index + 1)).join('')}
+                    </div>
+                </div>
+
+                <!-- Albums/Singles -->
+                <div class="p-4 md:p-6">
+                    <h2 class="text-2xl font-bold mb-4">Albums & Singles</h2>
+                    <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        ${albums.map(album => renderAlbumCard(album)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders the follow button state.
+         */
+        function renderFollowButton(artistId, artistName, imageUrl) {
+            const isFollowed = isArtistFollowed(artistId);
+            return `
+                <button id="follow-button"
+                    class="border border-light-gray text-white font-bold py-2 px-4 rounded-full text-sm hover:border-white transition duration-200 ${isFollowed ? 'bg-white text-black hover:bg-light-gray' : ''}"
+                    onclick="toggleFollowArtist('${artistId}', '${artistName.replace(/'/g, "\\'")}', '${imageUrl.replace(/'/g, "\\'")}')">
+                    ${isFollowed ? 'FOLLOWING' : 'FOLLOW'}
+                </button>
+            `;
+        }
+
+        /**
+         * Renders the dedicated Album Release Page.
+         */
+        function renderAlbumPage(album) {
+            const contentArea = document.getElementById('dynamic-content');
+            const imageUrl = album.images?.[0]?.url || 'https://placehold.co/300x300/282828/b3b3b3?text=ALBUM';
+            const releaseDate = album.release_date.substring(0, 4);
+
+            // Collect all unique artists in the album
+            const allArtists = new Map();
+            album.tracks.items.forEach(track => {
+                track.artists.forEach(artist => {
+                    if (artist.id) {
+                        allArtists.set(artist.id, { name: artist.name, id: artist.id });
                     }
                 });
-            }
+            });
+
+            // The main artist is always the first one listed
+            const mainArtist = album.artists[0];
+            allArtists.delete(mainArtist.id); // Remove main artist from featured list
+
+            const featuredArtists = Array.from(allArtists.values());
+
+            contentArea.innerHTML = `
+                <!-- Album Header -->
+                <div class="flex flex-col md:flex-row items-center md:items-end p-6 md:p-8 bg-card-dark rounded-xl shadow-2xl mb-6" style="background-image: linear-gradient(to bottom, rgba(70, 70, 70, 0.4), rgba(40, 40, 40, 1));">
+                    <img src="${imageUrl}" alt="${album.name}" class="w-48 h-48 md:w-64 md:h-64 object-cover rounded-lg shadow-2xl mb-4 md:mb-0 md:mr-6">
+                    <div>
+                        <p class="text-sm font-semibold uppercase text-light-gray mt-4 md:mt-0">${album.album_type}</p>
+                        <h1 class="text-4xl md:text-6xl font-extrabold mb-2">${album.name}</h1>
+                        <p class="text-light-gray font-semibold mb-2">${releaseDate} &middot; ${album.total_tracks} songs</p>
+                        <div class="flex items-center space-x-2 text-white font-bold">
+                            <i data-lucide="verified" class="w-4 h-4 text-accent-green"></i>
+                            <a href="#" onclick="event.preventDefault(); navigateTo('artist', '${mainArtist.id}')" class="hover:underline">${mainArtist.name}</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Play Button & Actions -->
+                <div class="p-4 flex items-center space-x-4">
+                    <button class="bg-accent-green text-black p-3 rounded-full shadow-lg hover:scale-[1.05] transition duration-200">
+                        <i data-lucide="play" class="w-8 h-8"></i>
+                    </button>
+                    <button class="text-light-gray hover:text-white transition duration-200">
+                        <i data-lucide="heart" class="w-7 h-7"></i>
+                    </button>
+                </div>
+
+                <!-- Featured Artists Section -->
+                ${featuredArtists.length > 0 ? `
+                <div class="p-4">
+                    <h2 class="text-xl font-bold mb-3">Featured Verified Peyza Artists</h2>
+                    <div class="flex flex-wrap gap-3">
+                        ${featuredArtists.map(artist => `
+                            <button class="bg-card-dark/70 text-white py-2 px-4 rounded-full text-sm hover:bg-[#333] transition duration-200"
+                                    onclick="navigateTo('artist', '${artist.id}')">
+                                ${artist.name}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Track List -->
+                <div class="p-4 md:p-6">
+                    <div class="space-y-1">
+                        ${album.tracks.items.map((track, index) => renderTrackRow(track, index + 1)).join('')}
+                    </div>
+                </div>
+            `;
         }
 
-        /* --- 3D GAME: IRON WORLD --- */
-        class IronWorldGame extends ThreeGameBase {
-            constructor(cid) { super(cid); this.setupWorld(); }
-            setupWorld() {
-                this.scene.background = new THREE.Color(0xFF8C00); // Orange Sky
-                this.scene.fog = new THREE.Fog(0xFF8C00, 20, 100);
+
+        /**
+         * Renders the "Your Library" view (simulated).
+         */
+        function renderLibrary() {
+            const contentArea = document.getElementById('dynamic-content');
+            const followedArtists = JSON.parse(localStorage.getItem('followedPeyzaArtists') || '[]');
+            const librarySidebar = document.getElementById('library-content');
+
+            contentArea.innerHTML = `
+                <h1 class="text-3xl md:text-4xl font-extrabold mb-8">Your Library</h1>
                 
-                // Floating Platforms
-                const platGeo = new THREE.BoxGeometry(10, 1, 10);
-                const platMat = new THREE.MeshLambertMaterial({ color: 0x555555 });
-                for(let i=0; i<20; i++) {
-                    const p = new THREE.Mesh(platGeo, platMat);
-                    p.position.set((Math.random()-0.5)*80, Math.random()*10, (Math.random()-0.5)*80);
-                    this.scene.add(p);
-                }
-                
-                this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-                const sun = new THREE.DirectionalLight(0xffffff, 0.8);
-                sun.position.set(50, 50, 50);
-                this.scene.add(sun);
-                
-                this.initPlayer();
-                // Override player pos
-                this.player.position.y = 5;
-            }
-            update() {
-                this.handleMovement();
-                // Simple Gravity (Visual only, no real collision physics in this simplified demo)
-                if(this.player.position.y > 0) this.player.position.y -= 0.05; 
-                if(this.player.position.y < 0) this.player.position.y = 0; // Ground plane reset
-            }
+                ${followedArtists.length > 0 ? `
+                    <h2 class="text-2xl font-bold mb-4">Verified Peyza Artists You Follow</h2>
+                    <div class="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        ${followedArtists.map(artist => renderArtistCard(artist)).join('')}
+                    </div>
+                ` : `
+                    <div class="p-10 bg-card-dark rounded-xl text-center">
+                        <i data-lucide="mic" class="w-12 h-12 mx-auto text-light-gray mb-3"></i>
+                        <h2 class="text-xl font-bold mb-2">Find something to follow</h2>
+                        <p class="text-light-gray mb-4">Search for your favorite Verified Peyza Artists and follow them to add them here.</p>
+                        <button class="bg-white text-black font-bold py-2 px-4 rounded-full hover:bg-light-gray transition" onclick="navigateTo('search')">
+                            Search Full Library
+                        </button>
+                    </div>
+                `}
+            `;
+
+            // Update the sidebar library content
+            librarySidebar.innerHTML = followedArtists.map(artist => `
+                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-card-dark/50 transition duration-150 cursor-pointer"
+                     onclick="navigateTo('artist', '${artist.id}')">
+                    <img src="${artist.image || 'https://placehold.co/40x40/282828/b3b3b3?text=A'}" class="w-10 h-10 rounded-full object-cover" alt="${artist.name}">
+                    <div class="min-w-0">
+                        <p class="text-white font-semibold truncate">${artist.name}</p>
+                        <p class="text-light-gray text-xs truncate">Verified Peyza Artist</p>
+                    </div>
+                </div>
+            `).join('');
+
+            renderIcons();
         }
 
-        /* --- LEGACY 2D GAMES (Maintained) --- */
-        class TumbleTownGame {
-            constructor(id) { this.canvas=document.getElementById(id); this.ctx=this.canvas.getContext('2d'); this.running=true; this.loop(); }
-            start(){this.loop();} stop(){this.running=false;}
-            loop() { if(!this.running) return; this.ctx.fillStyle='#333'; this.ctx.fillRect(0,0,1000,1000); this.ctx.fillStyle='white'; this.ctx.fillText("2D Tumble Town Legacy Mode", 50, 50); requestAnimationFrame(()=>this.loop()); }
-        }
-        class PizzaTycoonGame {
-            constructor(id) { this.canvas=document.getElementById(id); this.ctx=this.canvas.getContext('2d'); this.running=true; this.loop(); }
-            start(){this.loop();} stop(){this.running=false;}
-            loop() { if(!this.running) return; this.ctx.fillStyle='#222'; this.ctx.fillRect(0,0,1000,1000); this.ctx.fillStyle='orange'; this.ctx.fillText("2D Pizza Tycoon Legacy Mode", 50, 50); requestAnimationFrame(()=>this.loop()); }
-        }
+        // --- INITIALIZATION ---
 
-        /* --- AVATAR RENDERER (2D Canvas) --- */
-        class AvatarRenderer {
-            constructor(id, size) {
-                this.canvas = document.getElementById(id);
-                this.ctx = this.canvas.getContext('2d');
-                this.time = 0;
-            }
-            draw(equipped) {
-                const ctx = this.ctx; const w = this.canvas.width; const h = this.canvas.height;
-                this.time+=0.05; ctx.clearRect(0,0,w,h);
-                const bounce = Math.sin(this.time)*5;
-                ctx.save(); ctx.translate(w/2, h/2+bounce);
-                
-                // Back
-                if(equipped.backbling) { ctx.fillStyle=equipped.backbling.color; ctx.fillRect(-45, -80, 90, 100); }
-                // Body
-                ctx.fillStyle = equipped.skin || '#FFE135'; ctx.beginPath(); ctx.roundRect(-40, -100, 80, 180, 40); ctx.fill(); 
-                // Clothes
-                if(equipped.clothing) { ctx.fillStyle=equipped.clothing.color; ctx.fillRect(-38, -60, 76, 100); }
-                // Face
-                ctx.fillStyle='black'; ctx.beginPath(); ctx.arc(-15,-40,5,0,Math.PI*2); ctx.arc(15,-40,5,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(0,-30,15,0.2*Math.PI,0.8*Math.PI); ctx.stroke();
-                ctx.restore();
-            }
-        }
-        
-        // Fix 2: Wrap app initialization in window.onload and assign to window.app
-        window.onload = function() {
-            window.app = new PeyzaApp();
+        window.onload = () => {
+            // Initialize main view
+            navigateTo('home');
+            // Re-render library on load (just in case)
+            renderLibrary();
         };
+
+        // Make search functional from the input field
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch(e.target.value);
+            }
+        });
     </script>
 </body>
 </html>
