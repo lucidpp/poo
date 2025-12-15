@@ -823,9 +823,15 @@
                          <div class="input-label">Website (Hack Followers)</div>
                          <input type="number" id="edit-followers" class="input-field">
                     </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="edit-verified"> <label for="edit-verified">Verify Account</label>
+                    
+                    <div id="verification-section" style="border-top: 1px solid var(--border); padding-top: 16px;">
+                        <h3 style="font-size: 16px; margin-bottom: 8px;">Verification</h3>
+                        <div id="verification-status"></div>
                     </div>
+                    
+                    <!-- Hidden inputs to store current values if not changed -->
+                    <input type="hidden" id="edit-avatar">
+                    <input type="hidden" id="edit-banner">
                 </div>
             </div>
         </div>
@@ -907,6 +913,7 @@
         const app = {
             data: null,
             tempImage: null,
+            activeProfileTab: 'Posts', // 'Posts', 'Media', 'Likes'
             
             init: () => {
                 app.data = DB.load();
@@ -1052,10 +1059,10 @@
                         document.getElementById('composer-image-preview').style.display = 'block';
                     } else if (type === 'avatar') {
                         document.getElementById('preview-avatar').src = base64;
-                        document.getElementById('edit-avatar').value = base64; // store in hidden field for saveProfile
+                        document.getElementById('edit-avatar').value = base64; // Update hidden input
                     } else if (type === 'banner') {
                         document.getElementById('preview-cover').style.backgroundImage = `url(${base64})`;
-                        document.getElementById('edit-banner').value = base64;
+                        document.getElementById('edit-banner').value = base64; // Update hidden input
                     }
                 }
                 reader.readAsDataURL(file);
@@ -1206,6 +1213,10 @@
                 app.currentView = view;
                 app.viewParams = params;
                 
+                if (view === 'profile') {
+                    app.activeProfileTab = 'Posts'; // Reset tab on navigation
+                }
+                
                 // Active states
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                 if(view === 'home') document.getElementById('nav-home').classList.add('active');
@@ -1215,6 +1226,12 @@
 
                 app.renderCurrentView();
                 window.scrollTo(0,0);
+            },
+            
+            switchProfileTab: (tab) => {
+                app.activeProfileTab = tab;
+                // Re-render feed portion only, but simplest is full view
+                app.renderCurrentView(true);
             },
             
             focusComposer: () => {
@@ -1274,11 +1291,28 @@
                 
                 if (app.currentView === 'profile') {
                      const handle = app.viewParams ? app.viewParams.handle : app.data.currentUser;
-                     posts = posts.filter(p => p.authorHandle === handle);
+                     
+                     // Apply Filters based on active tab
+                     if (app.activeProfileTab === 'Posts') {
+                         posts = posts.filter(p => p.authorHandle === handle);
+                     } else if (app.activeProfileTab === 'Media') {
+                         posts = posts.filter(p => p.authorHandle === handle && p.image);
+                     } else if (app.activeProfileTab === 'Likes') {
+                         posts = posts.filter(p => p.likedBy && p.likedBy.includes(handle));
+                     }
                 }
 
                 // Ensure latest first
                 posts.sort((a,b) => b.timestamp - a.timestamp);
+                
+                if (posts.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.style.padding = '30px';
+                    empty.style.textAlign = 'center';
+                    empty.style.color = 'var(--text-secondary)';
+                    empty.innerText = "Nothing to see here yet.";
+                    feedDiv.appendChild(empty);
+                }
 
                 posts.forEach(post => {
                     let author = app.data.users[post.authorHandle];
@@ -1387,10 +1421,9 @@
                         </div>
                     </div>
                     <div class="profile-nav">
-                        <div class="profile-tab active">Posts</div>
-                        <div class="profile-tab">Replies</div>
-                        <div class="profile-tab">Highlights</div>
-                        <div class="profile-tab">Media</div>
+                        <div class="profile-tab ${app.activeProfileTab === 'Posts' ? 'active' : ''}" onclick="app.switchProfileTab('Posts')">Posts</div>
+                        <div class="profile-tab ${app.activeProfileTab === 'Media' ? 'active' : ''}" onclick="app.switchProfileTab('Media')">Media</div>
+                        <div class="profile-tab ${app.activeProfileTab === 'Likes' ? 'active' : ''}" onclick="app.switchProfileTab('Likes')">Likes</div>
                     </div>
                 `;
                 container.appendChild(div);
@@ -1644,15 +1677,36 @@
                 document.getElementById('edit-bio').value = user.bio;
                 document.getElementById('edit-followers').value = user.followers;
                 document.getElementById('edit-verified').checked = user.isVerified || false;
-                document.getElementById('edit-avatar').value = user.avatar.startsWith('http') ? user.avatar : '';
-                document.getElementById('edit-banner').value = user.banner.startsWith('#') ? '' : user.banner;
+                
+                // Keep image data if present
+                document.getElementById('edit-avatar').value = user.avatar;
+                document.getElementById('edit-banner').value = user.banner;
                 
                 // Previews
                 document.getElementById('preview-avatar').src = user.avatar;
                 document.getElementById('preview-cover').style.backgroundImage = `url(${user.banner})`;
                 if(!user.banner.startsWith('http') && !user.banner.startsWith('data:')) document.getElementById('preview-cover').style.backgroundColor = user.banner;
 
+                // Verification Logic Display
+                const verifyDiv = document.getElementById('verification-status');
+                if(user.isVerified) {
+                    verifyDiv.innerHTML = '<span style="color:var(--accent); font-weight:bold;">✓ Account Verified</span>';
+                } else {
+                    verifyDiv.innerHTML = `<button class="auth-btn outline" onclick="app.requestVerification()">Request Verification</button> <p style="font-size:12px; color:gray; margin-top:4px;">Requires 100k followers</p>`;
+                }
+
                 document.getElementById('edit-modal').classList.remove('hidden');
+            },
+            
+            requestVerification: () => {
+                const user = app.data.users[app.data.currentUser];
+                if(user.followers >= 100000) {
+                    user.isVerified = true;
+                    document.getElementById('edit-verified').checked = true;
+                    document.getElementById('verification-status').innerHTML = '<span style="color:var(--accent); font-weight:bold;">✓ Account Verified! (Save to apply)</span>';
+                } else {
+                    alert(`You need ${Utils.formatNumber(100000)} followers. You have ${Utils.formatNumber(user.followers)}.`);
+                }
             },
 
             saveProfile: () => {
