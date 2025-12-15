@@ -17,6 +17,7 @@
             --danger: #f4212e;
             --like-color: #f91880;
             --retweet-color: #00ba7c;
+            --bookmark-color: #1d9bf0;
             --font-stack: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -257,47 +258,6 @@
             cursor: pointer;
         }
 
-        /* Composer */
-        .composer {
-            padding: 16px;
-            display: flex;
-            gap: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .composer-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 20px;
-            resize: none;
-            padding: 12px 0;
-            outline: none;
-            min-height: 50px;
-            font-family: inherit;
-        }
-        .composer-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-            border-top: 1px solid var(--border);
-            padding-top: 12px;
-        }
-        .composer-btn {
-            background-color: var(--accent);
-            color: white;
-            border-radius: 20px;
-            padding: 8px 18px;
-            font-weight: bold;
-            opacity: 0.6;
-            pointer-events: none;
-            font-size: 15px;
-            transition: 0.2s;
-        }
-        .composer-btn.active { opacity: 1; pointer-events: auto; }
-
         /* Post Styles */
         .post {
             padding: 12px 16px;
@@ -337,11 +297,18 @@
         .stat-item span { padding: 0 4px; font-variant-numeric: tabular-nums; }
         .stat-item:hover { color: var(--accent); background-color: rgba(29, 155, 240, 0.1); }
         
+        /* Interactive States */
         .stat-item.like-btn:hover { color: var(--like-color); background-color: rgba(249, 24, 128, 0.1); }
         .stat-item.like-btn.liked { color: var(--like-color); }
         .stat-item.like-btn.liked svg { fill: var(--like-color); }
         
         .stat-item.retweet-btn:hover { color: var(--retweet-color); background-color: rgba(0, 186, 124, 0.1); }
+        .stat-item.retweet-btn.retweeted { color: var(--retweet-color); }
+        .stat-item.retweet-btn.retweeted svg { fill: var(--retweet-color); }
+
+        .stat-item.bookmark-btn:hover { color: var(--bookmark-color); background-color: rgba(29, 155, 240, 0.1); }
+        .stat-item.bookmark-btn.bookmarked { color: var(--bookmark-color); }
+        .stat-item.bookmark-btn.bookmarked svg { fill: var(--bookmark-color); }
 
         .stat-icon { width: 18px; height: 18px; fill: currentColor; }
 
@@ -405,6 +372,7 @@
         .trend-item:hover { background-color: rgba(255,255,255,0.03); }
         .trend-meta { font-size: 13px; color: var(--text-secondary); }
         .trend-title { font-weight: bold; margin: 2px 0; font-size: 15px; }
+        .trend-count { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
         
         .follow-item {
             display: flex;
@@ -646,11 +614,11 @@
                     <svg viewBox="0 0 24 24"><path d="M22.46 7.57L12.357 2.115c-.223-.12-.49-.12-.713 0L1.543 7.57c-.364.197-.507.65-.31 1.014.196.364.65.507 1.013.31L12 3.69l9.753 5.204c.364.197.818.054 1.014-.31.197-.364.054-.818-.31-1.014zM12 4.196l-8.494 4.53L12 13.262l8.494-4.536L12 4.196zM2.26 10.706c.068-.387.433-.64.82-.572.387.067.64.432.572.82v5.772l8.025 4.093c.12.062.25.093.38.093.13 0 .262-.03.38-.092l8.026-4.103V10.95c-.068-.386.186-.75.572-.82.388-.06.753.19.82.573v6.07c0 .26-.14.498-.364.618l-9.062 4.63c-.15.077-.314.114-.476.114-.16 0-.325-.037-.475-.113l-9.063-4.62c-.223-.114-.363-.35-.363-.61v-5.786z"></path></svg>
                     <span>Home</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-explore">
+                <a href="#" class="nav-item" id="nav-explore" onclick="app.navTo('explore')">
                     <svg viewBox="0 0 24 24"><path d="M9.8 12c0 1.216.984 2.2 2.2 2.2s2.2-.984 2.2-2.2-.984-2.2-2.2-2.2-2.2.984-2.2 2.2zm9.63-7.91l-15.02 5.5c-.85.313-1.127 1.43-.513 2.11l4.13 4.58 4.63-4.5c.343-.333.886-.102.94.364l.5 4.5 3.96 4.98c.64.805 1.88.59 2.24-.38l6.13-16.5c.29-.78-.45-1.52-1.23-1.23l-5.757 2.576z"></path></svg>
-                    <span>Explore</span>
+                    <span>Trending</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-notifs">
+                <a href="#" class="nav-item" id="nav-notifs" onclick="app.navTo('notifications')">
                     <svg viewBox="0 0 24 24"><path d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2zm-6.866-4l.847-6.698C6.364 6.272 8.941 4 11.996 4s5.627 2.268 6.01 5.295L18.866 16H5.134z"></path></svg>
                     <span>Notifications</span>
                 </a>
@@ -688,36 +656,36 @@
             </div>
 
             <div class="widget">
-                <h2>What's happening</h2>
-                <div class="trend-item">
-                    <div class="trend-meta">Technology · Trending</div>
-                    <div class="trend-title">Peyza App</div>
-                    <div class="trend-meta">54.2K posts</div>
-                </div>
-                <div class="trend-item">
-                    <div class="trend-meta">Trending in US</div>
-                    <div class="trend-title">#HTML5</div>
-                    <div class="trend-meta">12.1K posts</div>
-                </div>
-                <div class="trend-item">
-                    <div class="trend-meta">Business · Trending</div>
-                    <div class="trend-title">Simulation AI</div>
-                    <div class="trend-meta">8,942 posts</div>
-                </div>
-                 <div class="trend-item">
-                    <div class="trend-meta">Only on Peyza</div>
-                    <div class="trend-title">Realtime Updates</div>
-                    <div class="trend-meta">22.5K posts</div>
-                </div>
-                <div class="p-4 text-accent" style="color: var(--accent); cursor:pointer;">Show more</div>
-            </div>
-
-            <div class="widget">
                 <h2>Who to follow</h2>
                 <div id="who-to-follow-list"></div>
                 <div class="p-4 text-accent" style="color: var(--accent); cursor:pointer;">Show more</div>
             </div>
         </aside>
+    </div>
+
+    <!-- Create Post Modal -->
+    <div id="post-modal" class="hidden modal-overlay">
+        <div class="modal" style="height: auto; min-height: 200px;">
+            <div class="modal-header">
+                 <button onclick="document.getElementById('post-modal').classList.add('hidden')" style="font-size: 20px;">✕</button>
+                 <div style="font-weight: bold; color: var(--accent);">Drafts</div>
+            </div>
+            <div class="modal-body" style="padding: 16px;">
+                <div class="flex gap-4">
+                     <img id="post-modal-avatar" src="" class="mini-avatar">
+                     <div class="w-full">
+                         <textarea id="composer-text" class="composer-input" placeholder="What is happening?!"></textarea>
+                     </div>
+                </div>
+                 <div class="flex justify-between items-center mt-4" style="margin-top: 20px;">
+                     <div style="color: var(--accent); display:flex; gap:12px;">
+                         <svg viewBox="0 0 24 24" width="20" fill="currentColor"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 4c-.828 0-1.5.672-1.5 1.5v13c0 .828.672 1.5 1.5 1.5h13c.828 0 1.5-.672 1.5-1.5v-13c0-.828-.672-1.5-1.5-1.5h-13zM12 5.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"></path></svg>
+                         <svg viewBox="0 0 24 24" width="20" fill="currentColor"><path d="M19 10.5V8.8h-4.4v6.4h1.7v-2h2v-1.7h-2v-1h2.7zm-6-2.2v8h1.7v-3h1.8v3h1.7v-3h1.8v3h1.7v-8H13z"></path></svg>
+                     </div>
+                     <button class="tweet-btn-large" style="width: auto; padding: 8px 20px; margin: 0;" onclick="app.createPost()">Post</button>
+                 </div>
+            </div>
+        </div>
     </div>
 
     <div class="fab" onclick="app.focusComposerMobile()">
@@ -728,10 +696,10 @@
         <div class="mobile-nav-item" onclick="app.navTo('home')">
             <svg viewBox="0 0 24 24"><path d="M22.46 7.57L12.357 2.115c-.223-.12-.49-.12-.713 0L1.543 7.57c-.364.197-.507.65-.31 1.014.196.364.65.507 1.013.31L12 3.69l9.753 5.204c.364.197.818.054 1.014-.31.197-.364.054-.818-.31-1.014zM12 4.196l-8.494 4.53L12 13.262l8.494-4.536L12 4.196zM2.26 10.706c.068-.387.433-.64.82-.572.387.067.64.432.572.82v5.772l8.025 4.093c.12.062.25.093.38.093.13 0 .262-.03.38-.092l8.026-4.103V10.95c-.068-.386.186-.75.572-.82.388-.06.753.19.82.573v6.07c0 .26-.14.498-.364.618l-9.062 4.63c-.15.077-.314.114-.476.114-.16 0-.325-.037-.475-.113l-9.063-4.62c-.223-.114-.363-.35-.363-.61v-5.786z"></path></svg>
         </div>
-         <div class="mobile-nav-item">
+         <div class="mobile-nav-item" onclick="app.navTo('explore')">
             <svg viewBox="0 0 24 24"><path d="M9.8 12c0 1.216.984 2.2 2.2 2.2s2.2-.984 2.2-2.2-.984-2.2-2.2-2.2-2.2.984-2.2 2.2zm9.63-7.91l-15.02 5.5c-.85.313-1.127 1.43-.513 2.11l4.13 4.58 4.63-4.5c.343-.333.886-.102.94.364l.5 4.5 3.96 4.98c.64.805 1.88.59 2.24-.38l6.13-16.5c.29-.78-.45-1.52-1.23-1.23l-5.757 2.576z"></path></svg>
         </div>
-        <div class="mobile-nav-item">
+        <div class="mobile-nav-item" onclick="app.navTo('notifications')">
            <svg viewBox="0 0 24 24"><path d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2zm-6.866-4l.847-6.698C6.364 6.272 8.941 4 11.996 4s5.627 2.268 6.01 5.295L18.866 16H5.134z"></path></svg>
         </div>
         <div class="mobile-nav-item" onclick="app.navTo('profile')">
@@ -823,6 +791,21 @@
                 };
                 app.data.users[handle] = bot;
                 return bot;
+            },
+            generateBotPost: () => {
+                const topics = ["HTML is actually turing complete if you squint hard enough.", "Just deployed to production on a Friday. Wish me luck.", "Why is centering a div still so hard?", "Crypto is going to the moon! 🚀", "Web3 is the future.", "Anyone else tired of frameworks?", "Just watched the new Marvel movie.", "Pizza with pineapple is a crime.", "Coding at 3AM hits different.", "I need more coffee.", "AI is taking over.", "Check out my new project!", "React 19 looks slick.", "CSS Grid > Flexbox. Fight me."];
+                const bot = Utils.createBot();
+                return {
+                    id: Utils.generateId(),
+                    authorHandle: bot.handle,
+                    text: topics[Math.floor(Math.random() * topics.length)],
+                    timestamp: Date.now(),
+                    stats: { views: Math.floor(Math.random()*100), likes: Math.floor(Math.random()*20), retweets: Math.floor(Math.random()*5), replies: 0, bookmarks: 0 },
+                    likedBy: [],
+                    retweetedBy: [],
+                    bookmarkedBy: [],
+                    replies: []
+                }
             }
         };
 
@@ -854,15 +837,17 @@
                 app.renderWhoToFollow();
 
                 // High speed simulation loop for "Realtime" feel
-                setInterval(app.simulateLive, 1500); 
+                setInterval(app.simulateLive, 1000); 
             },
 
             processOfflineProgression: () => {
                 const now = Date.now();
                 const diff = now - (app.data.lastActive || now);
-                const cyclesMissed = Math.min(Math.floor(diff / 2000), 1000); 
+                // Significantly boost offline speed. 1 cycle per 500ms of real time missed.
+                const cyclesMissed = Math.min(Math.floor(diff / 500), 2000); 
 
                 if (cyclesMissed > 0) {
+                    console.log(`Simulating ${cyclesMissed} offline cycles...`);
                     for (let i = 0; i < cyclesMissed; i++) {
                         app.simulateStep(true); 
                     }
@@ -873,17 +858,24 @@
             simulateLive: () => {
                 app.simulateStep(false);
                 DB.save(app.data);
-                // Selective update to prevent scroll jumping
-                if(!document.querySelector('.is-animating')) {
-                     // Check if we are viewing a specific post to update its stats live
-                     if(app.currentView === 'post' && app.viewParams && app.viewParams.id) {
-                         app.updatePostDetailStats(app.viewParams.id);
-                     } else if (app.currentView === 'home') {
-                         // We don't fully rerender home feed constantly to keep it stable, but we could
-                         // Ideally we'd use ID-based DOM updates here. 
-                         // For now, we rely on user interaction or manual refresh for feed updates
-                         // to avoid jank.
-                     }
+                
+                // Real-time homepage stat updates without re-render
+                if(app.currentView === 'home' && !document.querySelector('.is-animating')) {
+                    app.data.posts.forEach(post => {
+                        const viewEl = document.getElementById(`views-${post.id}`);
+                        const likeEl = document.getElementById(`likes-${post.id}`);
+                        
+                        if(viewEl && viewEl.innerText !== Utils.formatNumber(post.stats.views)) {
+                             viewEl.innerText = Utils.formatNumber(post.stats.views);
+                        }
+                        // We only auto-update views usually, likes update on interaction or drastic changes
+                        // But for simulation effect:
+                         if(likeEl && !post.likedBy.includes(app.data.currentUser) && likeEl.innerText !== Utils.formatNumber(post.stats.likes)) {
+                             likeEl.innerText = Utils.formatNumber(post.stats.likes);
+                        }
+                    });
+                } else if(app.currentView === 'post' && app.viewParams && app.viewParams.id) {
+                     app.updatePostDetailStats(app.viewParams.id);
                 }
             },
 
@@ -898,22 +890,34 @@
                     viewsEl.classList.add('number-pop');
                     setTimeout(() => viewsEl.classList.remove('number-pop'), 300);
                 }
-                // Add similar for other stats if needed
             },
 
             simulateStep: (quietMode) => {
+                // Generate new bot posts periodically
+                if (Math.random() > 0.96) {
+                    const newBotPost = Utils.generateBotPost();
+                    app.data.posts.unshift(newBotPost);
+                    // Keep feed size manageable
+                    if(app.data.posts.length > 200) app.data.posts.pop();
+                    
+                    if(!quietMode && app.currentView === 'home' && window.scrollY < 100) {
+                        // If at top of feed, we could show a "New Posts" badge, but for now we just let it slide in next refresh
+                        // or user refresh. For simplicity in this SPA, we won't auto-inject top posts to avoid layout shift while reading.
+                    }
+                }
+
                 app.data.posts.forEach(post => {
                     // Dynamic viral potential
                     const isViral = post.stats.likes > 50;
-                    const chance = isViral ? 0.7 : 0.3;
+                    const chance = isViral ? 0.8 : 0.4;
 
                     if (Math.random() > (1 - chance)) post.stats.views += Math.floor(Math.random() * (isViral?50:5)) + 1;
-                    if (Math.random() > 0.85) post.stats.likes += 1;
-                    if (Math.random() > 0.95) post.stats.bookmarks += 1;
-                    if (Math.random() > 0.92) post.stats.retweets += 1;
+                    if (Math.random() > 0.90) post.stats.likes += 1;
+                    if (Math.random() > 0.97) post.stats.bookmarks += 1;
+                    if (Math.random() > 0.95) post.stats.retweets += 1;
                     
-                    // Bot Reply Logic - More Frequent
-                    if (Math.random() > 0.94 && post.replies.length < 15) {
+                    // Bot Reply Logic
+                    if (Math.random() > 0.98 && post.replies.length < 15) {
                         const bot = Utils.createBot();
                         const replies = ["True!", "Interesting.", "Big if true.", "Following!", "Nice.", "Check DM", "LOL", "Why?", "Agree.", "Based.", "Real.", "So true bestie", "Wait what?", "Underrated tweet", "First"];
                         const text = replies[Math.floor(Math.random() * replies.length)];
@@ -994,6 +998,9 @@
                 document.getElementById('current-user-name-mini').textContent = user.name;
                 document.getElementById('current-user-handle-mini').textContent = user.handle;
                 document.getElementById('current-user-avatar-mini').src = user.avatar;
+                
+                // Update modal avatar too
+                document.getElementById('post-modal-avatar').src = user.avatar;
             },
 
             createPost: () => {
@@ -1007,14 +1014,17 @@
                     text: text,
                     timestamp: Date.now(),
                     stats: { views: 0, likes: 0, retweets: 0, replies: 0, bookmarks: 0 },
-                    likedBy: [], // Track who liked it
+                    likedBy: [], 
+                    retweetedBy: [],
+                    bookmarkedBy: [],
                     replies: []
                 };
 
                 app.data.posts.unshift(newPost); // Add to top
                 DB.save(app.data);
                 document.getElementById('composer-text').value = '';
-                app.renderFeed();
+                document.getElementById('post-modal').classList.add('hidden');
+                app.navTo('home');
             },
 
             // Navigation
@@ -1028,6 +1038,8 @@
                 // Active states
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                 if(view === 'home') document.getElementById('nav-home').classList.add('active');
+                if(view === 'explore') document.getElementById('nav-explore').classList.add('active');
+                if(view === 'notifications') document.getElementById('nav-notifs').classList.add('active');
                 if(view === 'profile' && (!params || params.handle === app.data.currentUser)) document.getElementById('nav-profile').classList.add('active');
 
                 app.renderCurrentView();
@@ -1035,32 +1047,36 @@
             },
             
             focusComposer: () => {
-                document.getElementById('composer-text').focus();
+                 document.getElementById('post-modal').classList.remove('hidden');
+                 document.getElementById('composer-text').focus();
             },
             
             focusComposerMobile: () => {
-                app.navTo('home');
-                setTimeout(() => document.getElementById('composer-text').focus(), 100);
+                document.getElementById('post-modal').classList.remove('hidden');
+                document.getElementById('composer-text').focus();
             },
 
             renderCurrentView: (preserveState = false) => {
                 const main = document.getElementById('main-content');
-                
                 if(document.activeElement && document.activeElement.id === 'composer-text' && preserveState) return;
-
                 const scrollPos = window.scrollY;
 
                 main.innerHTML = '';
 
                 if (app.currentView === 'home') {
                     app.renderHeader(main, 'Home');
-                    app.renderComposer(main);
                     app.renderFeed(main);
                 } else if (app.currentView === 'profile') {
                     const handle = app.viewParams ? app.viewParams.handle : app.data.currentUser;
                     app.renderProfile(main, handle);
                 } else if (app.currentView === 'post') {
                     app.renderPostDetail(main, app.viewParams.id);
+                } else if (app.currentView === 'explore') {
+                    app.renderHeader(main, 'Trending');
+                    app.renderTrending(main);
+                } else if (app.currentView === 'notifications') {
+                    app.renderHeader(main, 'Notifications');
+                    app.renderNotifications(main);
                 }
 
                 if(preserveState) window.scrollTo(0, scrollPos);
@@ -1079,26 +1095,6 @@
                 container.appendChild(div);
             },
 
-            renderComposer: (container) => {
-                const user = app.data.users[app.data.currentUser];
-                const div = document.createElement('div');
-                div.className = 'composer';
-                div.innerHTML = `
-                    <img src="${user.avatar}" class="mini-avatar">
-                    <div style="width: 100%;">
-                        <textarea id="composer-text" class="composer-input" placeholder="What is happening?!" oninput="this.parentNode.querySelector('.composer-btn').classList.add('active')"></textarea>
-                        <div class="composer-actions">
-                            <div style="color: var(--accent); display:flex; gap:10px;">
-                                <svg viewBox="0 0 24 24" width="20" fill="currentColor"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 4c-.828 0-1.5.672-1.5 1.5v13c0 .828.672 1.5 1.5 1.5h13c.828 0 1.5-.672 1.5-1.5v-13c0-.828-.672-1.5-1.5-1.5h-13zM12 5.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"></path></svg>
-                                <svg viewBox="0 0 24 24" width="20" fill="currentColor"><path d="M19 10.5V8.8h-4.4v6.4h1.7v-2h2v-1.7h-2v-1h2.7zm-6-2.2v8h1.7v-3h1.8v3h1.7v-3h1.8v3h1.7v-8H13z"></path></svg>
-                            </div>
-                            <button class="composer-btn" onclick="app.createPost()">Post</button>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(div);
-            },
-
             renderFeed: (container) => {
                 const feedDiv = document.createElement('div');
                 if(!container) container = document.getElementById('main-content');
@@ -1110,11 +1106,16 @@
                      posts = posts.filter(p => p.authorHandle === handle);
                 }
 
+                // Ensure latest first
+                posts.sort((a,b) => b.timestamp - a.timestamp);
+
                 posts.forEach(post => {
                     let author = app.data.users[post.authorHandle];
                     if (!author) author = { name: "Unknown", handle: "@unknown", avatar: "" };
                     
                     const likedByMe = post.likedBy && post.likedBy.includes(app.data.currentUser);
+                    const retweetedByMe = post.retweetedBy && post.retweetedBy.includes(app.data.currentUser);
+                    const bookmarkedByMe = post.bookmarkedBy && post.bookmarkedBy.includes(app.data.currentUser);
                     
                     const el = document.createElement('div');
                     el.className = 'post';
@@ -1141,17 +1142,21 @@
                                     <svg class="stat-icon" viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg>
                                     <span>${Utils.formatNumber(post.stats.replies)}</span>
                                 </div>
-                                <div class="stat-item retweet-btn" onclick="app.interact('${post.id}', 'retweets', this)">
+                                <div class="stat-item retweet-btn ${retweetedByMe ? 'retweeted' : ''}" onclick="app.interact('${post.id}', 'retweets', this)">
                                     <svg class="stat-icon" viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg>
                                     <span>${Utils.formatNumber(post.stats.retweets)}</span>
                                 </div>
                                 <div class="stat-item like-btn ${likedByMe ? 'liked' : ''}" onclick="app.interact('${post.id}', 'likes', this)">
                                     <svg class="stat-icon" viewBox="0 0 24 24"><path d="${likedByMe ? 'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z' : 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z'}"></path></svg>
-                                    <span class="number-anim">${Utils.formatNumber(post.stats.likes)}</span>
+                                    <span id="likes-${post.id}" class="number-anim">${Utils.formatNumber(post.stats.likes)}</span>
+                                </div>
+                                <div class="stat-item bookmark-btn ${bookmarkedByMe ? 'bookmarked' : ''}" onclick="app.interact('${post.id}', 'bookmarks', this)">
+                                    <svg class="stat-icon" viewBox="0 0 24 24"><path d="${bookmarkedByMe ? 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z' : 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z'}"></path></svg>
+                                    <span class="number-anim">${Utils.formatNumber(post.stats.bookmarks)}</span>
                                 </div>
                                 <div class="stat-item">
-                                    <svg class="stat-icon" viewBox="0 0 24 24"><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></svg>
-                                    <span>${Utils.formatNumber(post.stats.views)}</span>
+                                    <svg class="stat-icon text-gray" viewBox="0 0 24 24"><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></svg>
+                                    <span id="views-${post.id}">${Utils.formatNumber(post.stats.views)}</span>
                                 </div>
                             </div>
                         </div>
@@ -1161,113 +1166,73 @@
 
                 container.appendChild(feedDiv);
             },
-
-            renderProfile: (container, handle) => {
-                const user = app.data.users[handle] || app.data.users[Object.keys(app.data.users).find(u => app.data.users[u].handle === handle)];
+            
+            renderTrending: (container) => {
+                 // Top 10 by impact
+                 const sorted = [...app.data.posts].sort((a,b) => (b.stats.views + b.stats.likes*5) - (a.stats.views + a.stats.likes*5)).slice(0, 10);
+                 
+                 const h2 = document.createElement('h2');
+                 h2.innerText = "Trending";
+                 h2.style.padding = "16px";
+                 h2.style.borderBottom = "1px solid var(--border)";
+                 container.appendChild(h2);
+                 
+                 sorted.forEach((post, index) => {
+                     const author = app.data.users[post.authorHandle];
+                     const el = document.createElement('div');
+                     el.className = 'post';
+                     el.onclick = () => app.navTo('post', {id: post.id});
+                     el.innerHTML = `
+                         <div style="font-size: 16px; font-weight: bold; color: var(--text-secondary); width: 30px;">${index+1}</div>
+                         <div style="flex:1;">
+                              <div class="text-gray text-sm" style="margin-bottom:4px;">Trending in Peyza</div>
+                              <div class="text-bold">${author.name}</div>
+                              <div class="text-gray" style="font-size: 14px; margin-top:2px;">${Utils.formatNumber(post.stats.views)} views</div>
+                         </div>
+                         <img src="${author.avatar}" style="width: 60px; height: 60px; border-radius: 8px; object-fit:cover;">
+                     `;
+                     container.appendChild(el);
+                 });
+            },
+            
+            renderNotifications: (container) => {
+                // Find replies to current user posts
+                const myHandle = app.data.currentUser;
+                const notifications = [];
                 
-                if (!user) {
-                    container.innerHTML = "<div class='p-4'>User not found</div>";
+                app.data.posts.forEach(post => {
+                    if(post.authorHandle === myHandle) {
+                        post.replies.forEach(reply => {
+                            notifications.push({
+                                type: 'reply',
+                                timestamp: reply.timestamp,
+                                author: reply.author,
+                                text: reply.text,
+                                parentId: post.id
+                            });
+                        });
+                    }
+                });
+                
+                notifications.sort((a,b) => b.timestamp - a.timestamp);
+                
+                if(notifications.length === 0) {
+                    container.innerHTML = `<div class="p-4 text-center text-gray">No notifications yet</div>`;
                     return;
                 }
-
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <div class="header-sticky">
-                         <div onclick="app.navTo('home')" style="cursor:pointer; margin-right: 15px;">←</div>
-                         <div style="display:flex; flex-direction:column;">
-                             <span class="text-bold" style="font-size:17px; line-height:20px;">${user.name}</span>
-                             <span class="text-gray text-sm" style="line-height:14px;">${Utils.formatNumber(app.data.posts.filter(p=>p.authorHandle === user.handle).length)} posts</span>
-                         </div>
-                    </div>
-                    <div class="profile-banner" style="background-image: url('${user.banner}'); background-color: ${user.banner.startsWith('http')?'transparent':user.banner}"></div>
-                    <div class="profile-header">
-                        <img src="${user.avatar}" class="profile-avatar-large">
-                        <div class="profile-actions">
-                            ${user.handle === app.data.currentUser ? `<button class="edit-profile-btn" onclick="app.openEditProfile()">Edit profile</button>` : `<button class="edit-profile-btn" onclick="alert('Followed!')">Follow</button>`}
-                        </div>
-                        <div style="margin-top: 12px;">
-                            <div class="text-xl text-bold">${user.name}</div>
-                            <div class="text-gray">${user.handle}</div>
-                        </div>
-                        <div style="margin-top: 12px; margin-bottom: 12px; white-space: pre-wrap;">${user.bio}</div>
-                        <div class="profile-stats">
-                            <span><span class="stat-value">${Utils.formatNumber(user.following)}</span> Following</span>
-                            <span><span class="stat-value">${Utils.formatNumber(user.followers)}</span> Followers</span>
-                        </div>
-                    </div>
-                    <div class="profile-nav">
-                        <div class="profile-tab active">Posts</div>
-                        <div class="profile-tab">Replies</div>
-                        <div class="profile-tab">Highlights</div>
-                        <div class="profile-tab">Media</div>
-                    </div>
-                `;
-                container.appendChild(div);
-                app.renderFeed(container);
-            },
-
-            renderPostDetail: (container, postId) => {
-                const post = app.data.posts.find(p => p.id === postId);
-                if (!post) return;
-                const author = app.data.users[post.authorHandle] || { name: "Unknown", handle: "@unknown", avatar: "" };
-                const likedByMe = post.likedBy && post.likedBy.includes(app.data.currentUser);
                 
-                app.renderHeader(container, 'Post', true);
-                
-                const div = document.createElement('div');
-                div.className = 'detail-container';
-                div.innerHTML = `
-                    <div class="detail-header">
-                        <img src="${author.avatar}" class="mini-avatar" onclick="app.navTo('profile', {handle: '${author.handle}'})" style="margin:0;">
-                        <div class="detail-user">
-                            <span class="text-bold">${author.name}</span>
-                            <span class="text-gray">${author.handle}</span>
+                notifications.forEach(notif => {
+                     const el = document.createElement('div');
+                     el.className = 'post'; // reuse style
+                     el.onclick = () => app.navTo('post', {id: notif.parentId});
+                     el.innerHTML = `
+                        <img src="${notif.author.avatar}" class="mini-avatar">
+                        <div class="post-content">
+                            <div class="text-bold" style="margin-bottom: 4px;">${notif.author.name} replied</div>
+                            <div class="text-gray" style="margin-bottom: 8px;">${notif.text}</div>
                         </div>
-                        <div style="margin-left:auto; color:gray;">···</div>
-                    </div>
-                    <div class="detail-text">${post.text}</div>
-                    
-                    <div class="detail-meta">
-                        ${new Date(post.timestamp).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})} · ${new Date(post.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric'})}
-                        · <span style="color:white" id="detail-views-${post.id}">${Utils.formatNumber(post.stats.views)}</span> <span style="font-weight:400">Views</span>
-                    </div>
-
-                    <div class="detail-stats">
-                         <div class="flex gap-2"><span class="text-bold">${Utils.formatNumber(post.stats.retweets)}</span> <span class="text-gray">Retweets</span></div>
-                         <div class="flex gap-2"><span class="text-bold">${Utils.formatNumber(post.stats.replies)}</span> <span class="text-gray">Quotes</span></div>
-                         <div class="flex gap-2"><span class="text-bold" id="detail-likes-${post.id}">${Utils.formatNumber(post.stats.likes)}</span> <span class="text-gray">Likes</span></div>
-                         <div class="flex gap-2"><span class="text-bold">${Utils.formatNumber(post.stats.bookmarks)}</span> <span class="text-gray">Bookmarks</span></div>
-                    </div>
-
-                    <div class="detail-actions">
-                        <div class="stat-item"><svg class="stat-icon text-gray" viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg></div>
-                        <div class="stat-item"><svg class="stat-icon text-gray" viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg></div>
-                        <div class="stat-item like-btn ${likedByMe ? 'liked' : ''}" onclick="app.interact('${post.id}', 'likes', this)"><svg class="stat-icon" viewBox="0 0 24 24"><path d="${likedByMe ? 'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z' : 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z'}"></path></svg></div>
-                         <div class="stat-item"><svg class="stat-icon text-gray" viewBox="0 0 24 24"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg></div>
-                        <div class="stat-item"><svg class="stat-icon text-gray" viewBox="0 0 24 24"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"></path></svg></div>
-                    </div>
-                `;
-                container.appendChild(div);
-
-                post.replies.forEach(reply => {
-                     const rEl = document.createElement('div');
-                     rEl.className = 'post';
-                     rEl.onclick = () => app.navTo('profile', {handle: reply.author.handle});
-                     rEl.innerHTML = `
-                         <img src="${reply.author.avatar}" class="mini-avatar">
-                         <div class="post-content">
-                             <div class="post-header">
-                                <div class="user-info">
-                                    <span class="user-name">${reply.author.name}</span>
-                                    <span class="user-handle">${reply.author.handle}</span>
-                                    <span>·</span>
-                                    <span>${Utils.timeAgo(reply.timestamp)}</span>
-                                </div>
-                             </div>
-                             <div class="post-text">${reply.text}</div>
-                         </div>
                      `;
-                     container.appendChild(rEl);
+                     container.appendChild(el);
                 });
             },
 
@@ -1296,44 +1261,68 @@
             interact: (id, type, el) => {
                 const post = app.data.posts.find(p => p.id === id);
                 if (post) {
+                    let isActive = false;
+                    let countChange = 1;
+
+                    // Handle Toggles
                     if (type === 'likes') {
                         if (!post.likedBy) post.likedBy = [];
-                        const hasLiked = post.likedBy.includes(app.data.currentUser);
-                        el.classList.add('is-animating'); 
-
-                        if (hasLiked) {
+                        isActive = post.likedBy.includes(app.data.currentUser);
+                        if (isActive) {
                             post.likedBy = post.likedBy.filter(u => u !== app.data.currentUser);
-                            post.stats.likes--;
-                            el.classList.remove('liked');
-                            el.querySelector('svg path').setAttribute('d', 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z');
+                            countChange = -1;
                         } else {
                             post.likedBy.push(app.data.currentUser);
-                            post.stats.likes++;
-                            el.classList.add('liked');
-                            el.querySelector('svg').classList.add('animate-like');
-                            el.querySelector('svg path').setAttribute('d', 'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z');
-                            
-                            setTimeout(() => {
-                                el.querySelector('svg').classList.remove('animate-like');
-                            }, 500);
                         }
-                        
-                        const numSpan = el.querySelector('span');
-                        numSpan.innerText = Utils.formatNumber(post.stats.likes);
-                        numSpan.classList.add('number-pop');
-                        setTimeout(() => numSpan.classList.remove('number-pop'), 300);
-                        
-                        setTimeout(() => {
-                             el.classList.remove('is-animating'); 
-                        }, 1000);
+                    } else if (type === 'retweets') {
+                        if (!post.retweetedBy) post.retweetedBy = [];
+                        isActive = post.retweetedBy.includes(app.data.currentUser);
+                         if (isActive) {
+                            post.retweetedBy = post.retweetedBy.filter(u => u !== app.data.currentUser);
+                            countChange = -1;
+                        } else {
+                            post.retweetedBy.push(app.data.currentUser);
+                        }
+                    } else if (type === 'bookmarks') {
+                        if (!post.bookmarkedBy) post.bookmarkedBy = [];
+                         isActive = post.bookmarkedBy.includes(app.data.currentUser);
+                         if (isActive) {
+                            post.bookmarkedBy = post.bookmarkedBy.filter(u => u !== app.data.currentUser);
+                            countChange = -1;
+                        } else {
+                            post.bookmarkedBy.push(app.data.currentUser);
+                        }
+                    }
 
+                    // Update Data
+                    post.stats[type] += countChange;
+                    
+                    // Update UI
+                    const span = el.querySelector('span');
+                    span.innerText = Utils.formatNumber(post.stats[type]);
+                    
+                    if (isActive && countChange === -1) {
+                         el.classList.remove('liked', 'retweeted', 'bookmarked');
+                         // Reset Icons (simplified for brevity, realistically would swap SVGs back if they changed)
+                         if(type === 'likes') el.querySelector('svg path').setAttribute('d', 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z');
+                         if(type === 'bookmarks') el.querySelector('svg path').setAttribute('d', 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z');
                     } else {
-                        // Standard Interaction
-                        post.stats[type]++;
-                        const numSpan = el.querySelector('span');
-                        numSpan.innerText = Utils.formatNumber(post.stats[type]);
-                        numSpan.classList.add('number-pop');
-                        setTimeout(() => numSpan.classList.remove('number-pop'), 300);
+                         if(type === 'likes') {
+                             el.classList.add('liked');
+                             el.querySelector('svg').classList.add('animate-like');
+                             el.querySelector('svg path').setAttribute('d', 'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z');
+                         }
+                         if(type === 'retweets') el.classList.add('retweeted');
+                         if(type === 'bookmarks') {
+                             el.classList.add('bookmarked');
+                             el.querySelector('svg path').setAttribute('d', 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z');
+                         }
+                         
+                         span.classList.add('number-pop');
+                         setTimeout(() => {
+                             span.classList.remove('number-pop');
+                             el.querySelector('svg').classList.remove('animate-like');
+                         }, 300);
                     }
                     
                     DB.save(app.data);
