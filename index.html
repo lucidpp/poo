@@ -266,6 +266,37 @@
         .mini-profile:hover { background-color: var(--hover-bg); }
         .mini-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; border: 1px solid #333; }
 
+        /* Account Switcher Dropdown */
+        .account-switcher-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 99;
+            display: none;
+        }
+        .account-menu {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            width: 300px;
+            background: black;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            z-index: 100;
+            display: none;
+            overflow: hidden;
+        }
+        .account-menu-item {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+        .account-menu-item:hover { background: var(--hover-bg); }
+        .account-menu-item:last-child { border-bottom: none; }
+
         /* Verified Badge */
         .verified-badge {
             width: 18px;
@@ -362,7 +393,7 @@
 
         .stat-icon { width: 18px; height: 18px; fill: currentColor; }
 
-        /* Detailed Post View (Realistic X) */
+        /* Detailed Post View */
         .detail-container { padding: 0 16px; border-bottom: 1px solid var(--border); }
         .detail-header { display: flex; gap: 12px; align-items: center; padding-top: 12px; }
         .detail-user { display: flex; flex-direction: column; }
@@ -373,6 +404,64 @@
         .detail-actions { padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-around; }
         .detail-actions .stat-item { padding: 10px; }
         .detail-actions .stat-icon { width: 22.5px; height: 22.5px; }
+
+        /* Messaging */
+        .message-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .message-row:hover { background: var(--hover-bg); }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 53px);
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 20px;
+            position: relative;
+        }
+        .chat-bubble.sent {
+            align-self: flex-end;
+            background-color: var(--accent);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-bubble.received {
+            align-self: flex-start;
+            background-color: #2f3336;
+            color: white;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-status {
+            align-self: flex-end;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: -8px;
+            margin-right: 4px;
+        }
+        .chat-input-area {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
 
         /* Right Sidebar */
         aside {
@@ -465,6 +554,8 @@
             position: absolute;
             top: 12px;
             right: 16px;
+            display: flex;
+            gap: 10px;
         }
         .edit-profile-btn {
             border: 1px solid #536471;
@@ -696,6 +787,10 @@
                     <svg viewBox="0 0 24 24"><path d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2zm-6.866-4l.847-6.698C6.364 6.272 8.941 4 11.996 4s5.627 2.268 6.01 5.295L18.866 16H5.134z"></path></svg>
                     <span>Notifications</span>
                 </a>
+                <a href="#" class="nav-item" id="nav-messages" onclick="app.navTo('messages')">
+                    <svg viewBox="0 0 24 24"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.5h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg>
+                    <span>Messages</span>
+                </a>
                 <a href="#" class="nav-item" id="nav-profile" onclick="app.navTo('profile')">
                     <svg viewBox="0 0 24 24"><path d="M12 1.75c-5.108 0-9.25 4.142-9.25 9.25 0 2.27.83 4.347 2.217 5.96.128.148.146.36.046.53-2.227 3.785-2.26 3.868-2.28 4.288-.02.392.293.712.686.722h17.16c.394-.01.708-.33.687-.722-.02-.42-.054-.503-2.28-4.288-.1-.17-.082-.382.046-.53 1.387-1.613 2.217-3.69 2.217-5.96 0-5.108-4.142-9.25-9.25-9.25zM4.25 11c0-4.274 3.476-7.75 7.75-7.75s7.75 3.476 7.75 7.75c0 1.957-.72 3.75-1.91 5.13-1.614-2.128-4.04-3.52-6.79-3.52s-5.176 1.392-6.79 3.52c-1.19-1.38-1.91-3.173-1.91-5.13z"></path></svg>
                     <span>Profile</span>
@@ -709,13 +804,15 @@
                 </button>
             </nav>
             
-            <div class="mini-profile" onclick="app.navTo('profile')">
+            <div class="mini-profile" onclick="document.querySelector('.account-switcher-overlay').style.display='block'">
                 <img src="" class="mini-avatar" id="current-user-avatar-mini">
                 <div style="display: flex; flex-direction: column;">
                     <span class="text-bold" id="current-user-name-mini" style="font-size: 15px;">Name</span>
                     <span class="text-gray" id="current-user-handle-mini" style="font-size: 15px;">@handle</span>
                 </div>
-                <div style="margin-left:auto; font-weight:bold;">···</div>
+                <div style="margin-left:auto; font-weight:bold;">
+                    <svg viewBox="0 0 24 24" style="width:18px;height:18px;"><path d="M3.543 8.96l1.414-1.42L12 14.59l7.043-7.05 1.414 1.42L12 17.41 3.543 8.96z"></path></svg>
+                </div>
             </div>
         </header>
 
@@ -735,6 +832,13 @@
                 <div class="p-4 text-accent" style="color: var(--accent); cursor:pointer;">Show more</div>
             </div>
         </aside>
+    </div>
+
+    <!-- Account Switcher -->
+    <div class="account-switcher-overlay" onclick="this.style.display='none'">
+        <div class="account-menu" id="account-menu-list">
+            <!-- Dynamic Accounts -->
+        </div>
     </div>
 
     <!-- Create Post Modal -->
@@ -779,6 +883,9 @@
         </div>
         <div class="mobile-nav-item" onclick="app.navTo('notifications')">
            <svg viewBox="0 0 24 24"><path d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2zm-6.866-4l.847-6.698C6.364 6.272 8.941 4 11.996 4s5.627 2.268 6.01 5.295L18.866 16H5.134z"></path></svg>
+        </div>
+        <div class="mobile-nav-item" onclick="app.navTo('messages')">
+            <svg viewBox="0 0 24 24"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.5h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg>
         </div>
         <div class="mobile-nav-item" onclick="app.navTo('profile')">
              <svg viewBox="0 0 24 24"><path d="M12 1.75c-5.108 0-9.25 4.142-9.25 9.25 0 2.27.83 4.347 2.217 5.96.128.148.146.36.046.53-2.227 3.785-2.26 3.868-2.28 4.288-.02.392.293.712.686.722h17.16c.394-.01.708-.33.687-.722-.02-.42-.054-.503-2.28-4.288-.1-.17-.082-.382.046-.53 1.387-1.613 2.217-3.69 2.217-5.96 0-5.108-4.142-9.25-9.25-9.25zM4.25 11c0-4.274 3.476-7.75 7.75-7.75s7.75 3.476 7.75 7.75c0 1.957-.72 3.75-1.91 5.13-1.614-2.128-4.04-3.52-6.79-3.52s-5.176 1.392-6.79 3.52c-1.19-1.38-1.91-3.173-1.91-5.13z"></path></svg>
@@ -892,17 +999,20 @@
                     bookmarkedBy: [],
                     replies: []
                 }
-            },
-            getBadgeIcon: (type) => {
-                return '🏆';
             }
         };
 
         const DB = {
             load: () => {
                 const data = localStorage.getItem('peyza_db');
-                if (data) return JSON.parse(data);
-                return { users: {}, posts: [], currentUser: null, lastActive: Date.now() };
+                let parsed = { users: {}, posts: [], currentUser: null, lastActive: Date.now(), messages: {}, myAccounts: [] };
+                if (data) {
+                    parsed = JSON.parse(data);
+                    // Migration
+                    if(!parsed.messages) parsed.messages = {};
+                    if(!parsed.myAccounts) parsed.myAccounts = parsed.currentUser ? [parsed.currentUser] : [];
+                }
+                return parsed;
             },
             save: (data) => {
                 data.lastActive = Date.now();
@@ -932,11 +1042,9 @@
 
             cleanup: () => {
                 const cutoff = Date.now() - (48 * 60 * 60 * 1000);
-                const beforeCount = app.data.posts.length;
                 app.data.posts = app.data.posts.filter(p => {
                     return p.timestamp > cutoff || p.authorHandle === app.data.currentUser;
                 });
-                if(beforeCount !== app.data.posts.length) console.log("Cleaned up old bot posts");
                 DB.save(app.data);
             },
 
@@ -948,13 +1056,10 @@
                 if(app.currentView === 'home' && !document.querySelector('.is-animating')) {
                     app.data.posts.forEach(post => {
                         const viewEl = document.getElementById(`views-${post.id}`);
-                        const likeEl = document.getElementById(`likes-${post.id}`);
                         if(viewEl && viewEl.innerText !== Utils.formatNumber(post.stats.views)) {
                              viewEl.innerText = Utils.formatNumber(post.stats.views);
                         }
                     });
-                } else if(app.currentView === 'post' && app.viewParams && app.viewParams.id) {
-                     app.updatePostDetailStats(app.viewParams.id);
                 }
             },
 
@@ -970,27 +1075,9 @@
                 if(user.followers >= 100) addBadge("100 Followers", 'normal');
                 if(user.followers >= 1000) addBadge("1K Club", 'normal');
                 if(user.followers >= 10000) addBadge("10K Influencer", 'gold');
-                if(user.followers >= 100000) addBadge("100K Star", 'gold');
-                if(user.followers >= 1000000) addBadge("1M Legend", 'platinum');
-
+                
                 const myPosts = app.data.posts.filter(p => p.authorHandle === user.handle);
                 if(myPosts.length >= 1) addBadge("First Post", 'normal');
-                if(myPosts.length >= 100) addBadge("100 Posts", 'normal');
-                
-                const streakDays = Math.floor((Date.now() - user.joined) / (1000 * 60 * 60 * 24));
-                if(streakDays >= 2) addBadge("2 Day Streak", 'normal');
-                if(streakDays >= 7) addBadge("7 Day Streak", 'gold');
-            },
-
-            updatePostDetailStats: (id) => {
-                const post = app.data.posts.find(p => p.id === id);
-                if(!post) return;
-                const viewsEl = document.getElementById(`detail-views-${id}`);
-                if(viewsEl && viewsEl.innerText !== Utils.formatNumber(post.stats.views)) {
-                    viewsEl.innerText = Utils.formatNumber(post.stats.views);
-                    viewsEl.classList.add('number-pop');
-                    setTimeout(() => viewsEl.classList.remove('number-pop'), 300);
-                }
             },
 
             simulateStep: (quietMode) => {
@@ -1013,19 +1100,6 @@
                     if (Math.random() > 0.90) post.stats.likes += Math.ceil(velocity * 0.1);
                     if (Math.random() > 0.97) post.stats.bookmarks += 1;
                     if (Math.random() > 0.95) post.stats.retweets += 1;
-                    
-                    if (Math.random() > 0.99 && post.replies.length < 15) {
-                        const bot = Utils.createBot();
-                        const replies = ["True!", "Interesting.", "Big if true.", "Following!", "Nice.", "Check DM", "LOL", "Why?", "Agree.", "Based.", "Real.", "So true bestie"];
-                        const text = replies[Math.floor(Math.random() * replies.length)];
-                        post.replies.push({
-                            id: Utils.generateId(),
-                            author: bot, 
-                            text: text,
-                            timestamp: Date.now()
-                        });
-                        post.stats.replies++;
-                    }
                 });
             },
 
@@ -1118,6 +1192,7 @@
                     };
                     app.data.users[handle] = newUser;
                     app.data.currentUser = handle;
+                    if(!app.data.myAccounts.includes(handle)) app.data.myAccounts.push(handle);
                     DB.save(app.data);
                     app.showApp();
                 } else {
@@ -1125,6 +1200,7 @@
                     const user = app.data.users[handle];
                     if (user && user.password === passIn) {
                         app.data.currentUser = handle;
+                        if(!app.data.myAccounts.includes(handle)) app.data.myAccounts.push(handle);
                         DB.save(app.data);
                         app.showApp();
                     } else {
@@ -1138,6 +1214,7 @@
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('app-layout').classList.remove('hidden');
                 app.updateUserDisplay();
+                app.renderAccountMenu();
                 app.navTo('home');
             },
 
@@ -1147,6 +1224,47 @@
                 document.getElementById('current-user-handle-mini').textContent = user.handle;
                 document.getElementById('current-user-avatar-mini').src = user.avatar;
                 document.getElementById('post-modal-avatar').src = user.avatar;
+            },
+            
+            renderAccountMenu: () => {
+                const container = document.getElementById('account-menu-list');
+                container.innerHTML = '';
+                
+                app.data.myAccounts.forEach(handle => {
+                    const user = app.data.users[handle];
+                    const div = document.createElement('div');
+                    div.className = 'account-menu-item';
+                    div.onclick = () => app.switchAccount(handle);
+                    div.innerHTML = `
+                        <img src="${user.avatar}" class="mini-avatar" style="width:30px;height:30px;margin:0;">
+                        <div style="flex:1">
+                            <div class="text-bold text-sm">${user.name}</div>
+                            <div class="text-gray text-sm">${user.handle}</div>
+                        </div>
+                        ${handle === app.data.currentUser ? '<div style="color:var(--accent)">✓</div>' : ''}
+                    `;
+                    container.appendChild(div);
+                });
+                
+                // Add Create Account
+                const addDiv = document.createElement('div');
+                addDiv.className = 'account-menu-item';
+                addDiv.onclick = () => {
+                    document.getElementById('app-layout').classList.add('hidden');
+                    document.getElementById('auth-screen').classList.remove('hidden');
+                    document.querySelector('.account-switcher-overlay').style.display='none';
+                };
+                addDiv.innerHTML = `<div class="text-bold text-sm" style="padding:4px 0;">+ Create a new account</div>`;
+                container.appendChild(addDiv);
+            },
+            
+            switchAccount: (handle) => {
+                app.data.currentUser = handle;
+                DB.save(app.data);
+                app.updateUserDisplay();
+                app.renderAccountMenu();
+                document.querySelector('.account-switcher-overlay').style.display='none';
+                app.navTo('home');
             },
 
             createPost: () => {
@@ -1189,6 +1307,7 @@
                 if(view === 'home') document.getElementById('nav-home').classList.add('active');
                 if(view === 'explore') document.getElementById('nav-explore').classList.add('active');
                 if(view === 'notifications') document.getElementById('nav-notifs').classList.add('active');
+                if(view === 'messages') document.getElementById('nav-messages').classList.add('active');
                 if(view === 'profile' && (!params || params.handle === app.data.currentUser)) document.getElementById('nav-profile').classList.add('active');
 
                 app.renderCurrentView();
@@ -1213,8 +1332,7 @@
             renderCurrentView: (preserveState = false) => {
                 const main = document.getElementById('main-content');
                 if(document.activeElement && document.activeElement.id === 'composer-text' && preserveState) return;
-                const scrollPos = window.scrollY;
-
+                
                 main.innerHTML = '';
 
                 if (app.currentView === 'home') {
@@ -1231,17 +1349,20 @@
                 } else if (app.currentView === 'notifications') {
                     app.renderHeader(main, 'Notifications');
                     app.renderNotifications(main);
+                } else if (app.currentView === 'messages') {
+                    app.renderHeader(main, 'Messages');
+                    app.renderMessages(main);
+                } else if (app.currentView === 'chat') {
+                    app.renderChat(main, app.viewParams.handle);
                 }
-
-                if(preserveState) window.scrollTo(0, scrollPos);
             },
 
             renderHeader: (container, title, backBtn = false) => {
                 const div = document.createElement('div');
                 div.className = 'header-sticky';
                 let html = '';
-                if (backBtn) {
-                    html += `<div onclick="app.navTo('home')" style="cursor:pointer; margin-right: 20px;">←</div>`;
+                if (backBtn || (title === 'Chat')) {
+                    html += `<div onclick="app.navTo(title === 'Chat' ? 'messages' : 'home')" style="cursor:pointer; margin-right: 20px;">←</div>`;
                 }
                 html += `<div style="flex:1;">${title}</div>`;
                 div.innerHTML = html;
@@ -1333,6 +1454,167 @@
                 container.appendChild(feedDiv);
             },
             
+            // New Messaging Views
+            renderMessages: (container) => {
+                const myHandle = app.data.currentUser;
+                const conversations = app.data.messages[myHandle] || [];
+                
+                // Sort by last message
+                conversations.sort((a,b) => b.lastTimestamp - a.lastTimestamp);
+                
+                if(conversations.length === 0) {
+                    container.innerHTML = `<div class="p-4 text-center text-gray">No messages yet. Visit a profile to message someone.</div>`;
+                    return;
+                }
+                
+                conversations.forEach(convo => {
+                    const otherHandle = convo.with;
+                    const user = app.data.users[otherHandle];
+                    const div = document.createElement('div');
+                    div.className = 'message-row';
+                    div.onclick = () => app.navTo('chat', {handle: otherHandle});
+                    div.innerHTML = `
+                        <img src="${user.avatar}" class="mini-avatar" style="width:50px;height:50px;">
+                        <div style="flex:1">
+                            <div class="flex justify-between">
+                                <span class="text-bold">${user.name}</span>
+                                <span class="text-gray text-sm">${Utils.timeAgo(convo.lastTimestamp)}</span>
+                            </div>
+                            <div class="text-gray text-sm" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">
+                                ${convo.lastMessage}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            },
+            
+            renderChat: (container, otherHandle) => {
+                const user = app.data.users[otherHandle];
+                const myHandle = app.data.currentUser;
+                
+                // Get or Init Conversation history
+                const convoId = [myHandle, otherHandle].sort().join('_');
+                // We store actual messages in a central place or nested
+                // For simplicity, let's look them up from a 'chats' object
+                if(!app.data.chats) app.data.chats = {};
+                if(!app.data.chats[convoId]) app.data.chats[convoId] = [];
+                
+                const messages = app.data.chats[convoId];
+                
+                app.renderHeader(container, 'Chat', true);
+                
+                // Sticky User Header in Chat
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'flex items-center gap-2 p-4 border-b';
+                infoDiv.innerHTML = `<span class="text-bold">${user.name}</span> <span class="text-gray">${user.handle}</span>`;
+                container.appendChild(infoDiv);
+                
+                const chatContainer = document.createElement('div');
+                chatContainer.className = 'chat-container';
+                
+                const msgsDiv = document.createElement('div');
+                msgsDiv.className = 'chat-messages';
+                msgsDiv.id = 'chat-scroll-area';
+                
+                const renderMsgs = () => {
+                    msgsDiv.innerHTML = '';
+                    messages.forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = `chat-bubble ${msg.sender === myHandle ? 'sent' : 'received'}`;
+                        div.innerText = msg.text;
+                        msgsDiv.appendChild(div);
+                        
+                        if(msg.sender === myHandle) {
+                            const status = document.createElement('div');
+                            status.className = 'chat-status';
+                            status.innerText = msg.status;
+                            msgsDiv.appendChild(status);
+                        }
+                    });
+                    // Scroll to bottom
+                    setTimeout(() => msgsDiv.scrollTop = msgsDiv.scrollHeight, 50);
+                };
+                renderMsgs();
+                
+                chatContainer.appendChild(msgsDiv);
+                
+                const inputArea = document.createElement('div');
+                inputArea.className = 'chat-input-area';
+                inputArea.innerHTML = `
+                    <input type="text" id="chat-input" placeholder="Start a new message" style="flex:1;">
+                    <div style="color:var(--accent); cursor:pointer;" onclick="app.sendChatMessage('${otherHandle}')">
+                        <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:currentColor;"><path d="M2.504 21.866l.526-2.108C3.04 19.756 3.022 19.724 3.023 19.722L4.256 12.001 2.504 2.133c-.22-.88.69-1.595 1.458-1.146l20.002 11.011c.67.369.67 1.335 0 1.704L3.962 23.011c-.768.45-1.678-.266-1.458-1.145z"></path></svg>
+                    </div>
+                `;
+                
+                // Enter key support
+                inputArea.querySelector('input').onkeypress = (e) => {
+                    if(e.key === 'Enter') app.sendChatMessage(otherHandle);
+                };
+                
+                chatContainer.appendChild(inputArea);
+                container.appendChild(chatContainer);
+            },
+            
+            sendChatMessage: (toHandle) => {
+                const input = document.getElementById('chat-input');
+                const text = input.value.trim();
+                if(!text) return;
+                
+                const myHandle = app.data.currentUser;
+                const convoId = [myHandle, toHandle].sort().join('_');
+                
+                if(!app.data.chats) app.data.chats = {};
+                if(!app.data.chats[convoId]) app.data.chats[convoId] = [];
+                
+                // Add Message
+                const newMsg = {
+                    sender: myHandle,
+                    text: text,
+                    timestamp: Date.now(),
+                    status: 'Sent'
+                };
+                app.data.chats[convoId].push(newMsg);
+                
+                // Update Conversation Metadata for List View
+                const updateMeta = (owner, partner, txt) => {
+                    if(!app.data.messages[owner]) app.data.messages[owner] = [];
+                    let c = app.data.messages[owner].find(x => x.with === partner);
+                    if(!c) {
+                        c = { with: partner, lastMessage: '', lastTimestamp: 0 };
+                        app.data.messages[owner].push(c);
+                    }
+                    c.lastMessage = txt;
+                    c.lastTimestamp = Date.now();
+                };
+                
+                updateMeta(myHandle, toHandle, text);
+                // In a real app we'd update the other person too, but here we simulate it
+                
+                input.value = '';
+                DB.save(app.data);
+                app.renderChat(document.getElementById('main-content'), toHandle); // Refresh view
+                
+                // Simulation Logic
+                setTimeout(() => { newMsg.status = 'Delivered'; DB.save(app.data); if(app.currentView==='chat') app.renderChat(document.getElementById('main-content'), toHandle); }, 1500);
+                setTimeout(() => { newMsg.status = 'Read'; DB.save(app.data); if(app.currentView==='chat') app.renderChat(document.getElementById('main-content'), toHandle); }, 3000);
+                
+                // Bot Reply
+                setTimeout(() => {
+                    const botReplies = ["Haha true", "Yeah totally!", "Nice one", "👍", "What?", "Send me the link", "Lol", "Ok", "For real?", "👀"];
+                    const replyText = botReplies[Math.floor(Math.random() * botReplies.length)];
+                    app.data.chats[convoId].push({
+                        sender: toHandle,
+                        text: replyText,
+                        timestamp: Date.now()
+                    });
+                    updateMeta(myHandle, toHandle, replyText); // Update my inbox view
+                    DB.save(app.data);
+                    if(app.currentView==='chat') app.renderChat(document.getElementById('main-content'), toHandle);
+                }, 5000 + Math.random() * 3000);
+            },
+            
             renderProfile: (container, handle) => {
                 const user = app.data.users[handle] || app.data.users[Object.keys(app.data.users).find(u => app.data.users[u].handle === handle)];
                 
@@ -1352,6 +1634,17 @@
                     badgesHtml += '</div>';
                 }
 
+                // Action Buttons
+                let actionBtn = '';
+                if(user.handle === app.data.currentUser) {
+                    actionBtn = `<button class="edit-profile-btn" onclick="app.openEditProfile()">Edit profile</button>`;
+                } else {
+                    actionBtn = `
+                        <button class="edit-profile-btn" onclick="app.navTo('chat', {handle: '${user.handle}'})" style="padding:6px; border-radius:50%;"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:white;"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.5h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg></button>
+                        <button class="edit-profile-btn" onclick="alert('Followed!')">Follow</button>
+                    `;
+                }
+
                 const div = document.createElement('div');
                 div.innerHTML = `
                     <div class="header-sticky">
@@ -1365,7 +1658,7 @@
                     <div class="profile-header">
                         <img src="${user.avatar}" class="profile-avatar-large">
                         <div class="profile-actions">
-                            ${user.handle === app.data.currentUser ? `<button class="edit-profile-btn" onclick="app.openEditProfile()">Edit profile</button>` : `<button class="edit-profile-btn" onclick="alert('Followed!')">Follow</button>`}
+                            ${actionBtn}
                         </div>
                         <div style="margin-top: 12px;">
                             <div class="text-xl text-bold" style="display:flex; align-items:center;">${user.name} ${verifiedHtml}</div>
