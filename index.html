@@ -467,7 +467,7 @@
         let accessToken = localStorage.getItem('spotify_token');
         let isPlaying = false;
         let currentTrack = null;
-        let likedTracks = new Set(); 
+        let likedTracks = new Set(JSON.parse(localStorage.getItem('peyza_liked_songs') || '[]'));
         let activeView = 'art'; 
         let isLyricsEditing = true;
         
@@ -491,7 +491,17 @@
             return num.toString();
         }
 
-        function generateStats(popularity) {
+        function getDeterministicRandom(seed) {
+            let hash = 0;
+            for (let i = 0; i < seed.length; i++) {
+                hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+                hash |= 0;
+            }
+            const x = Math.abs(Math.sin(hash) * 10000);
+            return x - Math.floor(x);
+        }
+
+        function generateStats(popularity, trackId) {
             let min, max;
             const pop = popularity || 50;
             if(pop < 10) { min=100; max=900; }
@@ -499,8 +509,11 @@
             else if(pop < 70) { min=100000; max=5000000; }
             else if(pop < 90) { min=5000000; max=100000000; }
             else { min=100000000; max=900000000; }
-            const streams = Math.floor(Math.random() * (max - min) + min);
-            const likes = Math.floor(streams * (Math.random() * (0.08 - 0.03) + 0.03)); 
+            
+            // Use deterministic random if trackId is present
+            const rand = trackId ? getDeterministicRandom(trackId) : Math.random();
+            const streams = Math.floor(rand * (max - min) + min);
+            const likes = Math.floor(streams * 0.04); // Approx 4% likes
             return { streamsRaw: streams, likesRaw: likes, streams: formatNumber(streams), likesFormatted: likes.toLocaleString() };
         }
 
@@ -558,10 +571,8 @@
         }
 
         function playTrack(track, queue = null, index = 0) {
-            // Update queue if provided (playing from a list)
             if (queue) {
                 if(isShuffle) {
-                    // Simple shuffle implementation: play selected track, then shuffle rest
                     playbackQueue = [track, ...queue.filter(t => t.id !== track.id).sort(() => 0.5 - Math.random())];
                     currentQueueIndex = 0;
                 } else {
@@ -569,14 +580,13 @@
                     currentQueueIndex = index;
                 }
             } else {
-                // Standalone play (e.g. from search), reset queue or append? 
-                // For simplicity, make it a single item queue
                 playbackQueue = [track];
                 currentQueueIndex = 0;
             }
 
             currentTrack = track;
-            if(!currentTrack.stats) currentTrack.stats = generateStats(track.popularity || 50);
+            // Generate deterministic stats
+            if(!currentTrack.stats) currentTrack.stats = generateStats(track.popularity || 50, track.id);
 
             confirmModal("Lyrics", "Would you like to add lyrics before the song starts?", 
                 () => {
@@ -605,20 +615,18 @@
             
             let nextIndex = currentQueueIndex + 1;
             if (nextIndex >= playbackQueue.length) {
-                if (repeatMode === 1) nextIndex = 0; // Loop All
-                else return; // Stop at end
+                if (repeatMode === 1) nextIndex = 0; 
+                else return; 
             }
             
             currentQueueIndex = nextIndex;
-            // Bypass lyrics prompt for continuous playback
             currentTrack = playbackQueue[currentQueueIndex];
-            if(!currentTrack.stats) currentTrack.stats = generateStats(currentTrack.popularity || 50);
+            if(!currentTrack.stats) currentTrack.stats = generateStats(currentTrack.popularity || 50, currentTrack.id);
             initiateTrackAudio();
         }
 
         function playPrevious() {
             if (playbackQueue.length === 0) return;
-            // If song played more than 3 sec, restart
             if (audio.currentTime > 3) {
                 audio.currentTime = 0;
                 return;
@@ -629,18 +637,16 @@
             
             currentQueueIndex = prevIndex;
             currentTrack = playbackQueue[currentQueueIndex];
-            if(!currentTrack.stats) currentTrack.stats = generateStats(currentTrack.popularity || 50);
+            if(!currentTrack.stats) currentTrack.stats = generateStats(currentTrack.popularity || 50, currentTrack.id);
             initiateTrackAudio();
         }
 
-        // Shuffle & Repeat Logic
         function toggleShuffle() {
             isShuffle = !isShuffle;
             const btn = document.getElementById('fs-shuffle-btn');
             if (isShuffle) {
                 btn.classList.add('text-accent-cherry');
                 btn.classList.remove('text-gray-500');
-                // Shuffle pending queue
                 if(playbackQueue.length > 1) {
                     const remaining = playbackQueue.slice(currentQueueIndex + 1).sort(() => 0.5 - Math.random());
                     playbackQueue = [...playbackQueue.slice(0, currentQueueIndex + 1), ...remaining];
@@ -648,7 +654,6 @@
             } else {
                 btn.classList.remove('text-accent-cherry');
                 btn.classList.add('text-gray-500');
-                // Note: Un-shuffling is hard without original queue copy, we'll keep as is for prototype
             }
         }
 
@@ -657,15 +662,14 @@
             const btn = document.getElementById('fs-repeat-btn');
             const badge = document.getElementById('repeat-badge');
             
-            // Reset styles
             btn.classList.remove('text-accent-cherry', 'text-gray-500');
             badge.classList.add('hidden');
 
-            if (repeatMode === 0) { // Off
+            if (repeatMode === 0) { 
                 btn.classList.add('text-gray-500');
-            } else if (repeatMode === 1) { // All
+            } else if (repeatMode === 1) { 
                 btn.classList.add('text-accent-cherry');
-            } else if (repeatMode === 2) { // One
+            } else if (repeatMode === 2) { 
                 btn.classList.add('text-accent-cherry');
                 badge.classList.remove('hidden');
             }
@@ -704,8 +708,8 @@
                 const pop = popularity || 50;
                 let minView = 10000;
                 let maxView = 500000;
-                if(pop > 80) { minView = 10000000; maxView = 100000000; } // Top tier
-                else if(pop > 50) { minView = 1000000; maxView = 20000000; } // Mid
+                if(pop > 80) { minView = 10000000; maxView = 100000000; } 
+                else if(pop > 50) { minView = 1000000; maxView = 20000000; } 
                 const viewsRaw = Math.floor(Math.random() * (maxView - minView) + minView);
                 const viewsStr = formatNumber(viewsRaw) + ' views';
 
@@ -730,7 +734,6 @@
             document.getElementById('vid-title').textContent = videoObj.title;
             document.getElementById('vid-stats').textContent = videoObj.views;
             
-            // Check Like State
             const likeBtn = document.getElementById('vid-like-btn');
             if(likedVideos.has(currentVideoId)) likeBtn.classList.add('video-like-active');
             else likeBtn.classList.remove('video-like-active');
@@ -828,7 +831,7 @@
                 const tracksData = await tracksRes.json();
                 const albumsData = await albumsRes.json();
 
-                const topTracks = tracksData.tracks.map(t => ({ ...t, stats: generateStats(t.popularity), imageUrl: t.album.images[0]?.url, durationFormatted: formatTime(t.duration_ms / 1000) }));
+                const topTracks = tracksData.tracks.map(t => ({ ...t, stats: generateStats(t.popularity, t.id), imageUrl: t.album.images[0]?.url, durationFormatted: formatTime(t.duration_ms / 1000) }));
                 const popularSongs = topTracks.slice(0, 10);
                 const uniqueAlbums = [];
                 const map = new Map();
@@ -867,7 +870,7 @@
                 const res = await fetch(`${API_URL}/albums/${albumId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const album = await res.json();
                 let totalStreams = 0; let totalLikes = 0;
-                const tracksWithStats = album.tracks.items.map(t => { const s = generateStats(t.popularity || 40); totalStreams += s.streamsRaw; totalLikes += s.likesRaw; return { ...t, stats: s }; });
+                const tracksWithStats = album.tracks.items.map(t => { const s = generateStats(t.popularity || 40, t.id); totalStreams += s.streamsRaw; totalLikes += s.likesRaw; return { ...t, stats: s }; });
                 document.getElementById('dynamic-content').innerHTML = `
                     <div class="flex flex-col md:flex-row gap-8 mb-10 animate-fade-in items-center md:items-end"><div class="w-64 h-64 md:w-72 md:h-72 shrink-0 shadow-2xl rounded-lg relative group"><img src="${album.images[0]?.url || 'https://placehold.co/300x300'}" class="w-full h-full object-cover rounded-lg art-shadow"></div><div class="text-center md:text-left flex-1"><h4 class="text-xs font-bold tracking-widest text-accent-cherry uppercase mb-2">${album.album_type}</h4><h1 class="text-3xl md:text-5xl font-bold mb-2 leading-tight">${album.name}</h1><p class="text-xl text-white font-medium mb-3 cursor-pointer hover:underline" onclick="navigateTo('artist', '${album.artists[0].id}')">${album.artists[0].name}</p><p class="text-sm text-gray-400 font-bold mb-4">${album.release_date.split('-')[0]} • ${album.total_tracks} Songs • <span class="text-gray-300">${formatNumber(totalStreams)} Streams</span> • <span class="text-liked-red">${formatNumber(totalLikes)} Likes</span></p><div class="mt-4 flex items-center justify-center md:justify-start gap-4"><button class="bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center" onclick='playCollection(${JSON.stringify(album.tracks.items.map(t => mapSpotifyTrack(t, album.images[0]?.url))).replace(/'/g, "")})'><i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play</button><button class="w-10 h-10 rounded-full border border-gray-500 flex items-center justify-center hover:bg-white/10 transition"><i data-lucide="plus" class="w-5 h-5"></i></button></div></div></div>
                     <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg animate-slide-up">${tracksWithStats.map((t, i) => `<div class="flex items-center p-4 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer group" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t, album.images[0]?.url)).replace(/'/g, "")}, ${JSON.stringify(tracksWithStats.map(tk => mapSpotifyTrack(tk, album.images[0]?.url))).replace(/'/g, "")}, ${i})'><span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span><div class="flex-1 min-w-0 ml-4"><p class="font-medium text-white truncate">${t.name}</p><p class="text-xs text-gray-500 truncate">${t.artists.map(a => a.name).join(', ')}</p></div><div class="hidden md:block text-xs text-gray-500 font-mono mr-6">${t.stats.streams}</div><span class="text-xs text-gray-500 font-mono">${formatTime(t.duration_ms/1000)}</span></div>`).join('')}</div>
@@ -938,6 +941,72 @@
         }
         function renderLibrary() { renderHome(); } 
         function renderLiked() { document.getElementById('dynamic-content').innerHTML = `<div class="text-center mt-20 text-gray-500">Liked songs will appear here.</div>`; }
+
+        // --- PLAYLIST LOGIC START ---
+        function renderPlaylist(index) {
+            const playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]');
+            const playlist = playlists[index];
+            if (!playlist) return;
+
+            const content = document.getElementById('dynamic-content');
+            content.innerHTML = `
+                <div class="animate-fade-in">
+                    <div class="flex flex-col md:flex-row gap-8 mb-8 items-center md:items-end">
+                        <div class="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-gray-800 to-black rounded-lg shadow-2xl flex items-center justify-center">
+                            <i data-lucide="music" class="w-20 h-20 text-gray-600"></i>
+                        </div>
+                        <div class="text-center md:text-left">
+                            <p class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-1">Playlist</p>
+                            <h1 class="text-4xl md:text-6xl font-bold mb-4">${playlist.name}</h1>
+                            <p class="text-gray-400 text-sm font-bold">${playlist.tracks.length} Songs</p>
+                            <button class="mt-6 bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center mx-auto md:mx-0" onclick="playCollection(${JSON.stringify(playlist.tracks).replace(/'/g, "")})">
+                                <i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-[#1c1c1e] rounded-xl overflow-hidden shadow-lg">
+                        ${playlist.tracks.length === 0 ? '<div class="p-8 text-center text-gray-500">No songs added yet.</div>' : ''}
+                        ${playlist.tracks.map((t, i) => `
+                            <div class="flex items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0 group">
+                                <div class="flex-1 flex items-center cursor-pointer" onclick='playTrack(${JSON.stringify(t).replace(/'/g, "")})'>
+                                    <span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span>
+                                    <img src="${t.imageUrl}" class="w-10 h-10 rounded mr-3 bg-card-dark">
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-white truncate text-sm">${t.name}</p>
+                                        <p class="text-xs text-gray-500 truncate">${t.artists[0].name}</p>
+                                    </div>
+                                </div>
+                                <button onclick="removeFromPlaylist(${index}, ${i})" class="p-2 text-gray-500 hover:text-red-500 transition opacity-0 group-hover:opacity-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            renderIcons();
+        }
+
+        function addToPlaylist(playlistIndex) {
+            if (!currentTrack) return;
+            const playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]');
+            if (playlists[playlistIndex]) {
+                playlists[playlistIndex].tracks.push(currentTrack);
+                localStorage.setItem('peyza_playlists', JSON.stringify(playlists));
+                closePlaylistModal();
+                alert(`Added to ${playlists[playlistIndex].name}`);
+                loadUserPlaylists(); // Refresh sidebar count if displayed
+            }
+        }
+
+        function removeFromPlaylist(playlistIndex, trackIndex) {
+            const playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]');
+            if (playlists[playlistIndex]) {
+                playlists[playlistIndex].tracks.splice(trackIndex, 1);
+                localStorage.setItem('peyza_playlists', JSON.stringify(playlists));
+                renderPlaylist(playlistIndex); // Refresh view
+            }
+        }
+        // --- PLAYLIST LOGIC END ---
 
         /* PLAYER LOGIC */
         function toggleFullscreenPlayer(show) {
