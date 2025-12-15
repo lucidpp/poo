@@ -494,8 +494,10 @@
 
         function getDeterministicRandom(seed) {
             let hash = 0;
-            for (let i = 0; i < seed.length; i++) {
-                hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+            if(!seed) return Math.random();
+            const strSeed = String(seed);
+            for (let i = 0; i < strSeed.length; i++) {
+                hash = ((hash << 5) - hash) + strSeed.charCodeAt(i);
                 hash |= 0;
             }
             const x = Math.abs(Math.sin(hash) * 10000);
@@ -714,6 +716,7 @@
             const match = url.match(regExp);
             if (match && match[2].length === 11) {
                 const videoId = match[2];
+                // Smart Views Calculation
                 const pop = popularity || 50;
                 let minView = 10000;
                 let maxView = 500000;
@@ -795,31 +798,6 @@
             localStorage.setItem('peyza_liked_videos', JSON.stringify([...likedVideos]));
         }
 
-        // --- RADIO LOGIC ---
-        async function startRadio(name) {
-            // Deterministic Pals count
-            const rand = getDeterministicRandom(name);
-            const palsCount = Math.floor(rand * (50000 - 1000) + 1000);
-            alert(`Tuning into ${name} - ${palsCount.toLocaleString()} Pals Listening`);
-
-            // Fetch tracks based on radio name (genre search)
-            const token = await getSpotifyToken();
-            if(token) {
-                try {
-                    const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(name)}&type=track&limit=20`, { headers: { 'Authorization': `Bearer ${token}` } });
-                    const data = await res.json();
-                    if(data.tracks && data.tracks.items.length > 0) {
-                        const queue = data.tracks.items.map(t => mapSpotifyTrack(t));
-                        // Shuffle the "radio"
-                        queue.sort(() => 0.5 - Math.random());
-                        playTrack(queue[0], queue, 0);
-                    } else {
-                        alert("No signal found for this station.");
-                    }
-                } catch(e) { console.error(e); }
-            }
-        }
-
         // --- NAVIGATION ---
         function navigateTo(view, id = null) {
             updateSidebarActiveState(view);
@@ -854,28 +832,46 @@
         }
 
         async function fetchArtistDetails(artistId) {
+            if (!artistId) return;
             const token = await getSpotifyToken();
-            if(!token) return;
+            if(!token) {
+                 document.getElementById('dynamic-content').innerHTML = '<div class="text-center p-10 text-gray-500">Connection failed. Please try again.</div>';
+                 return;
+            }
             try {
-                const [artistRes, tracksRes, albumsRes, relatedRes] = await Promise.all([
+                const results = await Promise.allSettled([
                     fetch(`${API_URL}/artists/${artistId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
                     fetch(`${API_URL}/artists/${artistId}/top-tracks?market=US`, { headers: { 'Authorization': `Bearer ${token}` } }),
                     fetch(`${API_URL}/artists/${artistId}/albums?include_groups=album,single&limit=15`, { headers: { 'Authorization': `Bearer ${token}` } }),
                     fetch(`${API_URL}/artists/${artistId}/related-artists`, { headers: { 'Authorization': `Bearer ${token}` } })
                 ]);
-                const artist = await artistRes.json();
-                const tracksData = await tracksRes.json();
-                const albumsData = await albumsRes.json();
-                const relatedData = await relatedRes.json();
+                
+                const artistRes = results[0];
+                if (artistRes.status === 'rejected' || !artistRes.value.ok) throw new Error('Artist not found');
 
-                const topTracks = tracksData.tracks.map(t => ({ ...t, stats: generateStats(t.popularity, t.id), imageUrl: t.album.images[0]?.url, durationFormatted: formatTime(t.duration_ms / 1000) }));
+                const artist = await artistRes.value.json();
+                
+                const getJson = async (res) => (res.status === 'fulfilled' && res.value.ok) ? await res.value.json() : null;
+
+                const tracksData = await getJson(results[1]) || { tracks: [] };
+                const albumsData = await getJson(results[2]) || { items: [] };
+                const relatedData = await getJson(results[3]) || { artists: [] };
+                
+                let relatedArtists = relatedData.artists || [];
+                const tracks = tracksData.tracks || [];
+                const albums = albumsData.items || [];
+
+                const topTracks = tracks.map(t => ({ ...t, stats: generateStats(t.popularity, t.id), imageUrl: t.album.images[0]?.url, durationFormatted: formatTime(t.duration_ms / 1000) }));
                 const popularSongs = topTracks.slice(0, 10);
+                
                 const uniqueAlbums = [];
                 const map = new Map();
-                for (const item of albumsData.items) {
+                for (const item of albums) {
                     if(!map.has(item.name)) { map.set(item.name, true); uniqueAlbums.push(item); }
                 }
                 const savedVideos = JSON.parse(localStorage.getItem(`videos_${artistId}`) || '[]');
+                
+                // Deterministic Followers (Pals)
                 const followersStr = generateFollowers(artist.popularity, artist.id);
 
                 document.getElementById('dynamic-content').innerHTML = `
@@ -897,14 +893,18 @@
                         ${savedVideos.map(vid => `<div class="snap-center shrink-0 w-60 md:w-72 group cursor-pointer" onclick='playVideo(${JSON.stringify(vid).replace(/'/g, "")})'><div class="w-full aspect-video mb-3 relative overflow-hidden rounded-xl shadow-lg"><img src="https://img.youtube.com/vi/${vid.id}/hqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100"><div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-transparent transition"><div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"><i data-lucide="play" class="w-5 h-5 fill-white text-white ml-1"></i></div></div><div class="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded text-[10px] font-bold">HD</div></div><p class="font-bold text-sm truncate text-white mb-1 group-hover:text-accent-cherry transition">${vid.title}</p><p class="text-xs text-gray-400 truncate">Music Video • ${vid.views}</p></div>`).join('')}
                     </div></div>
                      <div class="animate-slide-up mb-10"><h2 class="text-2xl font-bold mb-4 flex items-center">Fans Also Like <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2><div class="flex overflow-x-auto space-x-6 pb-6 no-scrollbar snap-x-mandatory">
-                        ${relatedData.artists.map(a => `<div class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center cursor-pointer group" onclick="navigateTo('artist', '${a.id}')"><img src="${a.images[0]?.url || 'https://placehold.co/150x150'}" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-lg mb-2 group-hover:scale-105 transition border-2 border-transparent group-hover:border-accent-cherry"><p class="font-semibold text-center text-sm truncate w-full">${a.name}</p><p class="text-xs text-gray-500">Artist</p></div>`).join('')}
+                        ${relatedArtists.map(a => `<div class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center cursor-pointer group" onclick="navigateTo('artist', '${a.id}')"><img src="${a.images[0]?.url || 'https://placehold.co/150x150'}" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-lg mb-2 group-hover:scale-105 transition border-2 border-transparent group-hover:border-accent-cherry"><p class="font-semibold text-center text-sm truncate w-full">${a.name}</p><p class="text-xs text-gray-500">Artist</p></div>`).join('')}
                     </div></div>
                 `;
                 renderIcons();
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error(e); 
+                document.getElementById('dynamic-content').innerHTML = '<div class="text-center p-10"><p class="text-white text-xl">Artist unavailable</p><p class="text-gray-500 text-sm mt-2">Could not load artist details.</p></div>';
+            }
         }
 
         async function fetchAlbumDetails(albumId) { 
+            if (!albumId) return;
              const token = await getSpotifyToken();
             if(!token) return;
             try {
@@ -926,6 +926,7 @@
         }
         
         async function fetchShowDetails(showId) {
+            if (!showId) return;
              const token = await getSpotifyToken();
             if(!token) return;
             try {
@@ -933,19 +934,21 @@
                 const show = await res.json();
                 
                 // Deterministic Stats for Show
-                const followersStr = generateFollowers(50, show.id); // Podcasts dont have pop score, use 50
+                const followersStr = generateFollowers(50, show.id); 
                 
                 const episodesWithStats = show.episodes.items.map(ep => {
                     const s = generateStats(50, ep.id);
                     return { ...ep, stats: s };
                 });
+                // Create queue for show playback
+                const queue = episodesWithStats.map(ep => mapSpotifyTrack(ep, show.images[0]?.url));
 
                 document.getElementById('dynamic-content').innerHTML = `
-                    <div class="flex flex-col md:flex-row gap-8 mb-10 animate-fade-in items-center md:items-end"><div class="w-64 h-64 md:w-72 md:h-72 shrink-0 shadow-2xl rounded-lg relative group"><img src="${show.images[0]?.url || 'https://placehold.co/300x300'}" class="w-full h-full object-cover rounded-lg art-shadow"></div><div class="text-center md:text-left flex-1"><h4 class="text-xs font-bold tracking-widest text-accent-cherry uppercase mb-2">Podcast</h4><h1 class="text-3xl md:text-5xl font-bold mb-2 leading-tight">${show.name}</h1><p class="text-xl text-white font-medium mb-3">${show.publisher}</p><p class="text-sm text-gray-400 font-bold mb-4">${show.total_episodes} Episodes • <span class="text-liked-red">${followersStr}</span></p><div class="mt-4 flex items-center justify-center md:justify-start gap-4"><button class="bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center" onclick='playCollection(${JSON.stringify(show.episodes.items.map(ep => mapSpotifyTrack(ep, show.images[0]?.url))).replace(/'/g, "")})'><i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play Latest</button></div></div></div>
-                    <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg animate-slide-up"><h3 class="p-6 text-xl font-bold">Recent Episodes</h3>${episodesWithStats.map((ep, i) => `<div class="flex items-center p-4 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer group" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(ep, show.images[0]?.url)).replace(/'/g, "")})'><div class="relative w-16 h-16 mr-4 shrink-0"><img src="${ep.images[0]?.url || show.images[0]?.url}" class="w-full h-full rounded-md object-cover"><div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-md"><i data-lucide="play" class="w-6 h-6 fill-white text-white"></i></div></div><div class="flex-1 min-w-0"><p class="font-medium text-white line-clamp-1">${ep.name}</p><p class="text-xs text-gray-400 line-clamp-2 mt-1">${ep.description}</p></div><div class="hidden md:block text-xs text-gray-500 font-mono mr-6 shrink-0">${ep.stats.streams} plays</div><span class="text-xs text-gray-500 font-mono shrink-0">${formatTime(ep.duration_ms/1000)}</span></div>`).join('')}</div>
+                    <div class="flex flex-col md:flex-row gap-8 mb-10 animate-fade-in items-center md:items-end"><div class="w-64 h-64 md:w-72 md:h-72 shrink-0 shadow-2xl rounded-lg relative group"><img src="${show.images[0]?.url || 'https://placehold.co/300x300'}" class="w-full h-full object-cover rounded-lg art-shadow"></div><div class="text-center md:text-left flex-1"><h4 class="text-xs font-bold tracking-widest text-accent-cherry uppercase mb-2">Podcast</h4><h1 class="text-3xl md:text-5xl font-bold mb-2 leading-tight">${show.name}</h1><p class="text-xl text-white font-medium mb-3">${show.publisher}</p><p class="text-sm text-gray-400 font-bold mb-4">${show.total_episodes} Episodes • <span class="text-liked-red">${followersStr}</span></p><div class="mt-4 flex items-center justify-center md:justify-start gap-4"><button class="bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center" onclick='playCollection(${JSON.stringify(queue).replace(/'/g, "")})'><i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play Latest</button></div></div></div>
+                    <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg animate-slide-up"><h3 class="p-6 text-xl font-bold">Recent Episodes</h3>${episodesWithStats.map((ep, i) => `<div class="flex items-center p-4 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer group" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(ep, show.images[0]?.url)).replace(/'/g, "")}, ${JSON.stringify(queue).replace(/'/g, "")}, ${i})'><div class="relative w-16 h-16 mr-4 shrink-0"><img src="${ep.images[0]?.url || show.images[0]?.url}" class="w-full h-full rounded-md object-cover"><div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-md"><i data-lucide="play" class="w-6 h-6 fill-white text-white"></i></div></div><div class="flex-1 min-w-0"><p class="font-medium text-white line-clamp-1">${ep.name}</p><p class="text-xs text-gray-400 line-clamp-2 mt-1">${ep.description}</p></div><div class="hidden md:block text-xs text-gray-500 font-mono mr-6 shrink-0">${ep.stats.streams} plays</div><span class="text-xs text-gray-500 font-mono shrink-0">${formatTime(ep.duration_ms/1000)}</span></div>`).join('')}</div>
                 `;
                 renderIcons();
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error(e); document.getElementById('dynamic-content').innerHTML = '<div class="text-center p-10"><p class="text-white text-xl">Show unavailable</p></div>'; }
         }
 
         async function renderHome() {
@@ -1151,7 +1154,7 @@
             display.innerHTML = lines.map((line, i) => `<div class="lyric-line" id="line-${i}">${line}</div>`).join('');
         }
 
-        /* ... existing loadRecommendations, castToTv, updateFullscreenVisuals, toggleLike, playCollection, togglePlayPause, updateMiniPlayer, getSpotifyToken, mapSpotifyTrack, performSearch ... */
+        /* ... existing loadRecommendations, castToTv, updateFullscreenVisuals, toggleLike, playCollection, togglePlayPause, updateMiniPlayer, getSpotifyToken, mapSpotifyTrack, performSearch, Modal, Playlist functions ... */
         async function loadRecommendations() { /* ... same ... */ const container = document.getElementById('recs-content'); container.innerHTML = '<div class="flex justify-center p-4"><i data-lucide="loader-2" class="animate-spin text-white"></i></div>'; if(!currentTrack) { container.innerHTML = '<p class="text-center text-gray-500 p-4">Play a song to see recommendations.</p>'; return; } const token = await getSpotifyToken(); if(!token) return; try { const artistId = currentTrack.artists[0]?.id; const trackId = currentTrack.id; let query = `seed_tracks=${trackId}&limit=10`; if(artistId) query += `&seed_artists=${artistId}`; const res = await fetch(`${API_URL}/recommendations?${query}`, { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); if(data.tracks && data.tracks.length) { container.innerHTML = `<h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Recommended Songs</h4><div class="space-y-2 mb-4">${data.tracks.slice(0, 5).map(t => `<div class="flex items-center p-2 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'><img src="${t.album.images[2]?.url || 'https://placehold.co/40x40'}" class="w-10 h-10 rounded mr-3"><div class="min-w-0 flex-1"><p class="text-sm font-bold truncate">${t.name}</p><p class="text-xs text-gray-400 truncate">${t.artists[0].name}</p></div><i data-lucide="play-circle" class="w-4 h-4 text-accent-cherry"></i></div>`).join('')}</div><h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Similar Artists</h4><div class="space-y-2">${data.tracks.slice(5, 8).map(t => `<div class="flex items-center p-2 rounded-lg cursor-pointer hover:bg-white/5" onclick="toggleFullscreenPlayer(false); navigateTo('artist', '${t.artists[0].id}')"><div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center mr-3 font-bold text-xs">${t.artists[0].name.substring(0,2)}</div><div class="min-w-0 flex-1"><p class="text-sm font-bold truncate">${t.artists[0].name}</p><p class="text-xs text-gray-400">Artist</p></div><i data-lucide="chevron-right" class="w-4 h-4 text-gray-500"></i></div>`).join('')}</div>`; renderIcons(); } else { container.innerHTML = '<p class="text-center text-gray-500">No recommendations found.</p>'; } } catch(e) { console.error(e); container.innerHTML = '<p class="text-center text-gray-500">Could not load recommendations.</p>'; } }
         function castToTv() { confirmModal('Connect to Device', '<div class="flex flex-col items-center py-4 space-y-4"><i data-lucide="tv" class="w-12 h-12 text-white mb-2"></i><p class="text-center">Looking for devices...</p><div class="w-full bg-white/5 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-white/10"><span class="font-bold">Living Room TV</span> <span class="text-xs text-gray-400">Chromecast</span></div><div class="w-full bg-white/5 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-white/10"><span class="font-bold">Bedroom Speaker</span> <span class="text-xs text-gray-400">Google Nest</span></div></div>', () => {}, null, "Close", "Cancel"); setTimeout(renderIcons, 50); }
         function updateFullscreenVisuals() { if (!currentTrack) return; document.getElementById('fs-art').src = currentTrack.imageUrl; document.getElementById('fs-bg').style.backgroundImage = `url(${currentTrack.imageUrl})`; document.getElementById('fs-title').textContent = currentTrack.name; document.getElementById('fs-artist').textContent = currentTrack.artists[0].name; document.getElementById('fs-artist').onclick = () => { toggleFullscreenPlayer(false); navigateTo('artist', currentTrack.artists[0].id); }; const likeBtn = document.getElementById('fs-like-btn'); const likeCount = document.getElementById('fs-like-count'); let icon = likeBtn.querySelector('svg') || likeBtn.querySelector('i'); if (icon) icon.classList.remove('animate-heart-pop'); if(likedTracks.has(currentTrack.id)) { likeBtn.classList.add('like-active'); } else { likeBtn.classList.remove('like-active'); } const stats = currentTrack.stats || generateStats(50); likeCount.textContent = stats.likesFormatted; likeCount.classList.remove('opacity-0'); const playBtn = document.getElementById('fs-play-btn'); playBtn.innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-8 h-8 md:w-10 md:h-10 tablet:w-10 tablet:h-10 fill-black text-black ml-1"></i>`; if(activeView === 'lyrics' && currentTrack.id !== (lyricsText.dataset.trackId)) { lyricsText.value = localStorage.getItem(`lyrics_${currentTrack.id}`) || ''; lyricsText.dataset.trackId = currentTrack.id; if(!isLyricsEditing) updateLyricsView(); } else if (activeView === 'recs') { loadRecommendations(); } renderIcons(); }
@@ -1161,7 +1164,7 @@
         function updateMiniPlayer() { if(!currentTrack) return; document.getElementById('mini-img').src = currentTrack.imageUrl; document.getElementById('mini-title').textContent = currentTrack.name; document.getElementById('mini-artist').textContent = currentTrack.artists[0].name; document.getElementById('mini-play-btn').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-5 h-5 lg:w-6 lg:h-6 fill-black ml-0.5"></i>`; document.getElementById('mobile-mini-play').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-7 h-7 fill-current"></i>`; renderIcons(); }
         async function getSpotifyToken() { if (accessToken) return accessToken; try { const res = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + btoa(CLIENT_ID + ':' + CLIENT_SECRET) }, body: 'grant_type=client_credentials' }); const data = await res.json(); accessToken = data.access_token; return accessToken; } catch (e) { return null; } }
         function mapSpotifyTrack(t, fallbackImage) { return { id: t.id, name: t.name, artists: t.artists || [{name: t.publisher || 'Unknown'}], imageUrl: t.album?.images?.[0]?.url || fallbackImage || 'https://placehold.co/300x300', previewUrl: t.preview_url || t.audio_preview_url, popularity: t.popularity || 40, duration: formatTime(t.duration_ms/1000) }; }
-        async function performSearch(query) { if (!query) return; updateSidebarActiveState('search'); const content = document.getElementById('dynamic-content'); const searchContainer = document.getElementById('search-bar-container'); searchContainer?.classList.remove('opacity-0', 'pointer-events-none'); content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>'; const token = await getSpotifyToken(); if (!token) return; try { const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=artist,album,track,show&limit=5`, { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); let html = `<div class="space-y-4 pt-4 md:pt-0 animate-fade-in">`; if (data.artists && data.artists.items.length > 0) { html += `<h3 class="text-xl font-bold mb-3">Artists</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.artists.items.map(a => `<div class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center cursor-pointer group" onclick="navigateTo('artist', '${a.id}')"><img src="${a.images[0]?.url || 'https://placehold.co/150x150'}" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-lg mb-2 group-hover:scale-105 transition border-2 border-transparent group-hover:border-accent-cherry"><p class="font-semibold text-center text-sm truncate w-full">${a.name}</p><p class="text-xs text-gray-500">Artist</p></div>`).join('')}</div>`; } if (data.shows && data.shows.items.length > 0) { html += `<h3 class="text-xl font-bold mb-3 mt-4">Podcasts</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.shows.items.map(s => `<div class="snap-center shrink-0 w-36 md:w-44 cursor-pointer group" onclick="navigateTo('show', '${s.id}')"><img src="${s.images[0]?.url || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover shadow-lg mb-2 group-hover:scale-105 transition"><p class="font-semibold text-sm truncate">${s.name}</p><p class="text-xs text-gray-500 truncate">${s.publisher}</p></div>`).join('')}</div>`; } if (data.albums && data.albums.items.length > 0) { html += `<h3 class="text-xl font-bold mb-3 mt-4">Albums</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.albums.items.map(alb => `<div class="snap-center shrink-0 w-36 md:w-44 cursor-pointer group" onclick="navigateTo('album', '${alb.id}')"><img src="${alb.images[0]?.url || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover shadow-lg mb-2 group-hover:scale-105 transition"><p class="font-semibold text-sm truncate">${alb.name}</p><p class="text-xs text-gray-500 truncate">${alb.artists[0].name}</p></div>`).join('')}</div>`; } if (data.tracks && data.tracks.items.length > 0) { html += `<h3 class="text-xl font-bold mb-3 mt-4">Songs</h3><div class="bg-[#1c1c1e] rounded-xl overflow-hidden shadow-lg">${data.tracks.items.map((t, i) => `<div class="flex items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'><img src="${t.album.images[0]?.url || 'https://placehold.co/60x60'}" class="w-12 h-12 rounded-md mr-4"><div class="flex-1 min-w-0"><p class="font-semibold text-white truncate">${t.name}</p><p class="text-xs text-gray-500 truncate">${t.artists[0].name}</p></div><i data-lucide="play-circle" class="w-5 h-5 text-gray-500"></i></div>`).join('')}</div>`; } html += `</div>`; content.innerHTML = html; renderIcons(); } catch(e) { console.error(e); } }
+        async function performSearch(query) { /* Same */ if (!query) return; updateSidebarActiveState('search'); const content = document.getElementById('dynamic-content'); const searchContainer = document.getElementById('search-bar-container'); searchContainer?.classList.remove('opacity-0', 'pointer-events-none'); content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>'; const token = await getSpotifyToken(); if (!token) return; try { const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=artist,album,track,show&limit=5`, { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); let html = `<div class="space-y-4 pt-4 md:pt-0 animate-fade-in">`; if (data.artists && data.artists.items.length > 0) { html += `<h3 class="text-xl font-bold mb-3">Artists</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.artists.items.map(a => `<div class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center cursor-pointer group" onclick="navigateTo('artist', '${a.id}')"><img src="${a.images[0]?.url || 'https://placehold.co/150x150'}" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-lg mb-2 group-hover:scale-105 transition border-2 border-transparent group-hover:border-accent-cherry"><p class="font-semibold text-center text-sm truncate w-full">${a.name}</p><p class="text-xs text-gray-500">Artist</p></div>`).join('')}</div>`; } if (data.shows && data.shows.items.length > 0) { html += `<h3 class="text-xl font-bold mb-3 mt-4">Podcasts</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.shows.items.map(s => `<div class="snap-center shrink-0 w-36 md:w-44 cursor-pointer group" onclick="navigateTo('show', '${s.id}')"><img src="${s.images[0]?.url || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover shadow-lg mb-2 group-hover:scale-105 transition"><p class="font-semibold text-sm truncate">${s.name}</p><p class="text-xs text-gray-500 truncate">${s.publisher}</p></div>`).join('')}</div>`; } if (data.albums && data.albums.items.length > 0) { html += `<h3 class="text-xl font-bold mb-3 mt-4">Albums</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.albums.items.map(alb => `<div class="snap-center shrink-0 w-36 md:w-44 cursor-pointer group" onclick="navigateTo('album', '${alb.id}')"><img src="${alb.images[0]?.url || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover shadow-lg mb-2 group-hover:scale-105 transition"><p class="font-semibold text-sm truncate">${alb.name}</p><p class="text-xs text-gray-500 truncate">${alb.artists[0].name}</p></div>`).join('')}</div>`; } if (data.tracks && data.tracks.items.length > 0) { html += `<h3 class="text-xl font-bold mb-3 mt-4">Songs</h3><div class="bg-[#1c1c1e] rounded-xl overflow-hidden shadow-lg">${data.tracks.items.map((t, i) => `<div class="flex items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'><img src="${t.album.images[0]?.url || 'https://placehold.co/60x60'}" class="w-12 h-12 rounded-md mr-4"><div class="flex-1 min-w-0"><p class="font-semibold text-white truncate">${t.name}</p><p class="text-xs text-gray-500 truncate">${t.artists[0].name}</p></div><i data-lucide="play-circle" class="w-5 h-5 text-gray-500"></i></div>`).join('')}</div>`; } html += `</div>`; content.innerHTML = html; renderIcons(); } catch(e) { console.error(e); } }
         function confirmModal(title, msg, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel") { const m = document.getElementById('generic-modal'); document.getElementById('modal-title').innerText = title; document.getElementById('modal-msg').innerHTML = msg; const btn = document.getElementById('modal-confirm-btn'); const cancelBtn = document.getElementById('modal-cancel-btn'); btn.textContent = confirmText; cancelBtn.textContent = cancelText; const newBtn = btn.cloneNode(true); const newCancelBtn = cancelBtn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn); cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn); newBtn.addEventListener('click', () => { onConfirm(); closeGenericModal(); }); newCancelBtn.addEventListener('click', () => { if (onCancel && typeof onCancel === 'function') onCancel(); closeGenericModal(); }); m.classList.remove('hidden'); }
         function closeGenericModal() { document.getElementById('generic-modal').classList.add('hidden'); }
         function loadUserPlaylists() { const container = document.getElementById('user-playlists-sidebar'); const playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]'); container.innerHTML = playlists.map((pl, i) => `<a href="#" onclick="renderPlaylist(${i}); return false;" class="nav-item block px-3 py-2 text-sm text-gray-400 hover:text-white truncate rounded-lg transition active-click">${pl.name}</a>`).join(''); }
