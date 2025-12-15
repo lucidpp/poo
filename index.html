@@ -509,8 +509,6 @@
             else if(pop > 50) { min = 50000; max = 1000000; }
             else { min = 1000; max = 50000; }
             const followers = Math.floor(rand * (max - min) + min);
-            if(followers >= 1000000) return (followers/1000000).toFixed(1) + 'M Pals';
-            if(followers >= 1000) return (followers/1000).toFixed(1) + 'K Pals';
             return followers.toLocaleString() + ' Pals';
         }
 
