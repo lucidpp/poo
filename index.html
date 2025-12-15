@@ -18,12 +18,14 @@
             --like-color: #f91880;
             --retweet-color: #00ba7c;
             --bookmark-color: #1d9bf0;
+            --gold: #ffd700;
+            --platinum: #e5e4e2;
             --font-stack: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         @font-face {
             font-family: 'TwitterChirp';
-            src: local('Segoe UI'), local('Roboto'); /* Fallback approximation */
+            src: local('Segoe UI'), local('Roboto');
         }
 
         * {
@@ -39,7 +41,14 @@
             font-family: var(--font-stack);
             overflow-y: scroll;
             height: 100vh;
+            overscroll-behavior-y: contain; /* Prevent browser pull-to-refresh */
         }
+
+        /* Scrollbar aesthetics */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
 
         button {
             cursor: pointer;
@@ -76,8 +85,8 @@
         }
 
         @keyframes fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         @keyframes pop-number {
@@ -86,8 +95,31 @@
             100% { transform: translateY(0); opacity: 1; }
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .animate-like { animation: like-bounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .number-pop { animation: pop-number 0.3s ease-out; }
+        
+        /* Pull to Refresh */
+        #refresh-spinner {
+            height: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: height 0.2s;
+        }
+        .spinner-icon {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--accent);
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
 
         /* Utility */
         .hidden { display: none !important; }
@@ -234,6 +266,16 @@
         .mini-profile:hover { background-color: var(--hover-bg); }
         .mini-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; border: 1px solid #333; }
 
+        /* Verified Badge */
+        .verified-badge {
+            width: 18px;
+            height: 18px;
+            fill: var(--accent);
+            margin-left: 4px;
+            vertical-align: text-bottom;
+        }
+        .verified-badge.gold { fill: var(--gold); }
+
         /* Main Feed Area */
         main {
             width: 600px;
@@ -266,15 +308,23 @@
             gap: 12px;
             cursor: pointer;
             transition: background-color 0.2s;
-            animation: fade-in 0.3s ease-out;
+            animation: fade-in 0.4s ease-out;
         }
         .post:hover { background-color: rgba(255, 255, 255, 0.03); }
         .post-content { width: 100%; }
-        .post-header { display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .user-info { display: flex; gap: 4px; color: var(--text-secondary); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-name { color: var(--text-main); font-weight: 700; }
+        .post-header { display: flex; justify-content: space-between; margin-bottom: 2px; align-items: center; }
+        .user-info { display: flex; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-name { color: var(--text-main); font-weight: 700; display: flex; align-items: center;}
         .user-handle { color: var(--text-secondary); }
         .post-text { font-size: 15px; line-height: 20px; white-space: pre-wrap; word-wrap: break-word; color: #e7e9ea; }
+        .post-image {
+            width: 100%;
+            margin-top: 12px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            max-height: 500px;
+            object-fit: cover;
+        }
         .post-stats {
             display: flex;
             justify-content: space-between;
@@ -457,6 +507,28 @@
             border-radius: 2px;
         }
 
+        /* Achievements / Badges */
+        .badges-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .badge {
+            background: #202327;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .badge.platinum { border-color: var(--platinum); color: var(--platinum); }
+        .badge.gold { border-color: var(--gold); color: var(--gold); }
+        .badge.accent { border-color: var(--accent); color: var(--accent); }
+
         /* Modern Edit Modal */
         .modal-overlay {
             position: fixed;
@@ -501,6 +573,7 @@
             color: #fff;
             background-size: cover;
             background-position: center;
+            cursor: pointer;
         }
         .avatar-preview-container {
             padding: 0 16px;
@@ -515,6 +588,7 @@
             border: 4px solid black;
             background: #444;
             object-fit: cover;
+            cursor: pointer;
         }
         .form-section { padding: 0 16px; display: flex; flex-direction: column; gap: 20px; }
         .input-wrap { position: relative; border: 1px solid #333; border-radius: 4px; padding: 4px 8px; transition: 0.2s; }
@@ -675,11 +749,15 @@
                      <img id="post-modal-avatar" src="" class="mini-avatar">
                      <div class="w-full">
                          <textarea id="composer-text" class="composer-input" placeholder="What is happening?!"></textarea>
+                         <img id="composer-image-preview" src="" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none;">
                      </div>
                 </div>
                  <div class="flex justify-between items-center mt-4" style="margin-top: 20px;">
                      <div style="color: var(--accent); display:flex; gap:12px;">
-                         <svg viewBox="0 0 24 24" width="20" fill="currentColor"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 4c-.828 0-1.5.672-1.5 1.5v13c0 .828.672 1.5 1.5 1.5h13c.828 0 1.5-.672 1.5-1.5v-13c0-.828-.672-1.5-1.5-1.5h-13zM12 5.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"></path></svg>
+                         <label style="cursor: pointer;">
+                             <input type="file" class="hidden" accept="image/*" onchange="app.handleImageUpload(this, 'post')">
+                             <svg viewBox="0 0 24 24" width="20" fill="currentColor"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 4c-.828 0-1.5.672-1.5 1.5v13c0 .828.672 1.5 1.5 1.5h13c.828 0 1.5-.672 1.5-1.5v-13c0-.828-.672-1.5-1.5-1.5h-13zM12 5.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"></path></svg>
+                         </label>
                          <svg viewBox="0 0 24 24" width="20" fill="currentColor"><path d="M19 10.5V8.8h-4.4v6.4h1.7v-2h2v-1.7h-2v-1h2.7zm-6-2.2v8h1.7v-3h1.8v3h1.7v-3h1.8v3h1.7v-8H13z"></path></svg>
                      </div>
                      <button class="tweet-btn-large" style="width: auto; padding: 8px 20px; margin: 0;" onclick="app.createPost()">Post</button>
@@ -720,10 +798,16 @@
             
             <div class="modal-body">
                 <div class="cover-preview" id="preview-cover">
-                     <div style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 50%;">📷</div>
+                     <label style="cursor:pointer; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 50%;">
+                         <input type="file" class="hidden" accept="image/*" onchange="app.handleImageUpload(this, 'banner')">
+                         📷
+                     </label>
                 </div>
                 <div class="avatar-preview-container">
-                    <img id="preview-avatar" class="avatar-preview" src="">
+                    <label style="cursor:pointer;">
+                        <img id="preview-avatar" class="avatar-preview" src="">
+                        <input type="file" class="hidden" accept="image/*" onchange="app.handleImageUpload(this, 'avatar')">
+                    </label>
                 </div>
 
                 <div class="form-section">
@@ -739,13 +823,8 @@
                          <div class="input-label">Website (Hack Followers)</div>
                          <input type="number" id="edit-followers" class="input-field">
                     </div>
-                     <div class="input-wrap">
-                        <div class="input-label">Avatar URL</div>
-                        <input type="text" id="edit-avatar" class="input-field" oninput="document.getElementById('preview-avatar').src = this.value">
-                    </div>
-                    <div class="input-wrap">
-                         <div class="input-label">Banner URL</div>
-                         <input type="text" id="edit-banner" class="input-field" oninput="document.getElementById('preview-cover').style.backgroundImage = 'url('+this.value+')'">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="edit-verified"> <label for="edit-verified">Verify Account</label>
                     </div>
                 </div>
             </div>
@@ -774,10 +853,8 @@
                 const name = forceName || names[Math.floor(Math.random() * names.length)] + Math.floor(Math.random()*100);
                 const handle = "@" + name.replace(/\s/g, '').toLowerCase();
                 
-                // Return existing bot if exists
                 if(app.data.users[handle]) return app.data.users[handle];
 
-                // Create new persistent bot profile
                 const bot = {
                     username: handle,
                     name: name,
@@ -787,7 +864,9 @@
                     followers: Math.floor(Math.random() * 50000),
                     following: Math.floor(Math.random() * 500),
                     avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${handle}`,
-                    banner: `https://picsum.photos/seed/${handle}/600/200`
+                    banner: `https://picsum.photos/seed/${handle}/600/200`,
+                    isVerified: Math.random() > 0.8,
+                    achievements: []
                 };
                 app.data.users[handle] = bot;
                 return bot;
@@ -806,6 +885,10 @@
                     bookmarkedBy: [],
                     replies: []
                 }
+            },
+            getBadgeIcon: (type) => {
+                // Return SVG for badge type
+                return '🏆';
             }
         };
 
@@ -823,10 +906,13 @@
 
         const app = {
             data: null,
+            tempImage: null,
             
             init: () => {
                 app.data = DB.load();
-                app.processOfflineProgression();
+                
+                // One-time cleanup on load
+                app.cleanup();
                 
                 if (app.data.currentUser) {
                     app.showApp();
@@ -835,48 +921,67 @@
                 }
                 
                 app.renderWhoToFollow();
+                app.initPullToRefresh();
 
-                // High speed simulation loop for "Realtime" feel
+                // High speed simulation loop
                 setInterval(app.simulateLive, 1000); 
             },
 
-            processOfflineProgression: () => {
-                const now = Date.now();
-                const diff = now - (app.data.lastActive || now);
-                // Significantly boost offline speed. 1 cycle per 500ms of real time missed.
-                const cyclesMissed = Math.min(Math.floor(diff / 500), 2000); 
-
-                if (cyclesMissed > 0) {
-                    console.log(`Simulating ${cyclesMissed} offline cycles...`);
-                    for (let i = 0; i < cyclesMissed; i++) {
-                        app.simulateStep(true); 
-                    }
-                    DB.save(app.data);
-                }
+            cleanup: () => {
+                // Delete posts older than 48h unless they are the current user's
+                const cutoff = Date.now() - (48 * 60 * 60 * 1000);
+                const beforeCount = app.data.posts.length;
+                app.data.posts = app.data.posts.filter(p => {
+                    return p.timestamp > cutoff || p.authorHandle === app.data.currentUser;
+                });
+                if(beforeCount !== app.data.posts.length) console.log("Cleaned up old bot posts");
+                DB.save(app.data);
             },
 
             simulateLive: () => {
                 app.simulateStep(false);
                 DB.save(app.data);
+                app.checkAchievements();
                 
-                // Real-time homepage stat updates without re-render
+                // Real-time updates
                 if(app.currentView === 'home' && !document.querySelector('.is-animating')) {
                     app.data.posts.forEach(post => {
                         const viewEl = document.getElementById(`views-${post.id}`);
                         const likeEl = document.getElementById(`likes-${post.id}`);
-                        
                         if(viewEl && viewEl.innerText !== Utils.formatNumber(post.stats.views)) {
                              viewEl.innerText = Utils.formatNumber(post.stats.views);
-                        }
-                        // We only auto-update views usually, likes update on interaction or drastic changes
-                        // But for simulation effect:
-                         if(likeEl && !post.likedBy.includes(app.data.currentUser) && likeEl.innerText !== Utils.formatNumber(post.stats.likes)) {
-                             likeEl.innerText = Utils.formatNumber(post.stats.likes);
                         }
                     });
                 } else if(app.currentView === 'post' && app.viewParams && app.viewParams.id) {
                      app.updatePostDetailStats(app.viewParams.id);
                 }
+            },
+
+            checkAchievements: () => {
+                const user = app.data.users[app.data.currentUser];
+                if(!user.achievements) user.achievements = [];
+                const badges = user.achievements;
+                
+                const addBadge = (name, type='normal') => {
+                    if(!badges.find(b => b.name === name)) badges.push({name, type});
+                };
+
+                // Follower Badges
+                if(user.followers >= 100) addBadge("100 Followers", 'normal');
+                if(user.followers >= 1000) addBadge("1K Club", 'normal');
+                if(user.followers >= 10000) addBadge("10K Influencer", 'gold');
+                if(user.followers >= 100000) addBadge("100K Star", 'gold');
+                if(user.followers >= 1000000) addBadge("1M Legend", 'platinum');
+
+                // Activity Badges
+                const myPosts = app.data.posts.filter(p => p.authorHandle === user.handle);
+                if(myPosts.length >= 1) addBadge("First Post", 'normal');
+                if(myPosts.length >= 100) addBadge("100 Posts", 'normal');
+                
+                // Streak Logic (Simplistic)
+                const streakDays = Math.floor((Date.now() - user.joined) / (1000 * 60 * 60 * 24));
+                if(streakDays >= 2) addBadge("2 Day Streak", 'normal');
+                if(streakDays >= 7) addBadge("7 Day Streak", 'gold');
             },
 
             updatePostDetailStats: (id) => {
@@ -893,47 +998,104 @@
             },
 
             simulateStep: (quietMode) => {
-                // Generate new bot posts periodically
-                if (Math.random() > 0.96) {
+                // Bot Posting - Limit to roughly 5/day per bot, but globally ensure feed doesn't explode.
+                // Chance reduced significantly.
+                if (Math.random() > 0.985) {
                     const newBotPost = Utils.generateBotPost();
                     app.data.posts.unshift(newBotPost);
-                    // Keep feed size manageable
-                    if(app.data.posts.length > 200) app.data.posts.pop();
-                    
-                    if(!quietMode && app.currentView === 'home' && window.scrollY < 100) {
-                        // If at top of feed, we could show a "New Posts" badge, but for now we just let it slide in next refresh
-                        // or user refresh. For simplicity in this SPA, we won't auto-inject top posts to avoid layout shift while reading.
-                    }
+                    if(app.data.posts.length > 300) app.data.posts.pop(); // Hard limit
                 }
 
+                // Algorithm: User Follower Count Boost
+                const user = app.data.users[app.data.currentUser];
+                const boost = Math.max(1, Math.log10(user.followers + 1)); 
+
                 app.data.posts.forEach(post => {
+                    // Own posts get boosted by followers
+                    const isMine = post.authorHandle === app.data.currentUser;
+                    const velocity = isMine ? boost : 1;
+
                     // Dynamic viral potential
                     const isViral = post.stats.likes > 50;
                     const chance = isViral ? 0.8 : 0.4;
 
-                    if (Math.random() > (1 - chance)) post.stats.views += Math.floor(Math.random() * (isViral?50:5)) + 1;
-                    if (Math.random() > 0.90) post.stats.likes += 1;
+                    if (Math.random() > (1 - chance)) post.stats.views += Math.floor((Math.random() * (isViral?50:5)) * velocity) + 1;
+                    if (Math.random() > 0.90) post.stats.likes += Math.ceil(velocity * 0.1);
                     if (Math.random() > 0.97) post.stats.bookmarks += 1;
                     if (Math.random() > 0.95) post.stats.retweets += 1;
                     
                     // Bot Reply Logic
-                    if (Math.random() > 0.98 && post.replies.length < 15) {
+                    if (Math.random() > 0.99 && post.replies.length < 15) {
                         const bot = Utils.createBot();
-                        const replies = ["True!", "Interesting.", "Big if true.", "Following!", "Nice.", "Check DM", "LOL", "Why?", "Agree.", "Based.", "Real.", "So true bestie", "Wait what?", "Underrated tweet", "First"];
+                        const replies = ["True!", "Interesting.", "Big if true.", "Following!", "Nice.", "Check DM", "LOL", "Why?", "Agree.", "Based.", "Real.", "So true bestie"];
                         const text = replies[Math.floor(Math.random() * replies.length)];
                         post.replies.push({
                             id: Utils.generateId(),
-                            author: bot, // Saves full bot profile snapshot
+                            author: bot, 
                             text: text,
                             timestamp: Date.now()
                         });
                         post.stats.replies++;
-                        
-                        // If we are looking at this post, append the reply
-                        if(!quietMode && app.currentView === 'post' && app.viewParams.id === post.id) {
-                            app.renderPostDetail(document.getElementById('main-content'), post.id);
+                    }
+                });
+            },
+
+            handleImageUpload: (input, type) => {
+                const file = input.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64 = reader.result;
+                    if (type === 'post') {
+                        app.tempImage = base64;
+                        document.getElementById('composer-image-preview').src = base64;
+                        document.getElementById('composer-image-preview').style.display = 'block';
+                    } else if (type === 'avatar') {
+                        document.getElementById('preview-avatar').src = base64;
+                        document.getElementById('edit-avatar').value = base64; // store in hidden field for saveProfile
+                    } else if (type === 'banner') {
+                        document.getElementById('preview-cover').style.backgroundImage = `url(${base64})`;
+                        document.getElementById('edit-banner').value = base64;
+                    }
+                }
+                reader.readAsDataURL(file);
+            },
+
+            initPullToRefresh: () => {
+                let startY = 0;
+                let currentY = 0;
+                const spinner = document.createElement('div');
+                spinner.id = 'refresh-spinner';
+                spinner.innerHTML = '<div class="spinner-icon"></div>';
+                document.body.prepend(spinner);
+
+                window.addEventListener('touchstart', e => {
+                    if (window.scrollY === 0) startY = e.touches[0].clientY;
+                }, {passive: true});
+
+                window.addEventListener('touchmove', e => {
+                    if (window.scrollY === 0 && startY > 0) {
+                        currentY = e.touches[0].clientY - startY;
+                        if (currentY > 0 && currentY < 200) {
+                            spinner.style.height = `${currentY/2}px`;
                         }
                     }
+                }, {passive: true});
+
+                window.addEventListener('touchend', e => {
+                    if (currentY > 80) {
+                        // Trigger Refresh
+                        spinner.style.height = '60px';
+                        setTimeout(() => {
+                            app.simulateStep(true); // force a step
+                            app.renderCurrentView();
+                            spinner.style.height = '0px';
+                        }, 1000);
+                    } else {
+                        spinner.style.height = '0px';
+                    }
+                    startY = 0;
+                    currentY = 0;
                 });
             },
 
@@ -966,7 +1128,9 @@
                         followers: 0,
                         following: 0,
                         avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${handle}`,
-                        banner: '#333'
+                        banner: '#333',
+                        isVerified: false,
+                        achievements: []
                     };
                     app.data.users[handle] = newUser;
                     app.data.currentUser = handle;
@@ -1005,13 +1169,14 @@
 
             createPost: () => {
                 const text = document.getElementById('composer-text').value;
-                if (!text.trim()) return;
+                if (!text.trim() && !app.tempImage) return;
 
                 const user = app.data.users[app.data.currentUser];
                 const newPost = {
                     id: Utils.generateId(),
                     authorHandle: user.handle,
                     text: text,
+                    image: app.tempImage,
                     timestamp: Date.now(),
                     stats: { views: 0, likes: 0, retweets: 0, replies: 0, bookmarks: 0 },
                     likedBy: [], 
@@ -1022,8 +1187,14 @@
 
                 app.data.posts.unshift(newPost); // Add to top
                 DB.save(app.data);
+                
+                // Reset Composer
                 document.getElementById('composer-text').value = '';
+                document.getElementById('composer-image-preview').src = '';
+                document.getElementById('composer-image-preview').style.display = 'none';
+                app.tempImage = null;
                 document.getElementById('post-modal').classList.add('hidden');
+                
                 app.navTo('home');
             },
 
@@ -1124,12 +1295,14 @@
                          app.navTo('post', {id: post.id});
                     };
                     
+                    const verifiedHtml = author.isVerified ? `<svg viewBox="0 0 24 24" class="verified-badge"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .495.083.965.238 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path></svg>` : '';
+
                     el.innerHTML = `
                         <img src="${author.avatar}" class="mini-avatar" onclick="app.navTo('profile', {handle: '${author.handle}'})">
                         <div class="post-content">
                             <div class="post-header">
                                 <div class="user-info">
-                                    <span class="user-name">${author.name}</span>
+                                    <span class="user-name">${author.name} ${verifiedHtml}</span>
                                     <span class="user-handle">${author.handle}</span>
                                     <span>·</span>
                                     <span>${Utils.timeAgo(post.timestamp)}</span>
@@ -1137,6 +1310,7 @@
                                 <div class="text-gray" style="font-size:16px;">···</div>
                             </div>
                             <div class="post-text">${post.text}</div>
+                            ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
                             <div class="post-stats">
                                 <div class="stat-item" onclick="app.interact('${post.id}', 'replies', this)">
                                     <svg class="stat-icon" viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg>
@@ -1175,6 +1349,17 @@
                     return;
                 }
 
+                const verifiedHtml = user.isVerified ? `<svg viewBox="0 0 24 24" class="verified-badge"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .495.083.965.238 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path></svg>` : '';
+
+                let badgesHtml = '';
+                if(user.achievements) {
+                    badgesHtml = '<div class="badges-container">';
+                    user.achievements.forEach(badge => {
+                        badgesHtml += `<div class="badge ${badge.type}">🏆 ${badge.name}</div>`;
+                    });
+                    badgesHtml += '</div>';
+                }
+
                 const div = document.createElement('div');
                 div.innerHTML = `
                     <div class="header-sticky">
@@ -1191,10 +1376,11 @@
                             ${user.handle === app.data.currentUser ? `<button class="edit-profile-btn" onclick="app.openEditProfile()">Edit profile</button>` : `<button class="edit-profile-btn" onclick="alert('Followed!')">Follow</button>`}
                         </div>
                         <div style="margin-top: 12px;">
-                            <div class="text-xl text-bold">${user.name}</div>
+                            <div class="text-xl text-bold" style="display:flex; align-items:center;">${user.name} ${verifiedHtml}</div>
                             <div class="text-gray">${user.handle}</div>
                         </div>
                         <div style="margin-top: 12px; margin-bottom: 12px; white-space: pre-wrap;">${user.bio}</div>
+                        ${badgesHtml}
                         <div class="profile-stats">
                             <span><span class="stat-value">${Utils.formatNumber(user.following)}</span> Following</span>
                             <span><span class="stat-value">${Utils.formatNumber(user.followers)}</span> Followers</span>
@@ -1223,16 +1409,19 @@
                 
                 const div = document.createElement('div');
                 div.className = 'detail-container';
+                const verifiedHtml = author.isVerified ? `<svg viewBox="0 0 24 24" class="verified-badge"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .495.083.965.238 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path></svg>` : '';
+
                 div.innerHTML = `
                     <div class="detail-header">
                         <img src="${author.avatar}" class="mini-avatar" onclick="app.navTo('profile', {handle: '${author.handle}'})" style="margin:0;">
                         <div class="detail-user">
-                            <span class="text-bold">${author.name}</span>
+                            <span class="text-bold" style="display:flex; align-items:center;">${author.name} ${verifiedHtml}</span>
                             <span class="text-gray">${author.handle}</span>
                         </div>
                         <div style="margin-left:auto; color:gray;">···</div>
                     </div>
                     <div class="detail-text">${post.text}</div>
+                    ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
                     
                     <div class="detail-meta">
                         ${new Date(post.timestamp).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})} · ${new Date(post.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric'})}
@@ -1278,8 +1467,18 @@
             },
             
             renderTrending: (container) => {
-                 // Top 10 by impact
-                 const sorted = [...app.data.posts].sort((a,b) => (b.stats.views + b.stats.likes*5) - (a.stats.views + a.stats.likes*5)).slice(0, 10);
+                 // Top 10 by impact, unique authors
+                 let sorted = [...app.data.posts].sort((a,b) => (b.stats.views + b.stats.likes*5) - (a.stats.views + a.stats.likes*5));
+                 const uniqueAuthors = new Set();
+                 const uniquePosts = [];
+                 
+                 for(let post of sorted) {
+                     if(!uniqueAuthors.has(post.authorHandle)) {
+                         uniqueAuthors.add(post.authorHandle);
+                         uniquePosts.push(post);
+                     }
+                     if(uniquePosts.length >= 10) break;
+                 }
                  
                  const h2 = document.createElement('h2');
                  h2.innerText = "Trending";
@@ -1287,7 +1486,7 @@
                  h2.style.borderBottom = "1px solid var(--border)";
                  container.appendChild(h2);
                  
-                 sorted.forEach((post, index) => {
+                 uniquePosts.forEach((post, index) => {
                      const author = app.data.users[post.authorHandle];
                      const el = document.createElement('div');
                      el.className = 'post';
@@ -1444,13 +1643,14 @@
                 document.getElementById('edit-name').value = user.name;
                 document.getElementById('edit-bio').value = user.bio;
                 document.getElementById('edit-followers').value = user.followers;
+                document.getElementById('edit-verified').checked = user.isVerified || false;
                 document.getElementById('edit-avatar').value = user.avatar.startsWith('http') ? user.avatar : '';
                 document.getElementById('edit-banner').value = user.banner.startsWith('#') ? '' : user.banner;
                 
                 // Previews
                 document.getElementById('preview-avatar').src = user.avatar;
                 document.getElementById('preview-cover').style.backgroundImage = `url(${user.banner})`;
-                if(!user.banner.startsWith('http')) document.getElementById('preview-cover').style.backgroundColor = user.banner;
+                if(!user.banner.startsWith('http') && !user.banner.startsWith('data:')) document.getElementById('preview-cover').style.backgroundColor = user.banner;
 
                 document.getElementById('edit-modal').classList.remove('hidden');
             },
@@ -1460,6 +1660,7 @@
                 user.name = document.getElementById('edit-name').value;
                 user.bio = document.getElementById('edit-bio').value;
                 user.followers = parseInt(document.getElementById('edit-followers').value);
+                user.isVerified = document.getElementById('edit-verified').checked;
                 
                 const av = document.getElementById('edit-avatar').value;
                 if(av) user.avatar = av;
