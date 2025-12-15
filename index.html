@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
         :root {
+            /* Default (X Dark) */
             --bg-color: #000000;
             --text-main: #e7e9ea;
             --text-secondary: #71767b;
@@ -21,6 +22,41 @@
             --gold: #ffd700;
             --platinum: #e5e4e2;
             --font-stack: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Halloween Theme */
+        body.theme-halloween {
+            --bg-color: #120500;
+            --text-main: #ffe0b2;
+            --text-secondary: #d97706;
+            --accent: #f97316;
+            --accent-hover: #ea580c;
+            --border: #431407;
+            --hover-bg: rgba(249, 115, 22, 0.15);
+            --like-color: #ef4444;
+        }
+
+        /* Christmas Theme */
+        body.theme-christmas {
+            --bg-color: #020617; /* Very dark blue */
+            --text-main: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent: #ef4444; /* Red */
+            --accent-hover: #dc2626;
+            --border: #1e293b;
+            --hover-bg: rgba(255, 255, 255, 0.1);
+            --like-color: #22c55e; /* Green likes */
+        }
+
+        /* Thanksgiving Theme */
+        body.theme-thanksgiving {
+            --bg-color: #1c1917; /* Warm dark grey */
+            --text-main: #fef3c7;
+            --text-secondary: #a8a29e;
+            --accent: #d97706; /* Amber */
+            --accent-hover: #b45309;
+            --border: #44403c;
+            --hover-bg: rgba(217, 119, 6, 0.15);
         }
 
         @font-face {
@@ -42,6 +78,25 @@
             overflow-y: scroll;
             height: 100vh;
             overscroll-behavior-y: contain;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Falling Particles Container */
+        #particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            top: -50px;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
         }
 
         /* Scrollbar aesthetics */
@@ -60,9 +115,9 @@
 
         /* Modern Inputs */
         input, textarea, select {
-            background: black;
-            color: white;
-            border: 1px solid #333;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border);
             border-radius: 4px;
             padding: 12px;
             font-family: inherit;
@@ -73,7 +128,7 @@
         textarea:focus, input:focus {
             outline: 2px solid var(--accent);
             border-color: transparent;
-            background: #050505;
+            background: rgba(0,0,0,0.5);
         }
 
         /* Animations */
@@ -282,7 +337,7 @@
         }
         .account-menu {
             position: absolute;
-            background: black;
+            background: var(--bg-color);
             border: 1px solid var(--border);
             border-radius: 16px;
             box-shadow: 0 0 15px rgba(255,255,255,0.1);
@@ -354,6 +409,26 @@
             cursor: pointer;
         }
 
+        /* Theme Card */
+        .theme-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 16px;
+        }
+        .theme-card {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            background: rgba(255,255,255,0.05);
+        }
+        .theme-card:hover { border-color: var(--accent); }
+        .theme-card.active { border-color: var(--accent); background: rgba(29, 155, 240, 0.1); }
+        .theme-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+
         /* Post Styles */
         .post {
             padding: 12px 16px;
@@ -364,13 +439,13 @@
             transition: background-color 0.2s;
             animation: fade-in 0.4s ease-out;
         }
-        .post:hover { background-color: rgba(255, 255, 255, 0.03); }
+        .post:hover { background-color: var(--hover-bg); }
         .post-content { width: 100%; }
         .post-header { display: flex; justify-content: space-between; margin-bottom: 2px; align-items: center; }
         .user-info { display: flex; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-name { color: var(--text-main); font-weight: 700; display: flex; align-items: center;}
         .user-handle { color: var(--text-secondary); }
-        .post-text { font-size: 15px; line-height: 20px; white-space: pre-wrap; word-wrap: break-word; color: #e7e9ea; }
+        .post-text { font-size: 15px; line-height: 20px; white-space: pre-wrap; word-wrap: break-word; color: var(--text-main); }
         .post-image {
             width: 100%;
             margin-top: 12px;
@@ -399,7 +474,7 @@
             cursor: pointer;
         }
         .stat-item span { padding: 0 4px; font-variant-numeric: tabular-nums; }
-        .stat-item:hover { color: var(--accent); background-color: rgba(29, 155, 240, 0.1); }
+        .stat-item:hover { color: var(--accent); background-color: var(--hover-bg); }
         
         /* Interactive States */
         .stat-item.like-btn:hover { color: var(--like-color); background-color: rgba(249, 24, 128, 0.1); }
@@ -499,7 +574,7 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: black;
+            background: var(--bg-color);
             border-top: 1px solid var(--border);
             padding: 10px 16px;
             display: flex;
@@ -544,20 +619,20 @@
             border: 1px solid transparent;
         }
         .search-bar:focus-within {
-            background-color: black;
+            background-color: var(--bg-color);
             border: 1px solid var(--accent);
         }
         .search-bar input {
             background: transparent;
             border: none;
-            color: white;
+            color: var(--text-main);
             width: 100%;
             outline: none;
             padding: 0;
             font-size: 15px;
         }
         .widget {
-            background-color: #16181c;
+            background-color: rgba(255,255,255,0.05);
             border-radius: 16px;
             padding: 12px 16px;
             display: flex;
@@ -566,7 +641,7 @@
         }
         .widget h2 { font-size: 20px; font-weight: 800; margin-bottom: 12px; padding: 0 0 4px 0; }
         .trend-item { padding: 12px 0; cursor: pointer; transition: 0.2s; }
-        .trend-item:hover { background-color: rgba(255,255,255,0.03); }
+        .trend-item:hover { background-color: var(--hover-bg); }
         .trend-meta { font-size: 13px; color: var(--text-secondary); }
         .trend-title { font-weight: bold; margin: 2px 0; font-size: 15px; }
         .trend-count { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
@@ -579,8 +654,8 @@
             cursor: pointer;
         }
         .follow-btn-small {
-            background: white;
-            color: black;
+            background: var(--text-main);
+            color: var(--bg-color);
             font-weight: bold;
             border-radius: 20px;
             padding: 6px 16px;
@@ -603,7 +678,7 @@
             width: 134px;
             height: 134px;
             border-radius: 50%;
-            border: 4px solid black;
+            border: 4px solid var(--bg-color);
             margin-top: -84px;
             background: #444;
             object-fit: cover;
@@ -617,16 +692,16 @@
         }
         .edit-profile-btn {
             border: 1px solid #536471;
-            color: white;
+            color: var(--text-main);
             border-radius: 20px;
             padding: 6px 16px;
             font-weight: bold;
             font-size: 15px;
             transition: 0.2s;
         }
-        .edit-profile-btn:hover { background-color: rgba(239, 243, 244, 0.1); }
+        .edit-profile-btn:hover { background-color: var(--hover-bg); }
         .profile-stats { display: flex; gap: 20px; margin-top: 12px; color: var(--text-secondary); font-size: 15px; }
-        .stat-value { color: white; font-weight: 700; }
+        .stat-value { color: var(--text-main); font-weight: 700; }
         .profile-nav {
             display: flex;
             border-bottom: 1px solid var(--border);
@@ -643,7 +718,7 @@
             transition: 0.2s;
         }
         .profile-tab:hover { background-color: var(--hover-bg); }
-        .profile-tab.active { color: white; font-weight: 700; }
+        .profile-tab.active { color: var(--text-main); font-weight: 700; }
         .profile-tab.active::after {
             content: '';
             position: absolute;
@@ -664,12 +739,12 @@
             margin-top: 12px;
         }
         .badge {
-            background: #202327;
+            background: rgba(255,255,255,0.1);
             padding: 4px 10px;
             border-radius: 4px;
             font-size: 11px;
             color: var(--text-secondary);
-            border: 1px solid #333;
+            border: 1px solid var(--border);
             display: flex;
             align-items: center;
             gap: 4px;
@@ -682,14 +757,14 @@
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(36, 45, 52, 0.7);
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
         }
         .modal {
-            background: black;
+            background: var(--bg-color);
             border-radius: 16px;
             width: 90%;
             max-width: 600px;
@@ -697,6 +772,7 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
+            border: 1px solid var(--border);
         }
         .modal-header {
             padding: 8px 16px;
@@ -705,8 +781,8 @@
             justify-content: space-between;
             position: sticky;
             top: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(4px);
+            background: var(--bg-color);
+            border-bottom: 1px solid var(--border);
             z-index: 10;
         }
         .modal-body {
@@ -734,7 +810,7 @@
             width: 90px;
             height: 90px;
             border-radius: 50%;
-            border: 4px solid black;
+            border: 4px solid var(--bg-color);
             background: #444;
             object-fit: cover;
             cursor: pointer;
@@ -752,7 +828,7 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: black;
+            background: var(--bg-color);
             border-top: 1px solid var(--border);
             justify-content: space-around;
             padding: 10px 0;
@@ -832,6 +908,8 @@
 </head>
 <body>
 
+    <div id="particles"></div>
+
     <!-- Auth Screen -->
     <div id="auth-screen">
         <img src="favicon.png" class="logo-large">
@@ -871,13 +949,13 @@
                     <svg viewBox="0 0 24 24"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.5h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg>
                     <span>Messages</span>
                 </a>
+                <a href="#" class="nav-item" id="nav-themes" onclick="app.navTo('themes')">
+                    <svg viewBox="0 0 24 24"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm-5-3a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm1-5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm3-3a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm4 2a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm2 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"></path></svg>
+                    <span>Themes</span>
+                </a>
                 <a href="#" class="nav-item" id="nav-profile" onclick="app.navTo('profile')">
                     <svg viewBox="0 0 24 24"><path d="M12 1.75c-5.108 0-9.25 4.142-9.25 9.25 0 2.27.83 4.347 2.217 5.96.128.148.146.36.046.53-2.227 3.785-2.26 3.868-2.28 4.288-.02.392.293.712.686.722h17.16c.394-.01.708-.33.687-.722-.02-.42-.054-.503-2.28-4.288-.1-.17-.082-.382.046-.53 1.387-1.613 2.217-3.69 2.217-5.96 0-5.108-4.142-9.25-9.25-9.25zM4.25 11c0-4.274 3.476-7.75 7.75-7.75s7.75 3.476 7.75 7.75c0 1.957-.72 3.75-1.91 5.13-1.614-2.128-4.04-3.52-6.79-3.52s-5.176 1.392-6.79 3.52c-1.19-1.38-1.91-3.173-1.91-5.13z"></path></svg>
                     <span>Profile</span>
-                </a>
-                <a href="#" class="nav-item" id="nav-more">
-                    <svg viewBox="0 0 24 24"><path d="M12 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-9c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                    <span>More</span>
                 </a>
                 <button class="tweet-btn-large" onclick="app.focusComposer()">
                     <span>Post</span>
@@ -959,8 +1037,8 @@
          <div class="mobile-nav-item" onclick="app.navTo('explore')">
             <svg viewBox="0 0 24 24"><path d="M9.8 12c0 1.216.984 2.2 2.2 2.2s2.2-.984 2.2-2.2-.984-2.2-2.2-2.2-2.2.984-2.2 2.2zm9.63-7.91l-15.02 5.5c-.85.313-1.127 1.43-.513 2.11l4.13 4.58 4.63-4.5c.343-.333.886-.102.94.364l.5 4.5 3.96 4.98c.64.805 1.88.59 2.24-.38l6.13-16.5c.29-.78-.45-1.52-1.23-1.23l-5.757 2.576z"></path></svg>
         </div>
-        <div class="mobile-nav-item" onclick="app.navTo('notifications')">
-           <svg viewBox="0 0 24 24"><path d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2zm-6.866-4l.847-6.698C6.364 6.272 8.941 4 11.996 4s5.627 2.268 6.01 5.295L18.866 16H5.134z"></path></svg>
+        <div class="mobile-nav-item" onclick="app.navTo('themes')">
+            <svg viewBox="0 0 24 24"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm-5-3a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm1-5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm3-3a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm4 2a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm2 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"></path></svg>
         </div>
         <div class="mobile-nav-item" onclick="app.navTo('messages')">
             <svg viewBox="0 0 24 24"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.5h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg>
@@ -1086,13 +1164,14 @@
         const DB = {
             load: () => {
                 const data = localStorage.getItem('peyza_db');
-                let parsed = { users: {}, posts: [], currentUser: null, lastActive: Date.now(), messages: {}, chats: {}, myAccounts: [], settings: { autoReply: true } };
+                let parsed = { users: {}, posts: [], currentUser: null, lastActive: Date.now(), messages: {}, chats: {}, myAccounts: [], settings: { autoReply: true, theme: 'default' } };
                 if (data) {
                     parsed = JSON.parse(data);
                     if(!parsed.messages) parsed.messages = {};
                     if(!parsed.chats) parsed.chats = {};
                     if(!parsed.myAccounts) parsed.myAccounts = parsed.currentUser ? [parsed.currentUser] : [];
-                    if(!parsed.settings) parsed.settings = { autoReply: true };
+                    if(!parsed.settings) parsed.settings = { autoReply: true, theme: 'default' };
+                    if(!parsed.settings.theme) parsed.settings.theme = 'default';
                 }
                 return parsed;
             },
@@ -1110,6 +1189,7 @@
             init: () => {
                 app.data = DB.load();
                 app.cleanup();
+                app.applyTheme(app.data.settings.theme);
                 
                 if (app.data.currentUser) {
                     app.showApp();
@@ -1127,6 +1207,39 @@
                 app.data.posts = app.data.posts.filter(p => {
                     return p.timestamp > cutoff || p.authorHandle === app.data.currentUser;
                 });
+                DB.save(app.data);
+            },
+            
+            applyTheme: (themeName) => {
+                app.data.settings.theme = themeName;
+                document.body.className = ''; // reset
+                if (themeName !== 'default') {
+                    document.body.classList.add(`theme-${themeName}`);
+                }
+                
+                // Falling Particles
+                const container = document.getElementById('particles');
+                container.innerHTML = '';
+                
+                if (themeName === 'halloween' || themeName === 'christmas' || themeName === 'thanksgiving') {
+                    const emojis = {
+                        'halloween': ['🎃', '🦇', '👻'],
+                        'christmas': ['❄️', '⛄'],
+                        'thanksgiving': ['🍂', '🦃', '🍁']
+                    };
+                    const set = emojis[themeName];
+                    
+                    for(let i=0; i<20; i++) {
+                        const p = document.createElement('div');
+                        p.className = 'particle';
+                        p.innerText = set[Math.floor(Math.random() * set.length)];
+                        p.style.left = Math.random() * 100 + 'vw';
+                        p.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                        p.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                        p.style.opacity = Math.random() * 0.7 + 0.3;
+                        container.appendChild(p);
+                    }
+                }
                 DB.save(app.data);
             },
 
@@ -1390,6 +1503,7 @@
                 if(view === 'explore') document.getElementById('nav-explore').classList.add('active');
                 if(view === 'notifications') document.getElementById('nav-notifs').classList.add('active');
                 if(view === 'messages') document.getElementById('nav-messages').classList.add('active');
+                if(view === 'themes') document.getElementById('nav-themes').classList.add('active');
                 if(view === 'profile' && (!params || params.handle === app.data.currentUser)) document.getElementById('nav-profile').classList.add('active');
 
                 app.renderCurrentView();
@@ -1436,6 +1550,9 @@
                     app.renderMessages(main);
                 } else if (app.currentView === 'chat') {
                     app.renderChat(main, app.viewParams.handle);
+                } else if (app.currentView === 'themes') {
+                    app.renderHeader(main, 'Themes');
+                    app.renderThemeSelector(main);
                 }
             },
 
@@ -1467,6 +1584,33 @@
                 app.data.settings.autoReply = !app.data.settings.autoReply;
                 el.classList.toggle('on');
                 DB.save(app.data);
+            },
+            
+            renderThemeSelector: (container) => {
+                const themes = [
+                    { id: 'default', name: 'Default', icon: '🌑' },
+                    { id: 'halloween', name: 'Halloween', icon: '🎃' },
+                    { id: 'christmas', name: 'Christmas', icon: '🎄' },
+                    { id: 'thanksgiving', name: 'Thanksgiving', icon: '🦃' }
+                ];
+                
+                const grid = document.createElement('div');
+                grid.className = 'theme-grid';
+                
+                themes.forEach(t => {
+                    const card = document.createElement('div');
+                    card.className = `theme-card ${app.data.settings.theme === t.id ? 'active' : ''}`;
+                    card.innerHTML = `<span class="theme-icon">${t.icon}</span><strong>${t.name}</strong>`;
+                    card.onclick = () => {
+                        app.applyTheme(t.id);
+                        app.renderThemeSelector(container); // Re-render to update active state
+                    };
+                    grid.appendChild(card);
+                });
+                
+                container.innerHTML = '';
+                app.renderHeader(container, 'Themes');
+                container.appendChild(grid);
             },
 
             renderFeed: (container) => {
@@ -1617,6 +1761,8 @@
                         div.className = `chat-bubble ${msg.sender === myHandle ? 'sent' : 'received'} msg-slide`;
                         div.innerText = msg.text;
                         div.ondblclick = () => app.toggleReaction(div, convoId, idx);
+                        // Add ID to wrapper to find it later easily? No, bubble structure is complex.
+                        // We will add ID to the status element below.
                         
                         if(msg.reaction) {
                             const r = document.createElement('div');
@@ -1630,11 +1776,13 @@
                         if(msg.sender === myHandle && idx === messages.length - 1) {
                             const status = document.createElement('div');
                             status.className = 'chat-status';
+                            status.id = `chat-status-${idx}`; // UNIQUE ID FOR DIRECT UPDATE
                             status.innerText = msg.status;
                             msgsDiv.appendChild(status);
                         }
                     });
-                    // Scroll to bottom
+                    
+                    // Only scroll on init
                     setTimeout(() => msgsDiv.scrollTop = msgsDiv.scrollHeight, 50);
                 };
                 renderMsgs();
@@ -1674,6 +1822,7 @@
                         e.stopPropagation();
                         app.data.chats[convoId][msgIdx].reaction = emoji;
                         DB.save(app.data);
+                        // Re-render specifically this user chat to show reaction
                         app.renderChat(document.getElementById('main-content'), convoId.split('_').find(h=>h!==app.data.currentUser));
                     };
                     menu.appendChild(span);
@@ -1700,6 +1849,8 @@
                 };
                 app.data.chats[convoId].push(newMsg);
                 
+                const msgIndex = app.data.chats[convoId].length - 1;
+                
                 const updateMeta = (owner, partner, txt) => {
                     if(!app.data.messages[owner]) app.data.messages[owner] = [];
                     let c = app.data.messages[owner].find(x => x.with === partner);
@@ -1720,9 +1871,26 @@
                 DB.save(app.data);
                 app.renderChat(document.getElementById('main-content'), toHandle);
                 
-                // Simulation Logic
-                setTimeout(() => { newMsg.status = 'Delivered'; DB.save(app.data); if(app.currentView==='chat') app.renderChat(document.getElementById('main-content'), toHandle); }, 1500);
-                setTimeout(() => { newMsg.status = 'Read'; DB.save(app.data); if(app.currentView==='chat') app.renderChat(document.getElementById('main-content'), toHandle); }, 3000);
+                // Helper to update DOM without re-render
+                const updateStatusDOM = (status) => {
+                    if (app.currentView === 'chat') {
+                        const statusEl = document.getElementById(`chat-status-${msgIndex}`);
+                        if (statusEl) statusEl.innerText = status;
+                    }
+                };
+                
+                // Simulation Logic using direct DOM update
+                setTimeout(() => { 
+                    newMsg.status = 'Delivered'; 
+                    DB.save(app.data); 
+                    updateStatusDOM('Delivered');
+                }, 1500);
+                
+                setTimeout(() => { 
+                    newMsg.status = 'Read'; 
+                    DB.save(app.data); 
+                    updateStatusDOM('Read');
+                }, 3000);
                 
                 // Bot Reply
                 if (app.data.settings.autoReply) {
@@ -1737,6 +1905,8 @@
                         updateMeta(myHandle, toHandle, replyText); 
                         updateMeta(toHandle, myHandle, replyText);
                         DB.save(app.data);
+                        
+                        // Only full re-render for NEW message to append it
                         if(app.currentView==='chat') app.renderChat(document.getElementById('main-content'), toHandle);
                     }, 5000 + Math.random() * 3000);
                 }
