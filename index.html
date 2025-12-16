@@ -2,1332 +2,206 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#b91d47">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Peyza">
-    <meta name="description" content="Peyza - The ultimate web-based music streaming experience. Cherry Edition featuring immersive playback, lyrics, and smart recommendations. Owned by Peyton William Price.">
-    <title>Peyza - Cherry Edition</title>
-    
-    <!-- Site Icon (Base64 Cherry/Music Note) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff2d55' stroke='%23ff2d55' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'%3E%3C/path%3E%3Ccircle cx='6' cy='18' r='3'%3E%3C/circle%3E%3Ccircle cx='18' cy='16' r='3'%3E%3C/circle%3E%3C/svg%3E">
-    
-    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGV5emEiLCJzaG9ydF9uYW1lIjoiUGV5emEiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzAwMDAwMCIsInRoZW1lX2NvbG9yIjoiI2I5MWQ0NyIsImljb25zIjpbeyJzcmMiOiJodHRwczovL3BsYWNlaG9sZC5jby8xOTJ4MTkyL2ZmMmQ1NS9mZmZmZmY/dGV4dD1QIiwiYml6ZXM1IjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifSx7InNyYyI6Imh0dHBzOi8vcGxhY2Vob2xkLmNvLzUxMng1MTIvZmYyZDU1L2ZmZmZmZj90ZXh0PVAiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Peyza X2 AI Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        'primary-dark': '#000000',
-                        'secondary-dark': '#1c1c1e',
-                        'card-dark': '#2c2c2e',
-                        'accent-cherry': '#ff2d55',
-                        'accent-glow': 'rgba(255, 45, 85, 0.4)',
-                        'light-gray': '#98989e',
-                        'text-white': '#ffffff',
-                        'liked-red': '#ff3b30',
-                    },
-                    fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                        background: '#09090b',
+                        surface: '#18181b',
+                        surface_hover: '#27272a',
+                        primary: '#6366f1', // Indigo primary
+                        primary_hover: '#4f46e5',
+                        accent: '#f59e0b', // Orange for verification
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                        'slide-up': 'slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                        'scale-pulse': 'scalePulse 0.2s ease-out',
-                        'spin-slow': 'spin 2s linear infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-glow': 'pulseGlow 2s infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
                         slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-                        scalePulse: { '0%': { transform: 'scale(1)' }, '50%': { transform: 'scale(0.95)' }, '100%': { transform: 'scale(1)' } },
-                        heartPop: { '0%': { transform: 'scale(1)' }, '40%': { transform: 'scale(1.5)' }, '100%': { transform: 'scale(1)' } }
-                    },
-                    boxShadow: {
-                        'glow': '0 0 20px rgba(255, 45, 85, 0.3)',
-                    },
-                    screens: {
-                        'tablet': '900px',
+                        pulseGlow: { '0%, 100%': { boxShadow: '0 0 10px rgba(99, 102, 241, 0)' }, '50%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)' } }
                     }
                 }
             }
         }
     </script>
+
     <style>
-        ::-webkit-scrollbar { width: 0px; height: 0px; background: transparent; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #000000;
-            color: #ffffff;
-            min-height: 100vh;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
+        body { background-color: #09090b; color: #e4e4e7; overflow: hidden; }
+        
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+        /* Utilities */
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .verified-badge {
+            color: #f59e0b;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 6px;
         }
 
-        /* Player Animations */
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+        .chat-bubble {
+            position: relative;
+            transition: all 0.2s;
         }
-        .art-breathe {
-            animation: breathe 5s ease-in-out infinite;
-        }
-        .art-paused {
-            animation-play-state: paused;
-            transform: scale(1);
-            transition: transform 0.5s ease;
-        }
-
-        .fullscreen-player {
-            transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
-            transform: translateY(100%);
-            z-index: 60;
-        }
-        .fullscreen-player.active {
-            transform: translateY(0);
-        }
-        input[type="range"] {
-            -webkit-appearance: none;
-            background: rgba(255,255,255,0.2);
-            border-radius: 99px;
-            height: 4px;
-            cursor: pointer;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #ffffff;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.5);
-            cursor: pointer;
-            margin-top: -4px;
-            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: scale(1);
-        }
-        input[type="range"]:active::-webkit-slider-thumb {
-            transform: scale(1.6);
-            background: #ff2d55; 
-        }
-        .active-click:active {
-            transform: scale(0.95);
-            opacity: 0.8;
-            transition: transform 0.05s ease-out;
-        }
-        .nav-item {
-            transition: all 0.2s ease;
-        }
-        .nav-item:hover {
-            transform: translateX(4px);
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
-        }
-        .nav-item.active {
-            background-color: rgba(255, 45, 85, 0.15);
-            color: #ff2d55;
-            transform: translateX(0);
-        }
-        .nav-item.active i {
-            color: #ff2d55;
-        }
-        .art-shadow {
-            box-shadow: 0 20px 50px -12px rgba(0,0,0,0.8);
-        }
-        .like-active i {
-            fill: #ff3b30;
-            stroke: #ff3b30;
-        }
-        .animate-heart-pop {
-            animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-            fill: #ff3b30 !important;
-            stroke: #ff3b30 !important;
-        }
-        .snap-x-mandatory {
-            scroll-snap-type: x mandatory;
-        }
-        .snap-center {
-            scroll-snap-align: center;
-        }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .stagger-item {
+        .chat-bubble:hover .msg-actions { opacity: 1; }
+        
+        .msg-actions {
             opacity: 0;
-            animation: fadeIn 0.4s ease-out forwards;
+            transition: opacity 0.2s;
         }
-        .stagger-item:nth-child(1) { animation-delay: 0.05s; }
-        .stagger-item:nth-child(2) { animation-delay: 0.1s; }
-        .stagger-item:nth-child(3) { animation-delay: 0.15s; }
-        .stagger-item:nth-child(4) { animation-delay: 0.2s; }
-        .stagger-item:nth-child(5) { animation-delay: 0.25s; }
-        .stagger-item:nth-child(6) { animation-delay: 0.3s; }
-        .stagger-item:nth-child(n+7) { animation-delay: 0.35s; }
+        @media (max-width: 768px) { .msg-actions { opacity: 1; } }
 
-        .lyrics-textarea {
-            background: transparent;
-            border: none;
-            width: 100%;
-            height: 100%;
-            color: rgba(255,255,255,0.9);
-            font-size: 1.25rem;
-            line-height: 1.6;
-            resize: none;
-            font-weight: 600;
-            text-align: center;
-            outline: none;
-            scroll-behavior: smooth;
+        .stat-pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .lyrics-display {
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            padding-bottom: 50%;
-            text-align: center;
+
+        /* Typing Dot Animation */
+        .typing-dot {
+            width: 6px; height: 6px; background: #a1a1aa; border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
         }
-        .lyric-line {
-            padding: 8px 0;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: rgba(255,255,255,0.4);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .lyric-line.active {
-            color: #ff2d55;
-            transform: scale(1.05);
-            text-shadow: 0 0 20px rgba(255, 45, 85, 0.3);
-        }
-        .video-overlay {
-            opacity: 0;
-            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .video-overlay.visible {
-            opacity: 1;
-        }
-        .video-controls-bg {
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent 40%, transparent 60%, rgba(0,0,0,0.8));
-        }
-        .video-like-active i {
-            fill: #ff2d55;
-            stroke: #ff2d55;
-        }
-        .repeat-one-badge {
-            position: absolute;
-            top: -2px;
-            right: -4px;
-            font-size: 8px;
-            font-weight: bold;
-            color: #ff2d55;
-            background: transparent;
-        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     </style>
 </head>
-<body class="text-white selection:bg-accent-cherry selection:text-white pb-safe">
+<body>
 
-    <!-- Hidden File Input for MP3 Upload -->
-    <input type="file" id="mp3-upload" accept="audio/*" class="hidden">
-
-    <!-- Install Prompt -->
-    <div id="install-prompt" class="hidden fixed top-0 left-0 right-0 bg-[#2c2c2e]/90 backdrop-blur-md border-b border-white/10 text-white px-4 py-3 z-[100] flex justify-between items-center shadow-lg animate-fade-in">
-        <div class="flex items-center">
-            <div class="w-8 h-8 bg-accent-cherry rounded-lg flex items-center justify-center mr-3">
-                <i data-lucide="music" class="w-5 h-5 text-white"></i>
-            </div>
-            <div>
-                <p class="text-sm font-bold">Install Peyza</p>
-                <p class="text-xs text-gray-400">Get the full app experience</p>
-            </div>
-        </div>
-        <button id="install-btn" class="bg-white text-black px-4 py-1.5 rounded-full text-xs font-bold active-click hover:bg-gray-200 transition">INSTALL</button>
-        <button onclick="document.getElementById('install-prompt').classList.add('hidden')" class="ml-2 p-1 text-gray-500"><i data-lucide="x" class="w-4 h-4"></i></button>
-    </div>
-
-    <!-- Video Player Modal -->
-    <div id="video-modal" class="fixed inset-0 z-[200] bg-black hidden flex flex-col">
-        <div class="relative w-full h-full flex items-center justify-center bg-black group" id="video-container">
-            <div id="yt-player-container" class="w-full h-full absolute inset-0 pointer-events-none"></div>
-            <div class="absolute inset-0 z-10" onclick="toggleVideoControls()"></div>
-            
-            <div id="video-ui" class="absolute inset-0 z-20 flex flex-col justify-between video-controls-bg video-overlay pointer-events-none">
-                <div class="p-6 flex justify-between items-start pointer-events-auto w-full z-30">
-                    <button onclick="closeVideoPlayer()" class="bg-black/40 backdrop-blur-md p-2 rounded-full text-white hover:bg-white/20 transition z-50 cursor-pointer active:scale-90"><i data-lucide="chevron-down" class="w-6 h-6"></i></button>
-                    <div class="text-right">
-                        <div class="bg-accent-cherry px-2 py-1 rounded text-[10px] font-bold uppercase inline-block mb-1">Music Video</div>
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl">
+        <div class="w-full max-w-md p-8 bg-surface rounded-2xl border border-white/5 shadow-2xl animate-slide-up text-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none"></div>
+            <div class="relative z-10">
+                <div class="mb-6 flex justify-center">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/30">
+                        <i class="fas fa-atom text-4xl text-white"></i>
                     </div>
                 </div>
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-auto">
-                    <div class="flex items-center gap-12">
-                        <button class="text-white/70 hover:text-white hover:scale-110 transition active:scale-95"><i data-lucide="skip-back" class="w-10 h-10 fill-current"></i></button>
-                        <button id="vid-play-btn" class="bg-white/20 backdrop-blur-md p-6 rounded-full hover:scale-105 transition active:scale-95 flex items-center justify-center" onclick="toggleVideoPlay()">
-                            <i data-lucide="pause" class="w-8 h-8 fill-white text-white"></i>
-                        </button>
-                        <button class="text-white/70 hover:text-white hover:scale-110 transition active:scale-95"><i data-lucide="skip-forward" class="w-10 h-10 fill-current"></i></button>
-                    </div>
-                </div>
-                <div class="p-8 pb-10 pointer-events-auto flex justify-between items-end">
-                    <div>
-                        <h2 id="vid-title" class="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight">Video Title</h2>
-                        <p id="vid-stats" class="text-gray-300 font-medium text-sm">1.2M views</p>
-                    </div>
-                    <button id="vid-like-btn" class="text-white/70 hover:text-accent-cherry transition p-2 active:scale-95" onclick="toggleVideoLike()">
-                        <i data-lucide="heart" class="w-8 h-8"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Layout -->
-    <div class="flex h-screen w-full overflow-hidden bg-primary-dark relative">
-        <aside class="hidden md:flex flex-col w-20 lg:w-64 bg-[#121212] border-r border-white/5 h-full z-20 pt-safe transition-all duration-300">
-            <div class="p-4 lg:p-6 flex justify-center lg:justify-start">
-                <div class="lg:hidden w-10 h-10 bg-accent-cherry rounded-full flex items-center justify-center">
-                    <i data-lucide="music" class="w-6 h-6 text-white fill-current"></i>
-                </div>
-                <h1 class="hidden lg:flex text-2xl font-bold items-center gap-2 text-accent-cherry tracking-tight">
-                    <i data-lucide="music" class="w-7 h-7 fill-current"></i> Peyza
-                </h1>
-            </div>
-            <nav class="flex-1 px-2 lg:px-3 space-y-2 overflow-y-auto mt-4">
-                <a href="#" id="nav-home" onclick="navigateTo('home')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg group">
-                    <i data-lucide="home" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i><span class="hidden lg:block font-medium text-sm">Home</span>
-                </a>
-                <a href="#" id="nav-search" onclick="navigateTo('search')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg group">
-                    <i data-lucide="search" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i><span class="hidden lg:block font-medium text-sm">Search</span>
-                </a>
-                <a href="#" id="nav-library" onclick="navigateTo('library')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg group">
-                    <i data-lucide="library" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i><span class="hidden lg:block font-medium text-sm">Library</span>
-                </a>
-                <a href="#" id="nav-liked" onclick="navigateTo('liked')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg group">
-                    <i data-lucide="heart" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i><span class="hidden lg:block font-medium text-sm">Liked</span>
-                </a>
-                <a href="#" id="nav-updates" onclick="navigateTo('updates')" class="nav-item flex flex-col lg:flex-row items-center lg:space-x-3 px-2 lg:px-3 py-3 lg:py-2 text-gray-400 hover:text-white rounded-lg group">
-                    <i data-lucide="bell" class="w-6 h-6 lg:w-5 lg:h-5 group-hover:text-white transition"></i><span class="hidden lg:block font-medium text-sm">Updates</span>
-                </a>
-                <div class="hidden lg:block mt-6 pt-4 border-t border-white/5">
-                    <div class="flex items-center justify-between px-3 mb-2">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Playlists</p>
-                        <button onclick="createPlaylistPrompt()" class="text-gray-400 hover:text-white transition active:scale-90"><i data-lucide="plus" class="w-4 h-4"></i></button>
-                    </div>
-                    <div id="user-playlists-sidebar" class="space-y-1"></div>
-                </div>
-            </nav>
-        </aside>
-
-        <main class="flex-1 flex flex-col relative min-w-0 bg-primary-dark">
-            <header class="absolute top-0 left-0 right-0 z-30 px-6 py-4 bg-gradient-to-b from-black/90 to-transparent pt-safe pointer-events-none">
-                <div class="max-w-7xl mx-auto w-full flex justify-end md:justify-start pointer-events-auto">
-                    <div id="search-bar-container" class="hidden md:block w-full max-w-sm tablet:max-w-md relative group transition-all duration-300 opacity-0">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-accent-cherry transition-colors"></i>
-                        <input type="text" id="desktop-search" class="w-full bg-[#1c1c1e] border border-transparent focus:border-accent-cherry/50 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-cherry/20 transition-all shadow-lg backdrop-blur-md bg-opacity-80" placeholder="Search artists, albums, songs..." onkeyup="if(event.key === 'Enter') performSearch(this.value)">
-                    </div>
-                </div>
-            </header>
-            <div id="main-scroll" class="flex-1 overflow-y-auto pb-40 md:pb-28 scroll-smooth relative">
-                <div id="refresh-indicator" class="hidden w-full flex justify-center py-4 absolute top-0 left-0 right-0 z-0">
-                    <i data-lucide="loader-2" class="w-6 h-6 text-accent-cherry animate-spin-slow"></i>
-                </div>
-                <div id="dynamic-content" class="min-h-full p-4 md:p-8 pt-10 md:pt-24 max-w-7xl mx-auto relative z-10"></div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Mini Player -->
-    <div id="mini-player" class="fixed bottom-[60px] md:bottom-0 left-0 right-0 h-[64px] md:h-[84px] bg-[#1c1c1e]/95 backdrop-blur-xl border-t border-white/10 z-50 px-3 md:px-6 flex items-center justify-between cursor-pointer transition-transform duration-300" onclick="toggleFullscreenPlayer(true)">
-        <div class="flex items-center w-full md:w-1/3 min-w-0 animate-fade-in" id="mini-info-container">
-            <img id="mini-img" src="https://placehold.co/60x60/222/555?text=..." class="w-12 h-12 md:w-14 md:h-14 rounded-md object-cover shadow-sm bg-card-dark mr-3 transition-transform duration-300">
-            <div class="min-w-0 flex-1">
-                <p id="mini-title" class="text-sm md:text-base font-semibold text-white truncate leading-tight">Not Playing</p>
-                <p id="mini-artist" class="text-xs md:text-sm text-gray-400 truncate">Tap to play</p>
-            </div>
-        </div>
-        <div class="hidden md:flex flex-col items-center w-1/3">
-            <div class="flex items-center space-x-6 lg:space-x-8 mb-1">
-                <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation(); playPrevious()"><i data-lucide="skip-back" class="w-5 h-5 lg:w-6 lg:h-6 fill-current"></i></button>
-                <button id="mini-play-btn" class="bg-white text-black rounded-full p-2 hover:scale-105 transition active-click shadow-glow" onclick="event.stopPropagation(); togglePlayPause()"><i data-lucide="play" class="w-5 h-5 lg:w-6 lg:h-6 fill-black ml-0.5"></i></button>
-                <button class="text-gray-400 hover:text-white transition active-click" onclick="event.stopPropagation(); playNext()"><i data-lucide="skip-forward" class="w-5 h-5 lg:w-6 lg:h-6 fill-current"></i></button>
-            </div>
-            <div class="w-full max-w-xs flex items-center space-x-2 text-[10px] font-medium text-gray-500" onclick="event.stopPropagation()">
-                <span id="mini-curr-time">0:00</span>
-                <div class="relative flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div id="mini-progress" class="absolute left-0 top-0 h-full bg-white/80 rounded-full w-0"></div>
-                </div>
-                <span id="mini-duration">0:00</span>
-            </div>
-        </div>
-        <div class="hidden md:flex items-center justify-end w-1/3 space-x-4">
-            <button class="text-gray-400 hover:text-accent-cherry transition active-click" onclick="event.stopPropagation(); showAddToPlaylistModal(currentTrack)"><i data-lucide="plus-circle" class="w-5 h-5"></i></button>
-            <div class="flex items-center space-x-2 w-24 lg:w-28" onclick="event.stopPropagation()">
-                <i data-lucide="volume-2" class="w-4 h-4 text-gray-500"></i>
-                <input type="range" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white" oninput="audio.volume = this.value/100">
-            </div>
-        </div>
-        <div class="flex md:hidden items-center pr-1">
-            <button id="mobile-mini-play" class="text-white p-3 active-click" onclick="event.stopPropagation(); togglePlayPause()"><i data-lucide="play" class="w-7 h-7 fill-current"></i></button>
-        </div>
-        <div id="mobile-progress-bar" class="absolute bottom-0 left-0 h-[2px] bg-accent-cherry md:hidden w-0 transition-all duration-300"></div>
-    </div>
-
-    <!-- Mobile Nav -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-50 flex justify-around items-center pb-safe px-2">
-        <button id="mob-nav-home" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('home')"><i data-lucide="home" class="w-6 h-6 mb-0.5"></i><span class="text-[10px] font-medium">Home</span></button>
-        <button id="mob-nav-search" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('search')"><i data-lucide="search" class="w-6 h-6 mb-0.5"></i><span class="text-[10px] font-medium">Search</span></button>
-        <button id="mob-nav-library" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('library')"><i data-lucide="library" class="w-6 h-6 mb-0.5"></i><span class="text-[10px] font-medium">Library</span></button>
-        <button id="mob-nav-updates" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-500 active-click" onclick="navigateTo('updates')"><i data-lucide="bell" class="w-6 h-6 mb-0.5"></i><span class="text-[10px] font-medium">Updates</span></button>
-    </nav>
-
-    <!-- Fullscreen Player -->
-    <div id="fullscreen-player" class="fullscreen-player fixed inset-0 bg-[#000000] flex flex-col overflow-y-auto md:overflow-hidden">
-        <div id="fs-bg" class="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl scale-125 transition-all duration-1000"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black"></div>
-        <div class="relative z-10 w-full flex justify-between items-center px-6 pt-12 pb-4 md:pt-10 md:px-12 max-w-7xl mx-auto shrink-0">
-            <button class="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition active-click" onclick="toggleFullscreenPlayer(false)"><i data-lucide="chevron-down" class="w-8 h-8"></i></button>
-            <span class="text-xs font-bold tracking-widest uppercase text-gray-400">Now Playing</span>
-            <button class="text-gray-400 hover:text-white p-2 hover:bg-white/10 rounded-full transition active-click" onclick="toggleImmersiveMode()"><i data-lucide="more-horizontal" class="w-6 h-6"></i></button>
-        </div>
-        <div class="relative z-10 flex-1 flex flex-col tablet:flex-row tablet:items-center tablet:justify-center gap-8 tablet:gap-16 px-8 max-w-7xl mx-auto w-full pb-10">
-            <div class="w-full tablet:w-1/2 flex justify-center items-center mb-4 tablet:mb-0 h-[40vh] tablet:h-[60vh] relative perspective-1000">
-                <div id="art-container" class="w-full h-full max-w-[400px] tablet:max-w-[550px] aspect-square relative transition-all duration-500 transform">
-                    <img id="fs-art" src="" class="w-full h-full object-cover rounded-2xl art-shadow">
-                </div>
-                <div id="lyrics-container" class="hidden w-full h-full max-w-[500px] bg-black/40 backdrop-blur-md rounded-2xl p-6 border border-white/5 shadow-2xl overflow-hidden flex flex-col relative">
-                    <button class="absolute top-4 right-4 text-gray-400 hover:text-white active-click" onclick="toggleLyricsEdit()"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                    <p class="text-xs text-gray-400 text-center mb-2 uppercase tracking-wider font-bold">Lyrics</p>
-                    <div id="lyrics-display" class="lyrics-display no-scrollbar hidden"></div>
-                    <textarea id="lyrics-text" class="lyrics-textarea no-scrollbar" placeholder="Paste your lyrics here..."></textarea>
-                    <button id="start-lyrics-btn" class="w-full mt-2 py-3 bg-accent-cherry text-white font-bold rounded-xl hidden active-click" onclick="startSongFromLyrics()">Start Song</button>
-                </div>
-                <div id="recs-container" class="hidden w-full h-full max-w-[500px] bg-black/40 backdrop-blur-md rounded-2xl p-4 border border-white/5 shadow-2xl overflow-hidden flex flex-col">
-                    <h3 class="text-lg font-bold text-center mb-4 text-white">For You</h3>
-                    <div id="recs-content" class="flex-1 overflow-y-auto no-scrollbar space-y-2"></div>
-                </div>
-            </div>
-            <div class="w-full tablet:w-1/2 flex flex-col justify-center max-w-md mx-auto tablet:max-w-none">
-                <div class="flex justify-between items-start mb-6 tablet:mb-10">
-                    <div class="min-w-0 pr-4">
-                        <h2 id="fs-title" class="text-2xl md:text-4xl tablet:text-5xl font-bold text-white leading-tight line-clamp-2">Select a song</h2>
-                        <p id="fs-artist" class="text-lg md:text-xl tablet:text-2xl text-accent-cherry truncate mt-2 font-medium cursor-pointer hover:underline">Artist</p>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <button id="fs-like-btn" class="text-gray-500 hover:text-white transition active:scale-90 p-2 group relative" onclick="toggleLike()">
-                            <i data-lucide="heart" class="w-7 h-7 md:w-8 md:h-8 tablet:w-9 tablet:h-9 transition-colors duration-300"></i>
-                        </button>
-                         <span id="fs-like-count" class="text-[12px] font-mono text-accent-cherry transition-opacity duration-300 mt-1 font-bold">0</span>
-                    </div>
-                </div>
-                <div class="w-full mb-8 tablet:mb-12">
-                    <input type="range" id="fs-progress" value="0" min="0" max="100" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer focus:outline-none accent-white group">
-                    <div class="flex justify-between text-xs font-medium text-gray-500 mt-3 font-mono">
-                        <span id="fs-curr-time">0:00</span>
-                        <span id="fs-duration">0:00</span>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center w-full px-2 mb-10 tablet:mb-12">
-                    <button id="fs-shuffle-btn" class="text-gray-500 hover:text-white transition active-click" onclick="toggleShuffle()"><i data-lucide="shuffle" class="w-6 h-6 tablet:w-7 tablet:h-7"></i></button>
-                    <div class="flex items-center gap-8 md:gap-12 tablet:gap-16">
-                        <button class="text-white hover:scale-110 transition active-click" onclick="playPrevious()"><i data-lucide="skip-back" class="w-9 h-9 md:w-10 md:h-10 tablet:w-12 tablet:h-12 fill-current"></i></button>
-                        <button id="fs-play-btn" class="bg-white rounded-full p-5 md:p-6 tablet:p-7 hover:scale-105 transition active-click shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center" onclick="togglePlayPause()"><i data-lucide="play" class="w-8 h-8 md:w-10 md:h-10 tablet:w-10 tablet:h-10 fill-black text-black ml-1"></i></button>
-                        <button class="text-white hover:scale-110 transition active-click" onclick="playNext()"><i data-lucide="skip-forward" class="w-9 h-9 md:w-10 md:h-10 tablet:w-12 tablet:h-12 fill-current"></i></button>
-                    </div>
-                    <button id="fs-repeat-btn" class="text-gray-500 hover:text-white transition active-click relative" onclick="toggleRepeat()">
-                        <i data-lucide="repeat" class="w-6 h-6 tablet:w-7 tablet:h-7"></i>
-                        <span id="repeat-badge" class="repeat-one-badge hidden">1</span>
-                    </button>
-                </div>
-                 <div class="flex justify-center space-x-12 md:justify-start md:pl-4 items-center">
-                    <button id="lyrics-btn" class="text-gray-500 hover:text-accent-cherry transition flex flex-col items-center gap-1 group active-click" onclick="toggleView('lyrics')"><div class="p-2 rounded-full group-hover:bg-white/5 transition"><i data-lucide="mic-2" class="w-6 h-6 md:w-7 md:h-7"></i></div></button>
-                    <button class="text-gray-500 hover:text-accent-cherry transition p-2 rounded-full hover:bg-white/5 active-click" onclick="castToTv()"><i data-lucide="tv-2" class="w-6 h-6 md:w-7 md:h-7"></i></button>
-                    <button id="recs-btn" class="text-gray-500 hover:text-accent-cherry transition p-2 rounded-full hover:bg-white/5 active-click" onclick="toggleView('recs')"><i data-lucide="list-music" class="w-6 h-6 md:w-7 md:h-7"></i></button>
-                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <div id="playlist-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-6">
-        <div class="bg-[#1c1c1e] w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-white/10 scale-95 opacity-0 transition-all duration-200" id="playlist-modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">Add to Playlist</h3>
-                <button onclick="closePlaylistModal()" class="p-1 bg-gray-800 rounded-full text-gray-400 hover:text-white active-click"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <div id="playlist-list-container" class="space-y-2 max-h-64 overflow-y-auto mb-4"></div>
-            <button onclick="showCreatePlaylistInput()" class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-accent-cherry font-semibold flex items-center justify-center transition active-click"><i data-lucide="plus" class="w-5 h-5 mr-2"></i> New Playlist</button>
-            <div id="new-playlist-input-div" class="hidden mt-3">
-                <input type="text" id="new-playlist-name" placeholder="Name your playlist" class="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-white focus:border-accent-cherry outline-none mb-2">
-                <button onclick="createNewPlaylist()" class="w-full bg-accent-cherry text-white font-bold py-3 rounded-lg active-click">Create</button>
-            </div>
-        </div>
-    </div>
-    <div id="generic-modal" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-6 animate-fade-in">
-        <div class="bg-card-dark w-full max-w-sm rounded-xl p-6 shadow-2xl border border-white/10">
-            <h3 id="modal-title" class="text-xl font-bold text-white mb-2">Message</h3>
-            <p id="modal-msg" class="text-gray-300 text-sm mb-6 leading-relaxed">Details</p>
-            <div id="modal-actions" class="flex gap-3">
-                <button id="modal-cancel-btn" onclick="closeGenericModal()" class="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg active-click">Cancel</button>
-                <button id="modal-confirm-btn" class="flex-1 py-3 bg-accent-cherry text-white font-semibold rounded-lg shadow-glow active-click">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <audio id="global-audio" preload="auto"></audio>
-
-    <script>
-        const CLIENT_ID = '24d71c5bae0e407a98cd3cff0ccb33ff';
-        const CLIENT_SECRET = '15e5882a39f049edaec7de7bbc62f407';
-        const API_URL = 'https://api.spotify.com/v1';
-        const TOKEN_URL = 'https://accounts.spotify.com/api/token';
-        
-        const audio = document.getElementById('global-audio');
-        const mp3Input = document.getElementById('mp3-upload');
-        const lyricsText = document.getElementById('lyrics-text');
-        
-        let accessToken = null; 
-        try { accessToken = localStorage.getItem('spotify_token'); } catch(e) {}
-
-        let isPlaying = false;
-        let currentTrack = null;
-        let likedTracks = new Set();
-        try { likedTracks = new Set(JSON.parse(localStorage.getItem('peyza_liked_songs') || '[]')); } catch(e) {}
-        
-        let activeView = 'art'; 
-        let isLyricsEditing = true;
-        let playbackQueue = [];
-        let currentQueueIndex = 0;
-        let isShuffle = false;
-        let repeatMode = 0; 
-        let likedVideos = new Set();
-        try { likedVideos = new Set(JSON.parse(localStorage.getItem('peyza_liked_videos') || '[]')); } catch(e) {}
-        
-        function renderIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
-        function formatTime(s) {
-            if(isNaN(s)) return "0:00";
-            const min = Math.floor(s / 60);
-            const sec = Math.floor(s % 60);
-            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-        }
-        function formatNumber(num) {
-            if(num >= 1000000000) return (num/1000000000).toFixed(1) + 'B';
-            if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
-            if(num >= 1000) return (num/1000).toFixed(1) + 'K';
-            return num.toString();
-        }
-
-        function getDeterministicRandom(seed) {
-            let hash = 0;
-            if(!seed) return Math.random();
-            const strSeed = String(seed);
-            for (let i = 0; i < strSeed.length; i++) {
-                hash = ((hash << 5) - hash) + strSeed.charCodeAt(i);
-                hash |= 0;
-            }
-            const x = Math.abs(Math.sin(hash) * 10000);
-            return x - Math.floor(x);
-        }
-
-        function generateFollowers(popularity, artistId) {
-            const rand = getDeterministicRandom(artistId);
-            let min, max;
-            const pop = popularity || 50;
-            if(pop > 80) { min = 1000000; max = 100000000; }
-            else if(pop > 50) { min = 50000; max = 1000000; }
-            else { min = 1000; max = 50000; }
-            const followers = Math.floor(rand * (max - min) + min);
-            return followers.toLocaleString() + ' Pals';
-        }
-
-        function generateStats(popularity, trackId) {
-            let min, max;
-            const pop = popularity || 50;
-            if(pop < 10) { min=100; max=900; }
-            else if(pop < 40) { min=1000; max=90000; }
-            else if(pop < 70) { min=100000; max=5000000; }
-            else if(pop < 90) { min=5000000; max=100000000; }
-            else { min=100000000; max=900000000; }
-            
-            const rand = trackId ? getDeterministicRandom(trackId) : Math.random();
-            const streams = Math.floor(rand * (max - min) + min);
-            const likes = Math.floor(streams * 0.04); 
-            return { streamsRaw: streams, likesRaw: likes, streams: formatNumber(streams), likesFormatted: likes.toLocaleString() };
-        }
-        
-        async function getSpotifyToken() { 
-            if (accessToken) return accessToken; 
-            try { 
-                const res = await fetch(TOKEN_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + btoa(CLIENT_ID + ':' + CLIENT_SECRET) }, 
-                    body: 'grant_type=client_credentials' 
-                }); 
-                const data = await res.json(); 
-                accessToken = data.access_token; 
-                try { localStorage.setItem('spotify_token', accessToken); } catch(e) {}
-                return accessToken; 
-            } catch (e) { return null; } 
-        }
-
-        function mapSpotifyTrack(t, fallbackImage) { 
-            return { 
-                id: t.id, 
-                name: t.name, 
-                artists: t.artists || [{name: t.publisher || 'Unknown'}], 
-                imageUrl: t.album?.images?.[0]?.url || fallbackImage || 'https://placehold.co/300x300', 
-                previewUrl: t.preview_url || t.audio_preview_url, 
-                popularity: t.popularity || 40, 
-                duration: formatTime(t.duration_ms/1000) 
-            }; 
-        }
-
-        async function performSearch(query) { 
-            if (!query) return; 
-            updateSidebarActiveState('search'); 
-            const content = document.getElementById('dynamic-content'); 
-            const searchContainer = document.getElementById('search-bar-container'); 
-            searchContainer?.classList.remove('opacity-0', 'pointer-events-none'); 
-            content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>'; 
-            const token = await getSpotifyToken(); 
-            if (!token) return; 
-            try { 
-                const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}&type=artist,album,track,show&limit=5`, { headers: { 'Authorization': `Bearer ${token}` } }); 
-                const data = await res.json(); 
-                let html = `<div class="space-y-4 pt-4 md:pt-0 animate-fade-in">`; 
-                if (data.artists && data.artists.items.length > 0) { 
-                    html += `<h3 class="text-xl font-bold mb-3">Artists</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.artists.items.map(a => `<div class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center cursor-pointer group" onclick="navigateTo('artist', '${a.id}')"><img src="${a.images[0]?.url || 'https://placehold.co/150x150'}" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-lg mb-2 group-hover:scale-105 transition border-2 border-transparent group-hover:border-accent-cherry"><p class="font-semibold text-center text-sm truncate w-full">${a.name}</p><p class="text-xs text-gray-500">Artist</p></div>`).join('')}</div>`; 
-                } 
-                if (data.shows && data.shows.items.length > 0) { 
-                    html += `<h3 class="text-xl font-bold mb-3 mt-4">Podcasts</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.shows.items.map(s => `<div class="snap-center shrink-0 w-36 md:w-44 cursor-pointer group" onclick="navigateTo('show', '${s.id}')"><img src="${s.images[0]?.url || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover shadow-lg mb-2 group-hover:scale-105 transition"><p class="font-semibold text-sm truncate">${s.name}</p><p class="text-xs text-gray-500 truncate">${s.publisher}</p></div>`).join('')}</div>`; 
-                } 
-                if (data.albums && data.albums.items.length > 0) { 
-                    html += `<h3 class="text-xl font-bold mb-3 mt-4">Albums</h3><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${data.albums.items.map(alb => `<div class="snap-center shrink-0 w-36 md:w-44 cursor-pointer group" onclick="navigateTo('album', '${alb.id}')"><img src="${alb.images[0]?.url || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover shadow-lg mb-2 group-hover:scale-105 transition"><p class="font-semibold text-sm truncate">${alb.name}</p><p class="text-xs text-gray-500 truncate">${alb.artists[0].name}</p></div>`).join('')}</div>`; 
-                } 
-                if (data.tracks && data.tracks.items.length > 0) { 
-                    html += `<h3 class="text-xl font-bold mb-3 mt-4">Songs</h3><div class="bg-[#1c1c1e] rounded-xl overflow-hidden shadow-lg">${data.tracks.items.map((t, i) => `<div class="flex items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")})'><img src="${t.album.images[0]?.url || 'https://placehold.co/60x60'}" class="w-12 h-12 rounded-md mr-4"><div class="flex-1 min-w-0"><p class="font-semibold text-white truncate">${t.name}</p><p class="text-xs text-gray-500 truncate">${t.artists[0].name}</p></div><i data-lucide="play-circle" class="w-5 h-5 text-gray-500"></i></div>`).join('')}</div>`; 
-                } 
-                html += `</div>`; 
-                content.innerHTML = html; 
-                renderIcons(); 
-            } catch(e) { console.error(e); } 
-        }
-
-        // --- PLAYLIST UTILS ---
-        function loadUserPlaylists() { 
-            const container = document.getElementById('user-playlists-sidebar'); 
-            let playlists = [];
-            try { playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]'); } catch(e) {}
-            container.innerHTML = playlists.map((pl, i) => `<a href="#" onclick="renderPlaylist(${i}); return false;" class="nav-item block px-3 py-2 text-sm text-gray-400 hover:text-white truncate rounded-lg transition active-click">${pl.name}</a>`).join(''); 
-        }
-
-        function createNewPlaylist() { 
-            const name = document.getElementById('new-playlist-name').value; 
-            if(!name) return; 
-            let pls = [];
-            try { pls = JSON.parse(localStorage.getItem('peyza_playlists') || '[]'); } catch(e) {}
-            pls.push({ name, tracks: [] }); 
-            try { localStorage.setItem('peyza_playlists', JSON.stringify(pls)); } catch(e) {}
-            closePlaylistModal(); 
-            loadUserPlaylists(); 
-        }
-
-        function showAddToPlaylistModal() { 
-            document.getElementById('playlist-modal').classList.remove('hidden'); 
-            setTimeout(() => document.getElementById('playlist-modal-content').classList.remove('scale-95', 'opacity-0'), 10); 
-            const container = document.getElementById('playlist-list-container'); 
-            let pls = [];
-            try { pls = JSON.parse(localStorage.getItem('peyza_playlists') || '[]'); } catch(e) {}
-            container.innerHTML = pls.length ? pls.map((pl, i) => `<div class="p-3 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer flex justify-between items-center" onclick="addToPlaylist(${i})"><span class="font-medium text-sm">${pl.name}</span><i data-lucide="plus" class="w-4 h-4 text-gray-500"></i></div>`).join('') : '<p class="text-gray-500 text-sm text-center py-4">No playlists yet</p>'; 
-            renderIcons(); 
-        }
-
-        function closePlaylistModal() { 
-            document.getElementById('playlist-modal-content').classList.add('scale-95', 'opacity-0'); 
-            setTimeout(() => document.getElementById('playlist-modal').classList.add('hidden'), 200); 
-            document.getElementById('new-playlist-input-div').classList.add('hidden'); 
-        }
-
-        function createPlaylistPrompt() { 
-            showAddToPlaylistModal(); 
-            document.getElementById('playlist-modal-content').querySelector('h3').textContent = 'Create Playlist'; 
-            document.getElementById('playlist-list-container').innerHTML = ''; 
-            document.querySelector('#playlist-modal-content > button:first-of-type').classList.add('hidden'); 
-            document.getElementById('new-playlist-input-div').classList.remove('hidden'); 
-            document.getElementById('new-playlist-name').value = ''; 
-            document.getElementById('new-playlist-name').focus(); 
-            document.querySelector('#new-playlist-input-div button').onclick = createNewPlaylist; 
-        }
-
-        function addToPlaylist(playlistIndex) {
-            if (!currentTrack) return;
-            let playlists = [];
-            try { playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]'); } catch(e) {}
-            if (playlists[playlistIndex]) {
-                playlists[playlistIndex].tracks.push(currentTrack);
-                try { localStorage.setItem('peyza_playlists', JSON.stringify(playlists)); } catch(e) {}
-                closePlaylistModal();
-                alert(`Added to ${playlists[playlistIndex].name}`);
-                loadUserPlaylists(); 
-            }
-        }
-
-        function removeFromPlaylist(playlistIndex, trackIndex) {
-            let playlists = [];
-            try { playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]'); } catch(e) {}
-            if (playlists[playlistIndex]) {
-                playlists[playlistIndex].tracks.splice(trackIndex, 1);
-                try { localStorage.setItem('peyza_playlists', JSON.stringify(playlists)); } catch(e) {}
-                renderPlaylist(playlistIndex); 
-            }
-        }
-
-        // --- PLAYBACK ENGINE ---
-        function stopAudio() {
-            audio.pause();
-            audio.src = "";
-            audio.load();
-            isPlaying = false;
-        }
-
-        function startPlayback(sourceUrl) {
-            stopAudio();
-            setTimeout(() => {
-                audio.src = sourceUrl;
-                audio.play().then(() => {
-                    isPlaying = true;
-                    updateMiniPlayer();
-                    updateFullscreenVisuals();
-                    toggleFullscreenPlayer(true); 
-                }).catch(e => {
-                    console.error("Playback failed:", e);
-                    isPlaying = false;
-                    updateMiniPlayer();
-                });
-            }, 50);
-        }
-
-        function playTrack(track, queue = null, index = 0) {
-            if (queue) {
-                if(isShuffle) {
-                    playbackQueue = [track, ...queue.filter(t => t.id !== track.id).sort(() => 0.5 - Math.random())];
-                    currentQueueIndex = 0;
-                } else {
-                    playbackQueue = queue;
-                    currentQueueIndex = index;
-                }
-            } else {
-                playbackQueue = [track];
-                currentQueueIndex = 0;
-            }
-
-            currentTrack = track;
-            if(!currentTrack.stats) currentTrack.stats = generateStats(track.popularity || 50, track.id);
-
-            confirmModal("Lyrics", "Would you like to add lyrics before the song starts?", 
-                () => {
-                    toggleFullscreenPlayer(true);
-                    toggleView('lyrics');
-                    document.getElementById('start-lyrics-btn').classList.remove('hidden');
-                    isLyricsEditing = true;
-                    updateLyricsView();
-                    updateMiniPlayer();
-                    updateFullscreenVisuals();
-                },
-                () => {
-                    initiateTrackAudio();
-                },
-                "Yes, add lyrics",
-                "No, play now"
-            );
-        }
-
-        function playCollection(tracks) {
-            if(tracks.length > 0) playTrack(tracks[0], tracks, 0);
-        }
-
-        function playNext() {
-            if (playbackQueue.length === 0) return;
-            let nextIndex = currentQueueIndex + 1;
-            if (nextIndex >= playbackQueue.length) {
-                if (repeatMode === 1) nextIndex = 0; 
-                else return; 
-            }
-            currentQueueIndex = nextIndex;
-            currentTrack = playbackQueue[currentQueueIndex];
-            if(!currentTrack.stats) currentTrack.stats = generateStats(currentTrack.popularity || 50, currentTrack.id);
-            initiateTrackAudio();
-        }
-
-        function playPrevious() {
-            if (playbackQueue.length === 0) return;
-            if (audio.currentTime > 3) {
-                audio.currentTime = 0;
-                return;
-            }
-            let prevIndex = currentQueueIndex - 1;
-            if (prevIndex < 0) prevIndex = 0;
-            currentQueueIndex = prevIndex;
-            currentTrack = playbackQueue[currentQueueIndex];
-            if(!currentTrack.stats) currentTrack.stats = generateStats(currentTrack.popularity || 50, currentTrack.id);
-            initiateTrackAudio();
-        }
-
-        function toggleShuffle() {
-            isShuffle = !isShuffle;
-            const btn = document.getElementById('fs-shuffle-btn');
-            if (isShuffle) {
-                btn.classList.add('text-accent-cherry');
-                btn.classList.remove('text-gray-500');
-                if(playbackQueue.length > 1) {
-                    const remaining = playbackQueue.slice(currentQueueIndex + 1).sort(() => 0.5 - Math.random());
-                    playbackQueue = [...playbackQueue.slice(0, currentQueueIndex + 1), ...remaining];
-                }
-            } else {
-                btn.classList.remove('text-accent-cherry');
-                btn.classList.add('text-gray-500');
-            }
-        }
-
-        function toggleRepeat() {
-            repeatMode = (repeatMode + 1) % 3;
-            const btn = document.getElementById('fs-repeat-btn');
-            const badge = document.getElementById('repeat-badge');
-            
-            btn.classList.remove('text-accent-cherry', 'text-gray-500');
-            badge.classList.add('hidden');
-
-            if (repeatMode === 0) { 
-                btn.classList.add('text-gray-500');
-            } else if (repeatMode === 1) { 
-                btn.classList.add('text-accent-cherry');
-            } else if (repeatMode === 2) { 
-                btn.classList.add('text-accent-cherry');
-                badge.classList.remove('hidden');
-            }
-        }
-
-        function startSongFromLyrics() {
-            document.getElementById('start-lyrics-btn').classList.add('hidden');
-            isLyricsEditing = false; 
-            updateLyricsView();
-            initiateTrackAudio();
-        }
-
-        function initiateTrackAudio() {
-            if(!currentTrack) return;
-            if(currentTrack.previewUrl) startPlayback(currentTrack.previewUrl);
-            else {
-                confirmModal('Preview Unavailable', `Spotify does not provide a preview for "${currentTrack.name}".<br><br>Play a local MP3?`,
-                    () => document.getElementById('mp3-upload').click(),
-                    () => {},
-                    "Upload MP3", "Cancel"
-                );
-            }
-        }
-
-        // --- LINK VIDEO LOGIC ---
-        function linkArtistVideo(artistId, popularity) {
-            let url = prompt("Enter YouTube URL for the music video:");
-            if(!url) return;
-            let title = prompt("Enter a title for this video:") || "Music Video";
-            
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-            const match = url.match(regExp);
-            if (match && match[2].length === 11) {
-                const videoId = match[2];
-                // Smart Views Calculation
-                const pop = popularity || 50;
-                let minView = 10000;
-                let maxView = 500000;
-                if(pop > 80) { minView = 10000000; maxView = 100000000; } 
-                else if(pop > 50) { minView = 1000000; maxView = 20000000; } 
-                const viewsRaw = Math.floor(Math.random() * (maxView - minView) + minView);
-                const viewsStr = formatNumber(viewsRaw) + ' views';
-
-                let videos = [];
-                try { videos = JSON.parse(localStorage.getItem(`videos_${artistId}`) || '[]'); } catch(e) {}
-                videos.push({ id: videoId, title: title, views: viewsStr });
-                try { localStorage.setItem(`videos_${artistId}`, JSON.stringify(videos)); } catch(e) {}
-                fetchArtistDetails(artistId); 
-            } else {
-                alert("Invalid YouTube URL");
-            }
-        }
-
-        let isVideoPlaying = false;
-        let videoOverlayTimeout;
-        let currentVideoId = null;
-
-        function playVideo(videoObj) {
-            currentVideoId = videoObj.id;
-            const modal = document.getElementById('video-modal');
-            const container = document.getElementById('yt-player-container');
-            container.innerHTML = `<iframe id="yt-iframe" src="https://www.youtube.com/embed/${videoObj.id}?autoplay=1&controls=0&modestbranding=1&rel=0&enablejsapi=1" class="w-full h-full object-cover" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-            document.getElementById('vid-title').textContent = videoObj.title;
-            document.getElementById('vid-stats').textContent = videoObj.views;
-            
-            const likeBtn = document.getElementById('vid-like-btn');
-            if(likedVideos.has(currentVideoId)) likeBtn.classList.add('video-like-active');
-            else likeBtn.classList.remove('video-like-active');
-
-            modal.classList.remove('hidden');
-            isVideoPlaying = true;
-            if(isPlaying) { audio.pause(); isPlaying = false; updateMiniPlayer(); }
-            toggleVideoControls(true);
-        }
-        function closeVideoPlayer() {
-            document.getElementById('video-modal').classList.add('hidden');
-            document.getElementById('yt-player-container').innerHTML = '';
-            isVideoPlaying = false;
-            currentVideoId = null;
-        }
-        function toggleVideoControls(forceShow = false) {
-            const ui = document.getElementById('video-ui');
-            ui.classList.add('visible');
-            clearTimeout(videoOverlayTimeout);
-            videoOverlayTimeout = setTimeout(() => { if(isVideoPlaying) ui.classList.remove('visible'); }, 2500);
-        }
-        function toggleVideoPlay() {
-            const iframe = document.getElementById('yt-iframe');
-            if(!iframe) return;
-            if(isVideoPlaying) {
-                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                document.getElementById('vid-play-btn').innerHTML = '<i data-lucide="play" class="w-8 h-8 fill-white text-white ml-1"></i>';
-                isVideoPlaying = false;
-                document.getElementById('video-ui').classList.add('visible'); 
-                clearTimeout(videoOverlayTimeout);
-            } else {
-                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                document.getElementById('vid-play-btn').innerHTML = '<i data-lucide="pause" class="w-8 h-8 fill-white text-white"></i>';
-                isVideoPlaying = true;
-                toggleVideoControls();
-            }
-            renderIcons();
-        }
-        
-        function toggleVideoLike() {
-            if(!currentVideoId) return;
-            const btn = document.getElementById('vid-like-btn');
-            if(likedVideos.has(currentVideoId)) {
-                likedVideos.delete(currentVideoId);
-                btn.classList.remove('video-like-active');
-            } else {
-                likedVideos.add(currentVideoId);
-                btn.classList.add('video-like-active');
-            }
-            try { localStorage.setItem('peyza_liked_videos', JSON.stringify([...likedVideos])); } catch(e) {}
-        }
-
-        // --- NAVIGATION & VIEWS ---
-        function navigateTo(view, id = null) {
-            updateSidebarActiveState(view);
-            const content = document.getElementById('dynamic-content');
-            // Removed refresh indicator as per request
-            const searchContainer = document.getElementById('search-bar-container');
-            
-            if(view === 'search' || view === 'home') searchContainer?.classList.remove('opacity-0', 'pointer-events-none');
-            else searchContainer?.classList.add('opacity-0', 'pointer-events-none');
-
-            content.innerHTML = '<div class="flex justify-center pt-32"><div class="animate-spin w-8 h-8 border-2 border-accent-cherry border-t-transparent rounded-full"></div></div>';
-            
-            setTimeout(() => {
-                switch(view) {
-                    case 'home': renderHome(); break;
-                    case 'search': renderSearch(); break;
-                    case 'library': renderLibrary(); break;
-                    case 'liked': renderLiked(); break;
-                    case 'updates': renderUpdates(); break;
-                    case 'artist': fetchArtistDetails(id); break;
-                    case 'album': fetchAlbumDetails(id); break;
-                    case 'show': fetchShowDetails(id); break;
-                    case 'station': renderStation(id); break;
-                }
-            }, 50); // Faster navigation without fake load time
-        }
-
-        function updateSidebarActiveState(view) {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const map = { 'home': ['nav-home', 'mob-nav-home'], 'search': ['nav-search', 'mob-nav-search'], 'library': ['nav-library', 'mob-nav-library'], 'liked': ['nav-liked'], 'updates': ['nav-updates', 'mob-nav-updates'] };
-            (map[view] || []).forEach(id => document.getElementById(id)?.classList.add('active'));
-        }
-
-        async function fetchArtistDetails(artistId) {
-            if (!artistId) return;
-            const token = await getSpotifyToken();
-            if(!token) {
-                 document.getElementById('dynamic-content').innerHTML = '<div class="text-center p-10 text-gray-500">Connection failed. Please try again.</div>';
-                 return;
-            }
-            try {
-                const results = await Promise.allSettled([
-                    fetch(`${API_URL}/artists/${artistId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch(`${API_URL}/artists/${artistId}/top-tracks?market=US`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch(`${API_URL}/artists/${artistId}/albums?include_groups=album,single&limit=15`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch(`${API_URL}/artists/${artistId}/related-artists`, { headers: { 'Authorization': `Bearer ${token}` } })
-                ]);
-                const artistRes = results[0];
-                if (artistRes.status === 'rejected' || !artistRes.value.ok) throw new Error('Artist not found');
-                const artist = await artistRes.value.json();
-                const getJson = async (res) => (res.status === 'fulfilled' && res.value.ok) ? await res.value.json() : null;
-                const tracksData = await getJson(results[1]) || { tracks: [] };
-                const albumsData = await getJson(results[2]) || { items: [] };
-                const relatedData = await getJson(results[3]) || { artists: [] };
-                let relatedArtists = relatedData.artists || [];
-                const tracks = tracksData.tracks || [];
-                const albums = albumsData.items || [];
-                const topTracks = tracks.map(t => ({ ...t, stats: generateStats(t.popularity, t.id), imageUrl: t.album.images[0]?.url, durationFormatted: formatTime(t.duration_ms / 1000) }));
-                const popularSongs = topTracks.slice(0, 10);
-                const uniqueAlbums = [];
-                const map = new Map();
-                for (const item of albums) { if(!map.has(item.name)) { map.set(item.name, true); uniqueAlbums.push(item); } }
-                const savedVideos = JSON.parse(localStorage.getItem(`videos_${artistId}`) || '[]');
-                const followersStr = generateFollowers(artist.popularity, artist.id);
+                <h1 class="text-4xl font-bold mb-2 tracking-tight text-white">Peyza X2</h1>
+                <p class="text-zinc-400 mb-8">Next Generation AI Platform</p>
                 
-                // Featured Radio List
-                const radios = [
-                    { name: `${artist.name} Radio`, type: 'Artist Radio' },
-                    { name: 'Peyza Hits', type: 'Peyza Radio' },
-                    { name: 'Cherry Mix', type: 'Peyza Radio' }
-                ];
-                if(artist.genres && artist.genres.length > 0) {
-                    radios.splice(1, 0, { name: `${artist.genres[0]} Station`, type: 'Genre Radio' });
-                }
+                <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+                    <input type="text" id="username" placeholder="Username" required class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder-zinc-500">
+                    <input type="password" id="password" placeholder="Password" required class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder-zinc-500">
+                    <button type="submit" class="w-full bg-white text-black font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform shadow-lg">
+                        Enter Experience
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                document.getElementById('dynamic-content').innerHTML = `
-                    <div class="relative w-full h-80 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-2xl animate-fade-in group stagger-item"><img src="${artist.images[0]?.url || 'https://placehold.co/1000x400'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700"><div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 flex flex-col justify-end p-6 md:p-10"><h1 class="text-4xl md:text-6xl font-extrabold mb-2 tracking-tight">${artist.name}</h1><p class="text-white/80 font-medium text-lg uppercase tracking-widest text-xs">${followersStr}</p></div></div>
-                    <div class="mb-10 animate-slide-up-stagger stagger-item"><h2 class="text-2xl font-bold mb-4 flex items-center">Popular <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2><div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">${popularSongs.map((t) => `<div class="snap-center shrink-0 w-[280px] md:w-[320px] bg-[#1c1c1e] p-3 rounded-xl hover:bg-white/5 cursor-pointer group transition border border-white/5" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t)).replace(/'/g, "")}, ${JSON.stringify(popularSongs.map(pt => mapSpotifyTrack(pt))).replace(/'/g, "")}, ${popularSongs.indexOf(t)})'><div class="flex items-center"><div class="relative w-16 h-16 mr-3"><img src="${t.imageUrl}" class="w-full h-full rounded-md object-cover shadow-sm"><div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-md"><i data-lucide="play" class="w-6 h-6 fill-white text-white"></i></div></div><div class="min-w-0 flex-1"><p class="font-bold text-white truncate text-sm mb-1">${t.name}</p><p class="text-xs text-gray-400 font-mono">${t.stats.streams} plays</p></div></div></div>`).join('')}</div></div>
-                    <div class="animate-slide-up-stagger stagger-item mb-10"><h2 class="text-2xl font-bold mb-4 flex items-center">Releases <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2><div class="flex overflow-x-auto space-x-6 pb-6 no-scrollbar snap-x-mandatory">${uniqueAlbums.map(album => `<div class="snap-center shrink-0 w-40 md:w-48 group cursor-pointer" onclick="navigateTo('album', '${album.id}')"><div class="w-full aspect-square mb-3 relative overflow-hidden rounded-lg shadow-lg"><img src="${album.images[0]?.url || 'https://placehold.co/200x200'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500"></div><p class="font-bold text-sm truncate text-white mb-1 group-hover:text-accent-cherry transition">${album.name}</p><p class="text-xs text-gray-400 truncate">${album.release_date.split('-')[0]} • ${album.album_type}</p><p class="text-[10px] text-gray-500 truncate mt-0.5">Feat. ${album.artists.slice(0,2).map(a=>a.name).join(', ')}</p></div>`).join('')}</div></div>
+    <!-- Main Application -->
+    <div id="app-screen" class="flex h-screen hidden bg-background">
+        
+        <!-- Sidebar Navigation -->
+        <div class="w-[80px] md:w-[280px] flex flex-col border-r border-white/5 bg-surface h-full transition-all duration-300 z-20" id="sidebar">
+            <!-- Brand -->
+            <div class="p-5 flex items-center gap-3 border-b border-white/5">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center shrink-0">
+                    <i class="fas fa-atom text-white text-xs"></i>
+                </div>
+                <span class="font-bold text-lg hidden md:block tracking-tight">Peyza X2</span>
+            </div>
+
+            <!-- Nav Links -->
+            <div class="p-3 space-y-1">
+                <button onclick="setView('characters')" id="nav-chars" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-left">
+                    <i class="fas fa-layer-group w-5 text-center"></i>
+                    <span class="hidden md:block font-medium">Characters</span>
+                </button>
+                <button onclick="createNewChat(null)" id="nav-chat" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-left">
+                    <i class="fas fa-plus w-5 text-center"></i>
+                    <span class="hidden md:block font-medium">New Chat</span>
+                </button>
+            </div>
+
+            <!-- Chat History Label -->
+            <div class="px-5 pt-4 pb-2 hidden md:block">
+                <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">History</span>
+            </div>
+
+            <!-- Chat History List -->
+            <div class="flex-1 overflow-y-auto px-3 space-y-1 custom-scrollbar" id="chat-history">
+                <!-- History Items Injected JS -->
+            </div>
+
+            <!-- User Footer -->
+            <div class="p-4 border-t border-white/5">
+                <div class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-xl transition-colors" onclick="openSettings()">
+                    <div class="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold" id="user-avatar">U</div>
+                    <div class="hidden md:block overflow-hidden">
+                        <div class="text-sm font-medium truncate" id="user-name-display">User</div>
+                        <div class="text-xs text-zinc-500" id="status-display">Free Account</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col relative h-full overflow-hidden bg-background">
+            
+            <!-- Mobile Header -->
+            <div class="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-surface/80 backdrop-blur-md z-30 absolute top-0 w-full">
+                <div class="font-bold text-lg flex items-center gap-2">
+                    <span class="text-primary">X2</span> AI
+                </div>
+                <button onclick="toggleMobileMenu()" class="text-zinc-300"><i class="fas fa-bars text-xl"></i></button>
+            </div>
+
+            <!-- View: Character Hub (Grid) -->
+            <div id="view-characters" class="flex-1 overflow-y-auto p-6 md:p-10 pt-20 md:pt-10 scroll-smooth">
+                <div class="max-w-7xl mx-auto animate-fade-in">
+                    <div class="flex justify-between items-end mb-8">
+                        <div>
+                            <h2 class="text-3xl font-bold text-white mb-2">Discover Characters</h2>
+                            <p class="text-zinc-400">Chat with verified Peyza X2 personalities.</p>
+                        </div>
+                        <button onclick="openCreateCharacter()" class="hidden md:flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
+                            <i class="fas fa-plus"></i> Create Custom
+                        </button>
+                    </div>
+
+                    <!-- Characters Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="characters-grid">
+                        <!-- Filled by JS -->
+                    </div>
                     
-                    <!-- Featured Radio Section -->
-                    <div class="animate-slide-up-stagger stagger-item mb-10">
-                        <h2 class="text-2xl font-bold mb-4 flex items-center">Featured Radio <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2>
-                        <div class="flex overflow-x-auto space-x-6 pb-6 no-scrollbar snap-x-mandatory">
-                            ${radios.map((r, i) => `
-                                <div class="snap-center shrink-0 w-40 md:w-48 aspect-square relative rounded-xl overflow-hidden cursor-pointer hover:scale-105 transition shadow-lg group active-click" style="background: linear-gradient(135deg, hsl(${i*90}, 60%, 20%), hsl(${i*90}, 60%, 40%))" onclick="tuneInStation('${r.name}')">
-                                    <div class="absolute top-2 right-2 bg-red-600 px-2 py-0.5 rounded text-[10px] font-bold flex items-center shadow-md animate-pulse">
-                                        <div class="w-1.5 h-1.5 bg-white rounded-full mr-1.5"></div> LIVE
-                                    </div>
-                                    <div class="absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                        <i data-lucide="radio" class="w-8 h-8 text-white mb-2 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition"></i>
-                                        <span class="font-bold text-lg leading-tight">${r.name}</span>
-                                        <span class="text-xs text-gray-300 font-mono mt-1">${r.type}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <div class="animate-slide-up-stagger stagger-item mb-10"><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold flex items-center">Videos <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2><button onclick="linkArtistVideo('${artistId}', ${artist.popularity})" class="text-xs font-bold text-accent-cherry border border-accent-cherry px-3 py-1 rounded-full hover:bg-accent-cherry hover:text-white transition active-click">Link Video</button></div><div class="flex overflow-x-auto space-x-6 pb-6 no-scrollbar snap-x-mandatory"><div class="snap-center shrink-0 w-60 md:w-72 aspect-video bg-[#1c1c1e] rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 border border-white/5 border-dashed active-click" onclick="linkArtistVideo('${artistId}', ${artist.popularity})"><i data-lucide="plus" class="w-8 h-8 text-gray-500 mb-2"></i><span class="text-xs text-gray-500 font-bold">Link YouTube Video</span></div>${savedVideos.map(vid => `<div class="snap-center shrink-0 w-60 md:w-72 group cursor-pointer" onclick='playVideo(${JSON.stringify(vid).replace(/'/g, "")})'><div class="w-full aspect-video mb-3 relative overflow-hidden rounded-xl shadow-lg"><img src="https://img.youtube.com/vi/${vid.id}/hqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100"><div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-transparent transition"><div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"><i data-lucide="play" class="w-5 h-5 fill-white text-white ml-1"></i></div></div><div class="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded text-[10px] font-bold">HD</div></div><p class="font-bold text-sm truncate text-white mb-1 group-hover:text-accent-cherry transition">${vid.title}</p><p class="text-xs text-gray-400 truncate">Music Video • ${vid.views}</p></div>`).join('')}</div></div>
-                     <div class="animate-slide-up-stagger stagger-item mb-10"><h2 class="text-2xl font-bold mb-4 flex items-center">Fans Also Like <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 ml-1"></i></h2><div class="flex overflow-x-auto space-x-6 pb-6 no-scrollbar snap-x-mandatory">${relatedArtists.map(a => `<div class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center cursor-pointer group" onclick="navigateTo('artist', '${a.id}')"><img src="${a.images[0]?.url || 'https://placehold.co/150x150'}" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-lg mb-2 group-hover:scale-105 transition border-2 border-transparent group-hover:border-accent-cherry"><p class="font-semibold text-center text-sm truncate w-full">${a.name}</p><p class="text-xs text-gray-500">Artist</p></div>`).join('')}</div></div>
-                `;
-                renderIcons();
-            } catch(e) { console.error(e); document.getElementById('dynamic-content').innerHTML = '<div class="text-center p-10"><p class="text-white text-xl">Artist unavailable</p><p class="text-gray-500 text-sm mt-2">Could not load artist details.</p></div>'; }
-        }
-
-        async function fetchAlbumDetails(albumId) { 
-            if (!albumId) return;
-             const token = await getSpotifyToken();
-            if(!token) return;
-            try {
-                const res = await fetch(`${API_URL}/albums/${albumId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const album = await res.json();
-                let totalStreams = 0; let totalLikes = 0;
-                const tracksWithStats = album.tracks.items.map(t => { 
-                    const s = generateStats(t.popularity || album.popularity || 40, t.id); 
-                    totalStreams += s.streamsRaw; 
-                    totalLikes += s.likesRaw; 
-                    return { ...t, stats: s }; 
-                });
-                document.getElementById('dynamic-content').innerHTML = `
-                    <div class="flex flex-col md:flex-row gap-8 mb-10 animate-fade-in items-center md:items-end"><div class="w-64 h-64 md:w-72 md:h-72 shrink-0 shadow-2xl rounded-lg relative group"><img src="${album.images[0]?.url || 'https://placehold.co/300x300'}" class="w-full h-full object-cover rounded-lg art-shadow"></div><div class="text-center md:text-left flex-1"><h4 class="text-xs font-bold tracking-widest text-accent-cherry uppercase mb-2">${album.album_type}</h4><h1 class="text-3xl md:text-5xl font-bold mb-2 leading-tight">${album.name}</h1><p class="text-xl text-white font-medium mb-3 cursor-pointer hover:underline" onclick="navigateTo('artist', '${album.artists[0].id}')">${album.artists[0].name}</p><p class="text-sm text-gray-400 font-bold mb-4">${album.release_date.split('-')[0]} • ${album.total_tracks} Songs • <span class="text-gray-300">${formatNumber(totalStreams)} Streams</span> • <span class="text-liked-red">${formatNumber(totalLikes)} Likes</span></p><div class="mt-4 flex items-center justify-center md:justify-start gap-4"><button class="bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center active-click" onclick='playCollection(${JSON.stringify(album.tracks.items.map(t => mapSpotifyTrack(t, album.images[0]?.url))).replace(/'/g, "")})'><i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play</button><button class="w-10 h-10 rounded-full border border-gray-500 flex items-center justify-center hover:bg-white/10 transition active-click"><i data-lucide="plus" class="w-5 h-5"></i></button></div></div></div>
-                    <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg animate-slide-up-stagger">${tracksWithStats.map((t, i) => `<div class="stagger-item flex items-center p-4 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer group" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(t, album.images[0]?.url)).replace(/'/g, "")}, ${JSON.stringify(tracksWithStats.map(tk => mapSpotifyTrack(tk, album.images[0]?.url))).replace(/'/g, "")}, ${i})'><span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span><div class="flex-1 min-w-0 ml-4"><p class="font-medium text-white truncate">${t.name}</p><p class="text-xs text-gray-500 truncate">${t.artists.map(a => a.name).join(', ')}</p></div><div class="hidden md:block text-xs text-gray-500 font-mono mr-6">${t.stats.streams}</div><span class="text-xs text-gray-500 font-mono">${formatTime(t.duration_ms/1000)}</span></div>`).join('')}</div>
-                `;
-                renderIcons();
-            } catch(e) { console.error(e); }
-        }
-        
-        async function fetchShowDetails(showId) {
-            if (!showId) return;
-             const token = await getSpotifyToken();
-            if(!token) return;
-            try {
-                const res = await fetch(`${API_URL}/shows/${showId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const show = await res.json();
-                
-                const followersStr = generateFollowers(50, show.id); 
-                
-                const episodesWithStats = show.episodes.items.map(ep => {
-                    const s = generateStats(50, ep.id);
-                    return { ...ep, stats: s };
-                });
-                const queue = episodesWithStats.map(ep => mapSpotifyTrack(ep, show.images[0]?.url));
-
-                document.getElementById('dynamic-content').innerHTML = `
-                    <div class="flex flex-col md:flex-row gap-8 mb-10 animate-fade-in items-center md:items-end"><div class="w-64 h-64 md:w-72 md:h-72 shrink-0 shadow-2xl rounded-lg relative group"><img src="${show.images[0]?.url || 'https://placehold.co/300x300'}" class="w-full h-full object-cover rounded-lg art-shadow"></div><div class="text-center md:text-left flex-1"><h4 class="text-xs font-bold tracking-widest text-accent-cherry uppercase mb-2">Podcast</h4><h1 class="text-3xl md:text-5xl font-bold mb-2 leading-tight">${show.name}</h1><p class="text-xl text-white font-medium mb-3">${show.publisher}</p><p class="text-sm text-gray-400 font-bold mb-4">${show.total_episodes} Episodes • <span class="text-liked-red">${followersStr}</span></p><div class="mt-4 flex items-center justify-center md:justify-start gap-4"><button class="bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center active-click" onclick='playCollection(${JSON.stringify(queue).replace(/'/g, "")})'><i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play Latest</button></div></div></div>
-                    <div class="bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-lg animate-slide-up-stagger"><h3 class="p-6 text-xl font-bold">Recent Episodes</h3>${episodesWithStats.map((ep, i) => `<div class="stagger-item flex items-center p-4 hover:bg-white/5 border-b border-white/5 last:border-0 cursor-pointer group" onclick='playTrack(${JSON.stringify(mapSpotifyTrack(ep, show.images[0]?.url)).replace(/'/g, "")}, ${JSON.stringify(queue).replace(/'/g, "")}, ${i})'><div class="relative w-16 h-16 mr-4 shrink-0"><img src="${ep.images[0]?.url || show.images[0]?.url}" class="w-full h-full rounded-md object-cover"><div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-md"><i data-lucide="play" class="w-6 h-6 fill-white text-white"></i></div></div><div class="flex-1 min-w-0"><p class="font-medium text-white line-clamp-1">${ep.name}</p><p class="text-xs text-gray-400 line-clamp-2 mt-1">${ep.description}</p></div><div class="hidden md:block text-xs text-gray-500 font-mono mr-6 shrink-0">${ep.stats.streams} plays</div><span class="text-xs text-gray-500 font-mono shrink-0">${formatTime(ep.duration_ms/1000)}</span></div>`).join('')}</div>
-                `;
-                renderIcons();
-            } catch(e) { console.error(e); document.getElementById('dynamic-content').innerHTML = '<div class="text-center p-10"><p class="text-white text-xl">Show unavailable</p></div>'; }
-        }
-
-        // --- NEW STATION PAGE ---
-        async function renderStation(stationName) {
-            const rand = getDeterministicRandom(stationName);
-            const pals = Math.floor(rand * (15000 - 500) + 500);
-            const coverColor = `hsl(${Math.random()*360}, 60%, 30%)`; 
-            
-            document.getElementById('dynamic-content').innerHTML = `
-                <div class="animate-fade-in flex flex-col items-center justify-center pt-10 min-h-[50vh]">
-                    <div class="w-64 h-64 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(255,45,85,0.4)] animate-pulse-slow mb-8 art-breathe" style="background: ${coverColor}">
-                        <i data-lucide="radio" class="w-32 h-32 text-white"></i>
-                    </div>
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="bg-red-600 px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase animate-pulse">Live</span>
-                        <span class="text-gray-400 text-sm font-mono">${pals.toLocaleString()} Pals Listening</span>
-                    </div>
-                    <h1 class="text-5xl md:text-7xl font-bold text-white mb-8 text-center tracking-tight">${stationName}</h1>
-                    <button class="bg-white text-black px-12 py-4 rounded-full font-bold text-lg shadow-xl hover:scale-105 transition active-click flex items-center gap-2" onclick="tuneInStation('${stationName}')">
-                        <i data-lucide="play" class="w-6 h-6 fill-black"></i> Tune In
+                    <!-- Mobile Create Button -->
+                    <button onclick="openCreateCharacter()" class="md:hidden w-full mt-6 bg-white text-black px-4 py-3 rounded-xl font-bold shadow-lg">
+                        <i class="fas fa-plus mr-2"></i> Create Your Own
                     </button>
-                    <p class="text-gray-500 mt-6 text-sm">Curated mix • Non-stop music</p>
                 </div>
-            `;
-            renderIcons();
-        }
+            </div>
 
-        async function tuneInStation(name) {
-            const token = await getSpotifyToken();
-            if(token) {
-                try {
-                    // Fetch tracks to simulate radio queue
-                    const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(name)}&type=track&limit=20`, { headers: { 'Authorization': `Bearer ${token}` } });
-                    const data = await res.json();
-                    if(data.tracks && data.tracks.items.length > 0) {
-                        const queue = data.tracks.items.map(t => mapSpotifyTrack(t));
-                        queue.sort(() => 0.5 - Math.random());
-                        
-                        // Start playback with special radio context
-                        currentTrack = queue[0];
-                        if(!currentTrack.stats) currentTrack.stats = generateStats(50, currentTrack.id);
-                        
-                         confirmModal(
-                            'Station Tuned', 
-                            `You are listening to <b>${name}</b>.<br><br>Up next: "${currentTrack.name}". Upload MP3 to start?`,
-                            () => {
-                                document.getElementById('mp3-upload').click();
-                                // Set queue context
-                                playbackQueue = queue;
-                                currentQueueIndex = 0;
-                            },
-                            () => {},
-                            "Upload MP3", "Cancel"
-                        );
-                    } else {
-                        alert("Station offline.");
-                    }
-                } catch(e) { console.error(e); }
-            }
-        }
-
-        async function renderHome() {
-            const token = await getSpotifyToken();
-            let artistHtml = '';
-            if (token) {
-                try {
-                    const ids = ['3TVXtAsR1Inumwj472S9r4', '6eUKZXaKkcviH0Ku9w2n3V', '1uNFoZAHBGtllmzznpCI3s', '66CXWjxzNUsdJxJ2JdwvnR', '06HL4z0CvFAsei53GiRh0X']; 
-                    const res = await fetch(`${API_URL}/artists?ids=${ids.join(',')}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                    const data = await res.json();
-                    artistHtml = data.artists.map(a => `
-                        <div class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center cursor-pointer group stagger-item" onclick="navigateTo('artist', '${a.id}')">
-                            <img src="${a.images[0]?.url}" class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shadow-lg mb-2 group-hover:scale-105 transition border-2 border-transparent group-hover:border-accent-cherry">
-                            <p class="font-semibold text-center text-sm truncate w-full">${a.name}</p>
-                        </div>
-                    `).join('');
-                } catch(e) {}
-            }
-
-            document.getElementById('dynamic-content').innerHTML = `
-                <div class="animate-fade-in space-y-10">
-                    <section>
-                        <h2 class="text-3xl font-bold mb-6">Stationhead</h2>
-                        <div class="flex overflow-x-auto space-x-4 pb-4 no-scrollbar snap-x-mandatory">
-                            ${['Chill Lo-Fi', 'Top 40 Hits', 'Late Night Drive', 'Workout Energy', 'Focus Flow'].map((name, i) => {
-                                const rand = getDeterministicRandom(name);
-                                const pals = Math.floor(rand * (15000 - 500) + 500);
-                                return `
-                                <div class="stagger-item snap-center shrink-0 w-40 md:w-48 aspect-square relative rounded-xl overflow-hidden cursor-pointer hover:scale-105 transition shadow-lg group active-click" style="background: linear-gradient(135deg, hsl(${i*60}, 60%, 20%), hsl(${i*60}, 60%, 40%))" onclick="navigateTo('station', '${name}')">
-                                    <div class="absolute top-2 right-2 bg-red-600 px-2 py-0.5 rounded text-[10px] font-bold flex items-center shadow-md animate-pulse">
-                                        <div class="w-1.5 h-1.5 bg-white rounded-full mr-1.5"></div> LIVE
-                                    </div>
-                                    <div class="absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                        <i data-lucide="radio" class="w-8 h-8 text-white mb-2 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition"></i>
-                                        <span class="font-bold text-lg leading-tight">${name}</span>
-                                        <span class="text-xs text-gray-300 font-mono mt-1">${pals.toLocaleString()} Pals</span>
-                                    </div>
-                                </div>
-                            `}).join('')}
-                        </div>
-                    </section>
-
-                    <section>
-                        <h2 class="text-3xl font-bold mb-6">Artists We Love</h2>
-                        <div class="flex overflow-x-auto space-x-6 pb-4 no-scrollbar snap-x-mandatory">
-                            ${artistHtml || '<p class="text-gray-500">Connect to internet to see artists.</p>'}
-                        </div>
-                    </section>
-
-                    <section>
-                        <h2 class="text-3xl font-bold mb-6">Quick Links</h2>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-[#1c1c1e] p-4 rounded-xl cursor-pointer hover:bg-white/10 transition active-click shadow-lg flex flex-col items-center justify-center h-32 stagger-item" onclick="navigateTo('liked')"><i data-lucide="heart" class="w-8 h-8 text-liked-red mb-2"></i><span class="font-bold">Liked Songs</span></div>
-                            <div class="bg-[#1c1c1e] p-4 rounded-xl cursor-pointer hover:bg-white/10 transition active-click shadow-lg flex flex-col items-center justify-center h-32 stagger-item" onclick="createPlaylistPrompt()"><i data-lucide="plus" class="w-8 h-8 text-white mb-2"></i><span class="font-bold">New Playlist</span></div>
-                        </div>
-                    </section>
-                </div>
-            `;
-            renderIcons();
-        }
-
-        function renderUpdates() {
-             document.getElementById('dynamic-content').innerHTML = `<div class="max-w-2xl mx-auto pt-4 animate-fade-in"><h1 class="text-3xl font-bold mb-8 flex items-center gap-3"><i data-lucide="sparkles" class="text-accent-cherry w-8 h-8"></i> What's New</h1><div class="space-y-12 relative border-l border-white/10 ml-3 pl-8 pb-10"><div class="relative"><span class="absolute -left-[39px] top-1 h-5 w-5 rounded-full bg-accent-cherry border-4 border-[#000]"></span><h3 class="text-xl font-bold text-white">Animations & Stations</h3><p class="text-sm text-accent-cherry mb-3 font-mono">Version 2.5</p><ul class="list-disc list-inside text-gray-300 text-sm space-y-2 leading-relaxed"><li><strong>Station Pages:</strong> Dedicated views for live radios with listener counts.</li><li><strong>Smooth Animations:</strong> New scrolling entries, button presses, and sidebar effects.</li><li><strong>Enhanced Playback:</strong> Smart MP3 prompts for radio streams.</li></ul></div></div></div>`;
-             renderIcons();
-        }
-
-        function renderLibrary() { renderHome(); }
-        function renderLiked() { document.getElementById('dynamic-content').innerHTML = `<div class="text-center mt-20 text-gray-500">Liked songs will appear here.</div>`; }
-
-        function renderPlaylist(index) {
-            const playlists = JSON.parse(localStorage.getItem('peyza_playlists') || '[]');
-            const playlist = playlists[index];
-            if (!playlist) return;
-            const content = document.getElementById('dynamic-content');
-            content.innerHTML = `<div class="animate-fade-in"><div class="flex flex-col md:flex-row gap-8 mb-8 items-center md:items-end"><div class="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-gray-800 to-black rounded-lg shadow-2xl flex items-center justify-center"><i data-lucide="music" class="w-20 h-20 text-gray-600"></i></div><div class="text-center md:text-left"><p class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-1">Playlist</p><h1 class="text-4xl md:text-6xl font-bold mb-4">${playlist.name}</h1><p class="text-gray-400 text-sm font-bold">${playlist.tracks.length} Songs</p><button class="mt-6 bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center mx-auto md:mx-0 active-click" onclick="playCollection(${JSON.stringify(playlist.tracks).replace(/'/g, "")})"><i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play</button></div></div><div class="bg-[#1c1c1e] rounded-xl overflow-hidden shadow-lg animate-slide-up-stagger">${playlist.tracks.length === 0 ? '<div class="p-8 text-center text-gray-500">No songs added yet.</div>' : ''}${playlist.tracks.map((t, i) => `<div class="stagger-item flex items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0 group"><div class="flex-1 flex items-center cursor-pointer" onclick='playTrack(${JSON.stringify(t).replace(/'/g, "")})'><span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span><img src="${t.imageUrl}" class="w-10 h-10 rounded mr-3 bg-card-dark"><div class="min-w-0"><p class="font-semibold text-white truncate text-sm">${t.name}</p><p class="text-xs text-gray-500 truncate">${t.artists[0].name}</p></div></div><button onclick="removeFromPlaylist(${index}, ${i})" class="p-2 text-gray-500 hover:text-red-500 transition opacity-0 group-hover:opacity-100 active-click"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`).join('')}</div></div>`;
-            renderIcons();
-        }
-
-        // --- MISSING UI FUNCTIONS ---
-        function toggleFullscreenPlayer(show) {
-            const player = document.getElementById('fullscreen-player');
-            const mini = document.getElementById('mini-player');
-            if(show) {
-                player.classList.add('active');
-                mini.style.transform = "translateY(100%)";
-                updateFullscreenVisuals();
-            } else {
-                player.classList.remove('active');
-                mini.style.transform = "translateY(0)";
-            }
-        }
-
-        function toggleImmersiveMode() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => console.log(e));
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
-
-        function toggleView(viewName) {
-            const art = document.getElementById('art-container');
-            const lyrics = document.getElementById('lyrics-container');
-            const recs = document.getElementById('recs-container');
-            const lyricsBtn = document.getElementById('lyrics-btn');
-            const recsBtn = document.getElementById('recs-btn');
-
-            // Reset
-            art.classList.add('hidden');
-            lyrics.classList.add('hidden');
-            recs.classList.add('hidden');
-            lyricsBtn.classList.remove('text-accent-cherry');
-            recsBtn.classList.remove('text-accent-cherry');
-
-            // Toggle logic
-            if (activeView === viewName && viewName !== 'art') {
-                activeView = 'art';
-            } else {
-                activeView = viewName;
-            }
-
-            if(activeView === 'art') {
-                art.classList.remove('hidden');
-            } else if (activeView === 'lyrics') {
-                lyrics.classList.remove('hidden');
-                lyricsBtn.classList.add('text-accent-cherry');
-                // Initialize lyrics state
-                if(currentTrack) {
-                    const saved = localStorage.getItem(`lyrics_${currentTrack.id}`);
-                    document.getElementById('lyrics-text').value = saved || '';
-                    // Assuming we want to show view mode if lyrics exist and we aren't editing
-                    if(saved && !isLyricsEditing) updateLyricsView();
-                }
-            } else if (activeView === 'recs') {
-                recs.classList.remove('hidden');
-                recsBtn.classList.add('text-accent-cherry');
-                loadRecommendations();
-            }
-        }
-
-        function toggleLyricsEdit() {
-            const display = document.getElementById('lyrics-display');
-            const input = document.getElementById('lyrics-text');
-            // If currently viewing (input hidden), switch to edit (input shown)
-            if(input.classList.contains('hidden')) {
-                input.classList.remove('hidden');
-                display.classList.add('hidden');
-                isLyricsEditing = true;
-            } else {
-                // Currently editing, switch to view
-                updateLyricsView();
-            }
-        }
-        
-        function updateLyricsView() {
-            const text = document.getElementById('lyrics-text').value;
-            const display = document.getElementById('lyrics-display');
-            const input = document.getElementById('lyrics-text');
-            
-            if(!text) return; // Stay in edit mode if empty
-
-            input.classList.add('hidden');
-            display.classList.remove('hidden');
-            isLyricsEditing = false;
-
-            // Generate HTML lines
-            const lines = text.split('\n').filter(l => l.trim() !== '');
-            display.innerHTML = lines.map((line, i) => `<div class="lyric-line" id="line-${i}">${line}</div>`).join('');
-        }
-
-        function castToTv() {
-             confirmModal('Connect to Device', 
-                '<div class="flex flex-col items-center py-4 space-y-4"><i data-lucide="tv" class="w-12 h-12 text-white mb-2"></i><p class="text-center">Looking for devices...</p><div class="w-full bg-white/5 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-white/10"><span class="font-bold">Living Room TV</span> <span class="text-xs text-gray-400">Chromecast</span></div><div class="w-full bg-white/5 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-white/10"><span class="font-bold">Bedroom Speaker</span> <span class="text-xs text-gray-400">Google Nest</span></div></div>', 
-                () => {}, null, "Close", "Cancel"
-            );
-        }
-
-        function confirmModal(title, msg, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel") { const m = document.getElementById('generic-modal'); document.getElementById('modal-title').innerText = title; document.getElementById('modal-msg').innerHTML = msg; const btn = document.getElementById('modal-confirm-btn'); const cancelBtn = document.getElementById('modal-cancel-btn'); btn.textContent = confirmText; cancelBtn.textContent = cancelText; const newBtn = btn.cloneNode(true); const newCancelBtn = cancelBtn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn); cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn); newBtn.addEventListener('click', () => { onConfirm(); closeGenericModal(); }); newCancelBtn.addEventListener('click', () => { if (onCancel && typeof onCancel === 'function') onCancel(); closeGenericModal(); }); m.classList.remove('hidden'); }
-        function closeGenericModal() { document.getElementById('generic-modal').classList.add('hidden'); }
-        function updateFullscreenVisuals() { if (!currentTrack) return; document.getElementById('fs-art').src = currentTrack.imageUrl; document.getElementById('fs-bg').style.backgroundImage = `url(${currentTrack.imageUrl})`; document.getElementById('fs-title').textContent = currentTrack.name; document.getElementById('fs-artist').textContent = currentTrack.artists[0].name; document.getElementById('fs-artist').onclick = () => { toggleFullscreenPlayer(false); navigateTo('artist', currentTrack.artists[0].id); }; const likeBtn = document.getElementById('fs-like-btn'); const likeCount = document.getElementById('fs-like-count'); let icon = likeBtn.querySelector('svg') || likeBtn.querySelector('i'); if (icon) icon.classList.remove('animate-heart-pop'); if(likedTracks.has(currentTrack.id)) { likeBtn.classList.add('like-active'); } else { likeBtn.classList.remove('like-active'); } const stats = currentTrack.stats || generateStats(50); likeCount.textContent = stats.likesFormatted; likeCount.classList.remove('opacity-0'); const playBtn = document.getElementById('fs-play-btn'); playBtn.innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-8 h-8 md:w-10 md:h-10 tablet:w-10 tablet:h-10 fill-black text-black ml-1"></i>`; if(activeView === 'lyrics' && currentTrack.id !== (lyricsText.dataset.trackId)) { lyricsText.value = localStorage.getItem(`lyrics_${currentTrack.id}`) || ''; lyricsText.dataset.trackId = currentTrack.id; if(!isLyricsEditing) updateLyricsView(); } else if (activeView === 'recs') { loadRecommendations(); } renderIcons(); 
-            // Handle Breathing
-            const art = document.getElementById('fs-art');
-            if(isPlaying) { art.classList.add('art-breathe'); art.classList.remove('art-paused'); } else { art.classList.remove('art-breathe'); art.classList.add('art-paused'); }
-        }
-        function toggleLike() { if(!currentTrack) return; const btn = document.getElementById('fs-like-btn'); let icon = btn.querySelector('svg') || btn.querySelector('i'); const count = document.getElementById('fs-like-count'); if(likedTracks.has(currentTrack.id)) { likedTracks.delete(currentTrack.id); btn.classList.remove('like-active'); if(icon) icon.classList.remove('animate-heart-pop'); } else { likedTracks.add(currentTrack.id); btn.classList.add('like-active'); if(icon) { void icon.offsetWidth; icon.classList.add('animate-heart-pop'); } } if(currentTrack.stats) { let base = currentTrack.stats.likesRaw; if(likedTracks.has(currentTrack.id)) base++; count.textContent = base.toLocaleString(); } renderIcons(); }
-        function togglePlayPause() { if(!currentTrack) return; if(audio.paused) { audio.play(); isPlaying = true; } else { audio.pause(); isPlaying = false; } updateMiniPlayer(); updateFullscreenVisuals(); }
-        function updateMiniPlayer() { if(!currentTrack) return; document.getElementById('mini-img').src = currentTrack.imageUrl; document.getElementById('mini-title').textContent = currentTrack.name; document.getElementById('mini-artist').textContent = currentTrack.artists[0].name; document.getElementById('mini-play-btn').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-5 h-5 lg:w-6 lg:h-6 fill-black ml-0.5"></i>`; document.getElementById('mobile-mini-play').innerHTML = `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-7 h-7 fill-current"></i>`; renderIcons(); }
-        
-        // Final Event Listeners
-        audio.addEventListener('play', () => { isPlaying = true; updateMiniPlayer(); updateFullscreenVisuals(); });
-        audio.addEventListener('pause', () => { isPlaying = false; updateMiniPlayer(); updateFullscreenVisuals(); });
-        audio.addEventListener('ended', () => { if (repeatMode === 2) { audio.currentTime = 0; audio.play(); } else { playNext(); } });
-
-    </script>
-</body>
-</html>
+            <!-- View: Chat Interface -->
+            <div id="view-chat" class="flex-1 flex flex-col h-full hidden relative">
+                
+                <!-- Chat Header -->
+                <div class="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-surface/50 backdrop-blur-sm z-20">
+                    <div class="flex items-center gap-3">
+                        <div class="md:hidden w-8"></div> <!-- Spacer for mobile menu -->
+                        <div id="chat-header-avatar" class="w-8 h-8 rounded-
