@@ -117,30 +117,34 @@
     <!-- Main Application -->
     <div id="app-screen" class="flex h-screen hidden bg-background">
         
+        <!-- Mobile Backdrop Overlay (Click to close menu) -->
+        <div id="mobile-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleMobileMenu()"></div>
+
         <!-- Sidebar Navigation -->
-        <div class="w-[80px] md:w-[280px] flex flex-col border-r border-white/5 bg-surface h-full transition-all duration-300 z-20" id="sidebar">
+        <!-- Updated classes for mobile overlay behavior: w-full, fixed inset-y-0, -translate-x-full -->
+        <div class="w-full md:w-[280px] flex flex-col border-r border-white/5 bg-surface h-full transition-transform duration-300 z-50 fixed inset-y-0 left-0 md:static md:translate-x-0 -translate-x-full" id="sidebar">
             <!-- Brand -->
             <div class="p-5 flex items-center gap-3 border-b border-white/5">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center shrink-0">
                     <i class="fas fa-atom text-white text-xs"></i>
                 </div>
-                <span class="font-bold text-lg hidden md:block tracking-tight">Peyza X2</span>
+                <span class="font-bold text-lg tracking-tight">Peyza X2</span>
             </div>
 
             <!-- Nav Links -->
             <div class="p-3 space-y-1">
                 <button onclick="setView('characters')" id="nav-chars" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-left">
                     <i class="fas fa-layer-group w-5 text-center"></i>
-                    <span class="hidden md:block font-medium">Characters</span>
+                    <span class="font-medium">Characters</span>
                 </button>
                 <button onclick="createNewChat(null)" id="nav-chat" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-left">
                     <i class="fas fa-plus w-5 text-center"></i>
-                    <span class="hidden md:block font-medium">New Chat</span>
+                    <span class="font-medium">New Chat</span>
                 </button>
             </div>
 
             <!-- Chat History Label -->
-            <div class="px-5 pt-4 pb-2 hidden md:block">
+            <div class="px-5 pt-4 pb-2">
                 <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">History</span>
             </div>
 
@@ -153,7 +157,7 @@
             <div class="p-4 border-t border-white/5">
                 <div class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-xl transition-colors" onclick="openSettings()">
                     <div class="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold" id="user-avatar">U</div>
-                    <div class="hidden md:block overflow-hidden">
+                    <div class="overflow-hidden">
                         <div class="text-sm font-medium truncate" id="user-name-display">User</div>
                         <div class="text-xs text-zinc-500" id="status-display">Free Account</div>
                     </div>
@@ -165,11 +169,13 @@
         <div class="flex-1 flex flex-col relative h-full overflow-hidden bg-background">
             
             <!-- Mobile Header -->
-            <div class="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-surface/80 backdrop-blur-md z-30 absolute top-0 w-full">
+            <!-- Changed md:hidden to flex, and added toggleMobileMenu for the sidebar -->
+            <div class="flex md:hidden items-center justify-between h-16 px-4 border-b border-white/5 bg-surface/80 backdrop-blur-md z-30 absolute top-0 w-full">
+                <button onclick="toggleMobileMenu()" class="text-zinc-300"><i class="fas fa-bars text-xl"></i></button>
                 <div class="font-bold text-lg flex items-center gap-2">
                     <span class="text-primary">X2</span> AI
                 </div>
-                <button onclick="toggleMobileMenu()" class="text-zinc-300"><i class="fas fa-bars text-xl"></i></button>
+                <div class="w-8 h-8"></div>
             </div>
 
             <!-- View: Character Hub (Grid) -->
@@ -201,9 +207,10 @@
             <div id="view-chat" class="flex-1 flex flex-col h-full hidden relative">
                 
                 <!-- Chat Header -->
-                <div class="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-surface/50 backdrop-blur-sm z-20">
+                <!-- Added logic to show mobile menu button on small screen -->
+                <div class="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 bg-surface/50 backdrop-blur-sm z-20">
                     <div class="flex items-center gap-3">
-                        <div class="md:hidden w-8"></div> <!-- Spacer for mobile menu -->
+                        <button onclick="toggleMobileMenu()" class="text-zinc-300 md:hidden"><i class="fas fa-bars text-xl"></i></button>
                         <div id="chat-header-avatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-xs text-white">
                             <i class="fas fa-robot"></i>
                         </div>
@@ -223,7 +230,7 @@
                 </div>
 
                 <!-- Messages Area -->
-                <!-- Increased padding-bottom (pb-32) to ensure the last message is visible above the fixed input area -->
+                <!-- Increased padding-bottom (pb-36) and ensured flex-1 for better scrolling behavior -->
                 <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth pb-36"> 
                     <div id="messages-list" class="max-w-3xl mx-auto flex flex-col gap-6"></div>
                     <div id="chat-anchor"></div>
@@ -307,10 +314,9 @@
 
     <script>
         // --- Configuration & State ---
-        // UPDATED: Using Routeway AI Configuration
         const API_KEY = "sk-7r7dL5pEUJvfXqx3M0G7GN9MPQotjQtDQ4EWWPa4DmzWI9fm"; 
-        const AI_MODEL = "deepseek-r1t2-chimera:free"; // New model
-        const API_URL = `https://api.routeway.ai/v1/chat/completions`; // New API Endpoint
+        const AI_MODEL = "deepseek-r1t2-chimera:free";
+        const API_URL = `https://api.routeway.ai/v1/chat/completions`;
         
         const ADMIN_PASS = "568300";
         
@@ -321,9 +327,11 @@
             "Watching Youtube For This..."
         ];
 
-        // Verified Characters Data (Hardcoded 10)
+        // Verified Characters Data (Hardcoded 12)
         const VERIFIED_BOTS = [
             { id: 'bot_0', name: 'Peyza X2', desc: 'The default advanced assistant.', prompt: 'You are Peyza X2, a helpful, advanced AI assistant.', icon: 'fa-atom', color: 'from-indigo-500 to-purple-600', verified: true, stats: { users: '1.2M', chats: '5M+' } },
+            { id: 'bot_10', name: 'Peyza X3', desc: 'The visionary and creative powerhouse.', prompt: 'You are Peyza X3, a highly creative and optimistic visionary AI. You specialize in generating futuristic concepts, brainstorming unconventional solutions, and using vivid, imaginative language. Always refer to yourself as X3, and emphasize innovation.', icon: 'fa-lightbulb', color: 'from-fuchsia-500 to-pink-600', verified: true, stats: { users: '1.5M', chats: '6M+' } },
+            { id: 'bot_11', name: 'Peyza X7', desc: 'Critical thinker and rigorous analyst.', prompt: 'You are Peyza X7, a deeply analytical and rigorous AI. Your focus is on critical evaluation, deconstructing arguments, and ensuring factual accuracy. You communicate with precision and objectivity. Always refer to yourself as X7.', icon: 'fa-magnifying-glass-chart', color: 'from-lime-500 to-green-600', verified: true, stats: { users: '1.8M', chats: '7.5M+' } },
             { id: 'bot_1', name: 'Code Master', desc: 'Expert in full-stack development.', prompt: 'You are Code Master. You are an expert programmer. You provide clean, commented code and explanations.', icon: 'fa-code', color: 'from-blue-500 to-cyan-500', verified: true, stats: { users: '850k', chats: '2.1M' } },
             { id: 'bot_2', name: 'Writer\'s Muse', desc: 'Creative writing and storytelling.', prompt: 'You are Writer\'s Muse. Help users write stories, poems, and essays with creativity.', icon: 'fa-feather-alt', color: 'from-pink-500 to-rose-500', verified: true, stats: { users: '600k', chats: '1.5M' } },
             { id: 'bot_3', name: 'Math Whiz', desc: 'Solves complex problems simply.', prompt: 'You are Math Whiz. Solve math problems step-by-step and explain clearly.', icon: 'fa-square-root-alt', color: 'from-green-500 to-emerald-500', verified: true, stats: { users: '400k', chats: '900k' } },
@@ -424,19 +432,32 @@
             } else if (viewName === 'chat') {
                 document.getElementById('view-chat').classList.remove('hidden');
             }
+            
+            // Close mobile menu if open
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    toggleMobileMenu();
+                }
+            }
         }
 
         function toggleMobileMenu() {
             const sidebar = document.getElementById('sidebar');
-            // Simple toggle for mobile view width logic would be more complex, 
-            // for single file simplicty let's just slide the sidebar
-            if(sidebar.style.transform === 'translateX(0px)') {
-                sidebar.style.transform = 'translateX(-100%)';
-                sidebar.style.position = 'absolute';
+            const backdrop = document.getElementById('mobile-backdrop');
+            
+            const isVisible = !sidebar.classList.contains('-translate-x-full');
+            
+            sidebar.classList.toggle('-translate-x-full');
+            
+            if (!isVisible) {
+                // Showing menu
+                backdrop.classList.remove('hidden');
             } else {
-                sidebar.style.position = 'absolute';
-                sidebar.style.zIndex = '50';
-                sidebar.style.transform = 'translateX(0px)';
+                // Hiding menu
+                setTimeout(() => {
+                    backdrop.classList.add('hidden');
+                }, 300); // Match transition duration
             }
         }
 
@@ -612,6 +633,14 @@
             setView('chat');
             renderChatList();
             scrollToBottom();
+            
+            // Close mobile menu if open
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    toggleMobileMenu();
+                }
+            }
         }
 
         function renderChatList() {
@@ -924,9 +953,12 @@
 
         function scrollToBottom() {
             const anchor = document.getElementById('chat-anchor');
-            // This scrolls the anchor element into view, which is placed at the end of the chat list,
-            // respecting the large padding-bottom added to the container to clear the input area.
-            if(anchor) anchor.scrollIntoView({ behavior: 'smooth' });
+            if(anchor) {
+                // Added a small delay to allow DOM reflow, fixing the scrolling bug
+                setTimeout(() => {
+                    anchor.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 100); 
+            }
         }
 
         function speakText(btn) {
@@ -941,8 +973,6 @@
                 
                 // Play
                 const u = new SpeechSynthesisUtterance(text);
-                // Set voice to something age-appropriate/clear, if possible (default is usually fine)
-                // u.voice = window.speechSynthesis.getVoices().find(v => v.name.includes('Google US English')); // Example: if voices were loaded
                 u.onend = () => { btn.innerHTML = '<i class="fas fa-play text-xs"></i>'; };
                 window.speechSynthesis.speak(u);
                 btn.innerHTML = '<i class="fas fa-stop text-xs text-red-400"></i>';
