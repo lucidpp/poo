@@ -482,13 +482,11 @@
     <audio id="global-audio" preload="auto"></audio>
 
     <script>
-        // --- CONSTANTS ---
         const CLIENT_ID = '24d71c5bae0e407a98cd3cff0ccb33ff';
         const CLIENT_SECRET = '15e5882a39f049edaec7de7bbc62f407';
         const API_URL = 'https://api.spotify.com/v1';
         const TOKEN_URL = 'https://accounts.spotify.com/api/token';
         
-        // --- GLOBAL VARIABLES ---
         const audio = document.getElementById('global-audio');
         const mp3Input = document.getElementById('mp3-upload');
         const lyricsText = document.getElementById('lyrics-text');
@@ -509,17 +507,14 @@
         let repeatMode = 0; 
         let likedVideos = new Set();
         try { likedVideos = new Set(JSON.parse(localStorage.getItem('peyza_liked_videos') || '[]')); } catch(e) {}
-
-        // --- UTILS ---
-        function renderIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
         
+        function renderIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
         function formatTime(s) {
             if(isNaN(s)) return "0:00";
             const min = Math.floor(s / 60);
             const sec = Math.floor(s % 60);
             return `${min}:${sec < 10 ? '0' : ''}${sec}`;
         }
-        
         function formatNumber(num) {
             if(num >= 1000000000) return (num/1000000000).toFixed(1) + 'B';
             if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
@@ -590,33 +585,6 @@
                 popularity: t.popularity || 40, 
                 duration: formatTime(t.duration_ms/1000) 
             }; 
-        }
-        
-        // --- RENDERERS ---
-        function renderSearch() { 
-             document.getElementById('dynamic-content').innerHTML = `
-                <!-- Mobile Search Input -->
-                <div class="md:hidden mb-6 animate-fade-in">
-                     <div class="relative w-full group">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
-                        <input type="text" class="w-full bg-[#1c1c1e] border border-transparent focus:border-accent-cherry/50 rounded-lg py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-cherry/20 transition-all shadow-lg"
-                            placeholder="Search artists, albums, songs..."
-                            onkeyup="if(event.key === 'Enter') performSearch(this.value)">
-                    </div>
-                </div>
-
-                <h2 class="text-3xl font-bold mb-6">Browse Categories</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 tablet:grid-cols-4 gap-4 animate-fade-in">
-                    ${['Pop', 'Hip-Hop', 'Rock', 'Electronic', 'Jazz', 'Classical', 'Workout', 'Focus'].map((genre, i) => `
-                        <div class="aspect-video relative overflow-hidden rounded-xl cursor-pointer hover:scale-[1.02] transition shadow-lg active-click" 
-                             style="background: linear-gradient(135deg, hsl(${i * 45}, 70%, 20%), hsl(${i * 45}, 70%, 10%))"
-                             onclick="performSearch('${genre}')">
-                            <span class="absolute top-3 left-3 font-bold text-lg">${genre}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            renderIcons();
         }
 
         async function performSearch(query) { 
@@ -1241,6 +1209,107 @@
             const content = document.getElementById('dynamic-content');
             content.innerHTML = `<div class="animate-fade-in"><div class="flex flex-col md:flex-row gap-8 mb-8 items-center md:items-end"><div class="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-gray-800 to-black rounded-lg shadow-2xl flex items-center justify-center"><i data-lucide="music" class="w-20 h-20 text-gray-600"></i></div><div class="text-center md:text-left"><p class="text-xs uppercase tracking-widest font-bold text-gray-400 mb-1">Playlist</p><h1 class="text-4xl md:text-6xl font-bold mb-4">${playlist.name}</h1><p class="text-gray-400 text-sm font-bold">${playlist.tracks.length} Songs</p><button class="mt-6 bg-accent-cherry text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center mx-auto md:mx-0 active-click" onclick="playCollection(${JSON.stringify(playlist.tracks).replace(/'/g, "")})"><i data-lucide="play" class="w-5 h-5 fill-current mr-2"></i> Play</button></div></div><div class="bg-[#1c1c1e] rounded-xl overflow-hidden shadow-lg animate-slide-up-stagger">${playlist.tracks.length === 0 ? '<div class="p-8 text-center text-gray-500">No songs added yet.</div>' : ''}${playlist.tracks.map((t, i) => `<div class="stagger-item flex items-center p-3 hover:bg-white/5 border-b border-white/5 last:border-0 group"><div class="flex-1 flex items-center cursor-pointer" onclick='playTrack(${JSON.stringify(t).replace(/'/g, "")})'><span class="w-8 text-center text-gray-500 font-bold text-sm group-hover:text-accent-cherry">${i + 1}</span><img src="${t.imageUrl}" class="w-10 h-10 rounded mr-3 bg-card-dark"><div class="min-w-0"><p class="font-semibold text-white truncate text-sm">${t.name}</p><p class="text-xs text-gray-500 truncate">${t.artists[0].name}</p></div></div><button onclick="removeFromPlaylist(${index}, ${i})" class="p-2 text-gray-500 hover:text-red-500 transition opacity-0 group-hover:opacity-100 active-click"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`).join('')}</div></div>`;
             renderIcons();
+        }
+
+        // --- MISSING UI FUNCTIONS ---
+        function toggleFullscreenPlayer(show) {
+            const player = document.getElementById('fullscreen-player');
+            const mini = document.getElementById('mini-player');
+            if(show) {
+                player.classList.add('active');
+                mini.style.transform = "translateY(100%)";
+                updateFullscreenVisuals();
+            } else {
+                player.classList.remove('active');
+                mini.style.transform = "translateY(0)";
+            }
+        }
+
+        function toggleImmersiveMode() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function toggleView(viewName) {
+            const art = document.getElementById('art-container');
+            const lyrics = document.getElementById('lyrics-container');
+            const recs = document.getElementById('recs-container');
+            const lyricsBtn = document.getElementById('lyrics-btn');
+            const recsBtn = document.getElementById('recs-btn');
+
+            // Reset
+            art.classList.add('hidden');
+            lyrics.classList.add('hidden');
+            recs.classList.add('hidden');
+            lyricsBtn.classList.remove('text-accent-cherry');
+            recsBtn.classList.remove('text-accent-cherry');
+
+            // Toggle logic
+            if (activeView === viewName && viewName !== 'art') {
+                activeView = 'art';
+            } else {
+                activeView = viewName;
+            }
+
+            if(activeView === 'art') {
+                art.classList.remove('hidden');
+            } else if (activeView === 'lyrics') {
+                lyrics.classList.remove('hidden');
+                lyricsBtn.classList.add('text-accent-cherry');
+                // Initialize lyrics state
+                if(currentTrack) {
+                    const saved = localStorage.getItem(`lyrics_${currentTrack.id}`);
+                    document.getElementById('lyrics-text').value = saved || '';
+                    // Assuming we want to show view mode if lyrics exist and we aren't editing
+                    if(saved && !isLyricsEditing) updateLyricsView();
+                }
+            } else if (activeView === 'recs') {
+                recs.classList.remove('hidden');
+                recsBtn.classList.add('text-accent-cherry');
+                loadRecommendations();
+            }
+        }
+
+        function toggleLyricsEdit() {
+            const display = document.getElementById('lyrics-display');
+            const input = document.getElementById('lyrics-text');
+            // If currently viewing (input hidden), switch to edit (input shown)
+            if(input.classList.contains('hidden')) {
+                input.classList.remove('hidden');
+                display.classList.add('hidden');
+                isLyricsEditing = true;
+            } else {
+                // Currently editing, switch to view
+                updateLyricsView();
+            }
+        }
+        
+        function updateLyricsView() {
+            const text = document.getElementById('lyrics-text').value;
+            const display = document.getElementById('lyrics-display');
+            const input = document.getElementById('lyrics-text');
+            
+            if(!text) return; // Stay in edit mode if empty
+
+            input.classList.add('hidden');
+            display.classList.remove('hidden');
+            isLyricsEditing = false;
+
+            // Generate HTML lines
+            const lines = text.split('\n').filter(l => l.trim() !== '');
+            display.innerHTML = lines.map((line, i) => `<div class="lyric-line" id="line-${i}">${line}</div>`).join('');
+        }
+
+        function castToTv() {
+             confirmModal('Connect to Device', 
+                '<div class="flex flex-col items-center py-4 space-y-4"><i data-lucide="tv" class="w-12 h-12 text-white mb-2"></i><p class="text-center">Looking for devices...</p><div class="w-full bg-white/5 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-white/10"><span class="font-bold">Living Room TV</span> <span class="text-xs text-gray-400">Chromecast</span></div><div class="w-full bg-white/5 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-white/10"><span class="font-bold">Bedroom Speaker</span> <span class="text-xs text-gray-400">Google Nest</span></div></div>', 
+                () => {}, null, "Close", "Cancel"
+            );
         }
 
         function confirmModal(title, msg, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel") { const m = document.getElementById('generic-modal'); document.getElementById('modal-title').innerText = title; document.getElementById('modal-msg').innerHTML = msg; const btn = document.getElementById('modal-confirm-btn'); const cancelBtn = document.getElementById('modal-cancel-btn'); btn.textContent = confirmText; cancelBtn.textContent = cancelText; const newBtn = btn.cloneNode(true); const newCancelBtn = cancelBtn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn); cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn); newBtn.addEventListener('click', () => { onConfirm(); closeGenericModal(); }); newCancelBtn.addEventListener('click', () => { if (onCancel && typeof onCancel === 'function') onCancel(); closeGenericModal(); }); m.classList.remove('hidden'); }
