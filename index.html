@@ -204,4 +204,809 @@
                 <div class="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-surface/50 backdrop-blur-sm z-20">
                     <div class="flex items-center gap-3">
                         <div class="md:hidden w-8"></div> <!-- Spacer for mobile menu -->
-                        <div id="chat-header-avatar" class="w-8 h-8 rounded-
+                        <div id="chat-header-avatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-xs text-white">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 font-semibold text-sm">
+                                <span id="chat-header-name">Peyza X2</span>
+                                <span class="verified-badge" title="Verified Character"><i class="fas fa-check-circle text-xs"></i></span>
+                            </div>
+                            <div class="text-[11px] text-zinc-500 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="clearChat()" class="text-zinc-500 hover:text-red-400 p-2 transition-colors"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+
+                <!-- Messages Area -->
+                <!-- Increased padding-bottom (pb-32) to ensure the last message is visible above the fixed input area -->
+                <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth pb-36"> 
+                    <div id="messages-list" class="max-w-3xl mx-auto flex flex-col gap-6"></div>
+                    <div id="chat-anchor"></div>
+                </div>
+
+                <!-- Input Area (Fixed to bottom, covering the bottom padding of the chat container) -->
+                <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-background via-background to-transparent pt-12 pb-6 px-4 z-30">
+                    <div class="max-w-3xl mx-auto relative">
+                        <!-- Limit Warning -->
+                        <div id="limit-warning" class="hidden mb-2 text-center text-xs text-red-400 bg-red-900/10 p-2 rounded border border-red-900/20">
+                            Daily limit reached. Enter Admin Code in settings to unlock.
+                        </div>
+
+                        <div class="bg-surface border border-white/10 rounded-2xl shadow-2xl flex items-end p-2 ring-1 ring-white/5 focus-within:ring-primary/50 transition-all">
+                            <textarea id="user-input" rows="1" class="w-full bg-transparent border-none text-white p-3 focus:ring-0 resize-none max-h-[150px] placeholder-zinc-500" onkeydown="handleEnter(event)"></textarea>
+                            <button onclick="sendMessage()" id="send-btn" class="p-3 bg-primary text-white rounded-xl hover:bg-primary_hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-0.5 mr-0.5">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <p class="text-center text-[10px] text-zinc-600 mt-2">Peyza X2 can make mistakes. Verify important info.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Create Character Modal -->
+    <div id="create-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-surface w-full max-w-lg rounded-2xl border border-white/10 p-6 animate-slide-up shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white">Create Character</h3>
+                <button onclick="closeModal('create-modal')" class="text-zinc-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-400 mb-1 uppercase">Name</label>
+                    <input type="text" id="new-char-name" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none" placeholder="e.g. Code Wizard">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-400 mb-1 uppercase">Description</label>
+                    <input type="text" id="new-char-desc" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none" placeholder="Short tagline...">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-400 mb-1 uppercase">System Prompt</label>
+                    <textarea id="new-char-prompt" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none h-32 resize-none" placeholder="How should this AI behave?"></textarea>
+                </div>
+                <button onclick="submitNewCharacter()" class="w-full bg-primary hover:bg-primary_hover text-white font-bold py-3 rounded-lg transition-colors mt-2">
+                    Create Character
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-surface w-full max-w-md rounded-2xl border border-white/10 p-6 animate-slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Settings</h3>
+                <button onclick="closeModal('settings-modal')" class="text-zinc-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Admin Access</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="admin-pass" placeholder="Enter code (568300)" class="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white outline-none">
+                        <button onclick="verifyAdmin()" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Verify</button>
+                    </div>
+                    <p id="admin-msg" class="text-xs mt-2 h-4"></p>
+                </div>
+                
+                <div class="pt-4 border-t border-white/5">
+                    <button onclick="logout()" class="w-full text-red-400 bg-red-400/10 hover:bg-red-400/20 py-3 rounded-lg font-medium transition-colors">
+                        Log Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        // Changed to use the official Gemini API endpoint for stability in the Canvas environment.
+        const API_KEY = ""; 
+        const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+        const ADMIN_PASS = "568300";
+        
+        // Custom thinking messages
+        const THINKING_MESSAGES = [
+            "Thinking...",
+            "Computing My Brainz..",
+            "Watching Youtube For This..."
+        ];
+
+        // Verified Characters Data (Hardcoded 10)
+        const VERIFIED_BOTS = [
+            { id: 'bot_0', name: 'Peyza X2', desc: 'The default advanced assistant.', prompt: 'You are Peyza X2, a helpful, advanced AI assistant.', icon: 'fa-atom', color: 'from-indigo-500 to-purple-600', verified: true, stats: { users: '1.2M', chats: '5M+' } },
+            { id: 'bot_1', name: 'Code Master', desc: 'Expert in full-stack development.', prompt: 'You are Code Master. You are an expert programmer. You provide clean, commented code and explanations.', icon: 'fa-code', color: 'from-blue-500 to-cyan-500', verified: true, stats: { users: '850k', chats: '2.1M' } },
+            { id: 'bot_2', name: 'Writer\'s Muse', desc: 'Creative writing and storytelling.', prompt: 'You are Writer\'s Muse. Help users write stories, poems, and essays with creativity.', icon: 'fa-feather-alt', color: 'from-pink-500 to-rose-500', verified: true, stats: { users: '600k', chats: '1.5M' } },
+            { id: 'bot_3', name: 'Math Whiz', desc: 'Solves complex problems simply.', prompt: 'You are Math Whiz. Solve math problems step-by-step and explain clearly.', icon: 'fa-square-root-alt', color: 'from-green-500 to-emerald-500', verified: true, stats: { users: '400k', chats: '900k' } },
+            { id: 'bot_4', name: 'History Buff', desc: 'Travel through time with facts.', prompt: 'You are History Buff. You love teaching history with engaging facts and stories.', icon: 'fa-landmark', color: 'from-amber-500 to-orange-500', verified: true, stats: { users: '320k', chats: '750k' } },
+            { id: 'bot_5', name: 'Travel Guide', desc: 'Plan your next big adventure.', prompt: 'You are Travel Guide. Suggest itineraries, hidden gems, and travel tips.', icon: 'fa-plane', color: 'from-sky-500 to-blue-600', verified: true, stats: { users: '280k', chats: '500k' } },
+            { id: 'bot_6', name: 'Chef Bot', desc: 'Recipes and culinary advice.', prompt: 'You are Chef Bot. Provide delicious recipes and cooking techniques.', icon: 'fa-utensils', color: 'from-red-500 to-orange-600', verified: true, stats: { users: '550k', chats: '1.1M' } },
+            { id: 'bot_7', name: 'Fitness Coach', desc: 'Workouts and nutrition plans.', prompt: 'You are Fitness Coach. Create workout plans and give health advice.', icon: 'fa-dumbbell', color: 'from-teal-500 to-green-600', verified: true, stats: { users: '450k', chats: '800k' } },
+            { id: 'bot_8', name: 'Gamer Pal', desc: 'Gaming strategies and lore.', prompt: 'You are Gamer Pal. Discuss video games, strategies, and gaming culture.', icon: 'fa-gamepad', color: 'from-purple-500 to-violet-600', verified: true, stats: { users: '900k', chats: '3M' } },
+            { id: 'bot_9', name: 'Sci-Fi Teller', desc: 'Futuristic stories and concepts.', prompt: 'You are Sci-Fi Teller. You specialize in science fiction stories and futuristic concepts.', icon: 'fa-rocket', color: 'from-indigo-600 to-blue-800', verified: true, stats: { users: '200k', chats: '400k' } }
+        ];
+        
+        // --- Local Storage Helpers ---
+        const getStorage = (key, defaultVal) => {
+            try { return JSON.parse(localStorage.getItem(key)) || defaultVal; } 
+            catch { return defaultVal; }
+        };
+        const setStorage = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+
+        let state = {
+            user: getStorage('x2_user', null),
+            isAdmin: getStorage('x2_admin', false),
+            chats: getStorage('x2_chats', []),
+            customChars: getStorage('x2_custom_chars', []),
+            currentChatId: null,
+            dailyUsage: getStorage('x2_usage', { date: new Date().toLocaleDateString(), count: 0 }),
+            view: 'characters' // 'characters' or 'chat'
+        };
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (state.user) {
+                showApp();
+            } else {
+                document.getElementById('auth-screen').classList.remove('hidden');
+            }
+            
+            // Check Daily Reset
+            const today = new Date().toLocaleDateString();
+            if (state.dailyUsage.date !== today) {
+                state.dailyUsage = { date: today, count: 0 };
+                setStorage('x2_usage', state.dailyUsage);
+            }
+            
+            // Auto resize textarea
+            const tx = document.getElementById('user-input');
+            tx.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            updateAdminUI();
+            renderCharacters();
+        });
+
+        // --- Authentication ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            state.user = { name: username };
+            setStorage('x2_user', state.user);
+            
+            document.getElementById('auth-screen').classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(showApp, 300);
+        }
+
+        function logout() {
+            localStorage.removeItem('x2_user');
+            location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('user-name-display').textContent = state.user.name;
+            document.getElementById('user-avatar').textContent = state.user.name.charAt(0).toUpperCase();
+            
+            // Start on View based on if they have chats
+            if(state.chats.length > 0) {
+                renderChatList();
+            }
+            setView('characters');
+        }
+
+        // --- Navigation & Views ---
+        function setView(viewName) {
+            state.view = viewName;
+            document.getElementById('view-characters').classList.add('hidden');
+            document.getElementById('view-chat').classList.add('hidden');
+            
+            // Update Sidebar Active States
+            document.getElementById('nav-chars').classList.remove('bg-white/10', 'text-white');
+            document.getElementById('nav-chat').classList.remove('bg-white/10', 'text-white');
+
+            if (viewName === 'characters') {
+                document.getElementById('view-characters').classList.remove('hidden');
+                document.getElementById('nav-chars').classList.add('bg-white/10', 'text-white');
+                renderCharacters();
+            } else if (viewName === 'chat') {
+                document.getElementById('view-chat').classList.remove('hidden');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            // Simple toggle for mobile view width logic would be more complex, 
+            // for single file simplicty let's just slide the sidebar
+            if(sidebar.style.transform === 'translateX(0px)') {
+                sidebar.style.transform = 'translateX(-100%)';
+                sidebar.style.position = 'absolute';
+            } else {
+                sidebar.style.position = 'absolute';
+                sidebar.style.zIndex = '50';
+                sidebar.style.transform = 'translateX(0px)';
+            }
+        }
+
+        // --- Character System ---
+        function renderCharacters() {
+            const grid = document.getElementById('characters-grid');
+            grid.innerHTML = '';
+
+            const allBots = [...VERIFIED_BOTS, ...state.customChars];
+
+            allBots.forEach(bot => {
+                const isCustom = !bot.verified;
+                const div = document.createElement('div');
+                div.className = 'glass-panel p-5 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group flex flex-col h-full';
+                div.onclick = () => startChatWithCharacter(bot);
+
+                div.innerHTML = `
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${bot.color || 'from-zinc-700 to-zinc-600'} flex items-center justify-center shadow-lg">
+                            <i class="fas ${bot.icon || 'fa-robot'} text-white text-lg"></i>
+                        </div>
+                        ${bot.verified ? '<div class="px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-md text-[10px] text-amber-500 font-bold uppercase tracking-wider">Verified</div>' : ''}
+                    </div>
+                    <h3 class="font-bold text-lg text-white mb-1 flex items-center gap-2">
+                        ${bot.name}
+                        ${bot.verified ? '<i class="fas fa-check-circle text-accent text-sm"></i>' : ''}
+                    </h3>
+                    <p class="text-sm text-zinc-400 mb-4 flex-1 line-clamp-2">${bot.desc}</p>
+                    
+                    <div class="flex items-center gap-3 text-xs text-zinc-500 mb-4">
+                        <span class="stat-pill px-2 py-0.5 rounded flex items-center gap-1"><i class="fas fa-user"></i> ${bot.stats?.users || '0'}</span>
+                        <span class="stat-pill px-2 py-0.5 rounded flex items-center gap-1"><i class="fas fa-comment-alt"></i> ${bot.stats?.chats || '0'}</span>
+                    </div>
+
+                    <button class="w-full py-2 rounded-lg bg-white/5 group-hover:bg-primary group-hover:text-white transition-colors text-sm font-medium">
+                        Chat Now
+                    </button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function openCreateCharacter() {
+            document.getElementById('create-modal').classList.remove('hidden');
+        }
+
+        function submitNewCharacter() {
+            const name = document.getElementById('new-char-name').value;
+            const desc = document.getElementById('new-char-desc').value;
+            const prompt = document.getElementById('new-char-prompt').value;
+
+            // Enforce age-appropriate restrictions on character creation
+            const inappropriateKeywords = ['drugs', 'alcohol', 'violence', 'gambling', 'suggestive', 'mature'];
+            const lowerPrompt = prompt.toLowerCase();
+            const lowerName = name.toLowerCase();
+            
+            for (const keyword of inappropriateKeywords) {
+                if (lowerPrompt.includes(keyword) || lowerName.includes(keyword)) {
+                    // Using a custom modal message instead of alert
+                    const msg = "Character names or prompts cannot contain inappropriate keywords (e.g., related to drugs, violence, or mature content) to ensure the platform remains safe and age-appropriate.";
+                    const settingsModal = document.getElementById('settings-modal');
+                    // Temporarily hijack settings modal for a quick message display if it's currently hidden
+                    if (settingsModal.classList.contains('hidden')) {
+                        const tempMsgDiv = document.createElement('div');
+                        tempMsgDiv.className = "fixed inset-0 bg-black/80 z-[70] flex items-center justify-center p-4";
+                        tempMsgDiv.innerHTML = `
+                            <div class="bg-surface w-full max-w-sm rounded-2xl border border-white/10 p-6 animate-slide-up shadow-2xl text-center">
+                                <h4 class="text-xl font-bold mb-3 text-red-400">Error</h4>
+                                <p class="text-zinc-300 mb-6">${msg}</p>
+                                <button onclick="this.parentNode.parentNode.remove()" class="bg-primary hover:bg-primary_hover text-white font-bold py-2 px-4 rounded-lg">
+                                    Close
+                                </button>
+                            </div>
+                        `;
+                        document.body.appendChild(tempMsgDiv);
+                    }
+                    return; // Stop creation
+                }
+            }
+
+
+            if(!name || !prompt) {
+                // Simplified UI message for missing fields
+                document.getElementById('new-char-name').style.borderColor = name ? '' : 'red';
+                document.getElementById('new-char-prompt').style.borderColor = prompt ? '' : 'red';
+                return;
+            }
+
+            const newChar = {
+                id: 'custom_' + Date.now(),
+                name,
+                desc,
+                prompt,
+                icon: 'fa-user-astronaut',
+                color: 'from-zinc-600 to-zinc-800',
+                verified: false,
+                stats: { users: '1', chats: '0' }
+            };
+
+            state.customChars.unshift(newChar);
+            setStorage('x2_custom_chars', state.customChars);
+            closeModal('create-modal');
+            renderCharacters();
+        }
+
+        function startChatWithCharacter(bot) {
+            // Check limits (using the chat limit logic, even if simplified here)
+            if (!state.isAdmin && state.chats.length >= 10 && !state.chats.find(c => c.botId === bot.id)) {
+               // Soft limit on total chats for free users if I wanted, but prompt said 10 chats per day limit on messages usually.
+               // Let's create a new chat context.
+            }
+
+            const newChat = {
+                id: Date.now().toString(),
+                botId: bot.id,
+                botName: bot.name,
+                systemPrompt: bot.prompt,
+                title: `Chat with ${bot.name}`,
+                messages: []
+            };
+            
+            state.chats.unshift(newChat);
+            setStorage('x2_chats', state.chats);
+            loadChat(newChat.id);
+        }
+
+        // --- Chat Logic ---
+        function createNewChat(botId) {
+            if (botId) {
+                // Already handled by startChatWithCharacter
+            } else {
+                // Default to Peyza X2
+                startChatWithCharacter(VERIFIED_BOTS[0]);
+            }
+        }
+
+        function loadChat(chatId) {
+            state.currentChatId = chatId;
+            const chat = state.chats.find(c => c.id === chatId);
+            
+            if(!chat) return;
+
+            // UI Updates
+            document.getElementById('chat-header-name').textContent = chat.botName;
+            
+            // Find bot for styling
+            const allBots = [...VERIFIED_BOTS, ...state.customChars];
+            const bot = allBots.find(b => b.id === chat.botId) || VERIFIED_BOTS[0];
+            
+            // Header Avatar Update
+            const headerAvatar = document.getElementById('chat-header-avatar');
+            headerAvatar.className = `w-8 h-8 rounded-full bg-gradient-to-br ${bot.color} flex items-center justify-center text-xs text-white`;
+            headerAvatar.innerHTML = `<i class="fas ${bot.icon}"></i>`;
+            
+            // Render Messages
+            const list = document.getElementById('messages-list');
+            list.innerHTML = '';
+            
+            if(chat.messages.length === 0) {
+                // Intro message visual
+                list.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-10 text-center opacity-50">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${bot.color} flex items-center justify-center mb-4 text-2xl text-white shadow-xl">
+                            <i class="fas ${bot.icon}"></i>
+                        </div>
+                        <p class="text-sm">Start a conversation with ${bot.name}</p>
+                    </div>
+                `;
+            } else {
+                chat.messages.forEach(msg => appendMessageToUI(msg.role, msg.content, false));
+            }
+
+            setView('chat');
+            renderChatList();
+            scrollToBottom();
+        }
+
+        function renderChatList() {
+            const container = document.getElementById('chat-history');
+            container.innerHTML = '';
+            
+            state.chats.forEach(chat => {
+                const isActive = chat.id === state.currentChatId;
+                const el = document.createElement('div');
+                el.className = `group flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all text-sm mb-1 ${isActive ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`;
+                el.onclick = () => loadChat(chat.id);
+                
+                el.innerHTML = `
+                    <i class="fas fa-comment-alt text-xs opacity-70"></i>
+                    <span class="flex-1 truncate">${chat.title}</span>
+                    <button onclick="deleteChat('${chat.id}', event)" class="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity"><i class="fas fa-times"></i></button>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function deleteChat(id, e) {
+            e.stopPropagation();
+            state.chats = state.chats.filter(c => c.id !== id);
+            setStorage('x2_chats', state.chats);
+            if(state.currentChatId === id) {
+                state.currentChatId = null;
+                setView('characters');
+            }
+            renderChatList();
+        }
+
+        // --- Messaging ---
+        function handleEnter(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Age-appropriate content check for user input
+            const inappropriateKeywords = ['drugs', 'alcohol', 'violence', 'gambling', 'suggestive', 'mature'];
+            const lowerText = text.toLowerCase();
+            for (const keyword of inappropriateKeywords) {
+                if (lowerText.includes(keyword)) {
+                    appendMessageToUI('assistant', "I cannot respond to topics related to drugs, alcohol, violence, or other mature subjects to keep this platform safe and appropriate for all users.", true);
+                    input.value = '';
+                    input.style.height = 'auto';
+                    return;
+                }
+            }
+
+
+            if (!state.isAdmin && state.dailyUsage.count >= 10) {
+                document.getElementById('limit-warning').classList.remove('hidden');
+                return;
+            }
+
+            if(!state.currentChatId) {
+                startChatWithCharacter(VERIFIED_BOTS[0]);
+            }
+
+            // Remove Intro if exists
+            const list = document.getElementById('messages-list');
+            if(list.querySelector('.text-center')) list.innerHTML = '';
+
+            input.value = '';
+            input.style.height = 'auto';
+
+            // User Msg
+            appendMessageToUI('user', text, true);
+            saveMessage('user', text);
+            updateChatTitle(text);
+            scrollToBottom();
+
+            // Thinking
+            const thinkingId = 'thinking-' + Date.now();
+            appendThinking(thinkingId);
+            scrollToBottom();
+
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            
+            // Prepare history for Gemini API: model accepts 'user' and 'model' roles
+            const history = chat.messages.slice(-10); // Last 10 messages for context
+            const contents = history.map(m => ({
+                role: m.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: m.content }]
+            }));
+            // Add the new user message
+            contents.push({
+                role: 'user',
+                parts: [{ text: text }]
+            });
+
+            const payload = {
+                contents: contents,
+                // System instruction is set outside of contents
+                systemInstruction: {
+                    parts: [{ text: chat.systemPrompt }]
+                },
+                tools: [{ "google_search": {} }] // Enable Google Search for grounding
+            };
+            
+            const apiUrlWithKey = `${API_URL}?key=${API_KEY}`;
+            
+            // Implement Exponential Backoff
+            const maxRetries = 3;
+            let attempt = 0;
+            let data = null;
+
+            while (attempt < maxRetries) {
+                try {
+                    if(!state.isAdmin) {
+                        state.dailyUsage.count++;
+                        setStorage('x2_usage', state.dailyUsage);
+                    }
+                    
+                    const response = await fetch(apiUrlWithKey, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        data = await response.json();
+                        break; // Success, break out of loop
+                    } else {
+                        // Log HTTP error but proceed to retry
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                } catch (e) {
+                    attempt++;
+                    if (attempt >= maxRetries) {
+                        console.error("API Error (Max retries reached):", e);
+                        // Final throw will be caught outside the loop
+                        break; 
+                    }
+                    const delay = Math.pow(2, attempt) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+
+
+            // FIX: Check if the element exists before trying to remove it
+            const thinkingElement = document.getElementById(thinkingId);
+            if (thinkingElement) {
+                thinkingElement.remove();
+            }
+
+            try {
+                const candidate = data?.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    let reply = candidate.content.parts[0].text;
+                    
+                    // --- Truncate response to 40% ---
+                    const truncationLength = Math.ceil(reply.length * 0.40);
+                    let truncatedReply = reply.substring(0, truncationLength);
+
+                    // Add ellipses if the original message was actually truncated
+                    if (reply.length > truncationLength) {
+                        truncatedReply += " [Response truncated for brevity.]";
+                    }
+                    // ------------------------------------
+
+                    appendMessageToUI('assistant', truncatedReply, true);
+                    saveMessage('assistant', truncatedReply); // Save the truncated version
+                } else {
+                    appendMessageToUI('assistant', "Peyza X2 is temporarily unavailable or returned an empty response. Please try again.", true);
+                }
+            } catch (e) {
+                console.error("API Response Parsing Error:", e);
+                appendMessageToUI('assistant', "Connection error. Failed to get a readable response from the AI service.", true);
+            }
+        }
+
+        async function retryMessage() {
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            if(!chat || chat.messages.length === 0) return;
+            
+            // Find last user message
+            let lastUserMsg = null;
+            let lastUserIndex = -1;
+            for(let i = chat.messages.length - 1; i >= 0; i--) {
+                if(chat.messages[i].role === 'user') {
+                    lastUserMsg = chat.messages[i].content;
+                    lastUserIndex = i;
+                    break;
+                }
+            }
+            
+            if(lastUserMsg) {
+                // If the message immediately following the last user message was an 'assistant' role, 
+                // remove all messages from that assistant message onwards (i.e., the failed/retried response).
+                if (chat.messages[lastUserIndex + 1] && chat.messages[lastUserIndex + 1].role === 'assistant') {
+                    chat.messages = chat.messages.slice(0, lastUserIndex + 1);
+                    setStorage('x2_chats', state.chats);
+                }
+
+                // Load the chat again to clean up the UI
+                loadChat(chat.id);
+                
+                // Set the last user message in the input and trigger send.
+                document.getElementById('user-input').value = lastUserMsg;
+                sendMessage();
+            }
+        }
+
+        function appendMessageToUI(role, content, animate) {
+            const list = document.getElementById('messages-list');
+            const isAi = role === 'assistant';
+            const div = document.createElement('div');
+            
+            div.className = `flex w-full ${isAi ? 'justify-start' : 'justify-end'} chat-bubble`;
+            if (animate) div.classList.add('animate-fade-in');
+
+            // Find current bot styling
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            const bot = chat ? ([...VERIFIED_BOTS, ...state.customChars].find(b => b.id === chat.botId) || VERIFIED_BOTS[0]) : VERIFIED_BOTS[0];
+
+            const avatarHtml = isAi ? 
+                `<div class="w-8 h-8 rounded-full bg-gradient-to-br ${bot.color} flex items-center justify-center text-[10px] text-white shadow-lg mr-3 mt-1 shrink-0"><i class="fas ${bot.icon}"></i></div>` : 
+                // User avatar
+                `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold ml-3 mt-1 shrink-0">${state.user.name.charAt(0).toUpperCase()}</div>`;
+
+
+            const actionsHtml = isAi ? `
+                <div class="msg-actions flex items-center gap-2 mt-2 ml-11 text-zinc-500">
+                    <button onclick="speakText(this)" data-text="${encodeURIComponent(content)}" class="p-1.5 hover:bg-white/5 rounded-lg hover:text-white transition-colors"><i class="fas fa-play text-xs"></i></button>
+                    <button onclick="retryMessage()" class="p-1.5 hover:bg-white/5 rounded-lg hover:text-white transition-colors" title="Retry"><i class="fas fa-redo text-xs"></i></button>
+                    <button onclick="copyToClipboard(this)" data-text="${encodeURIComponent(content)}" class="p-1.5 hover:bg-white/5 rounded-lg hover:text-white transition-colors" title="Copy"><i class="fas fa-copy text-xs"></i></button>
+                </div>
+            ` : '';
+
+            // Handle markdown-like formatting for basic display in the content, or just use pre-wrap
+            const formattedContent = isAi ? content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\*(.*?)\*/g, '<i>$1</i>').replace(/`/g, '<code>') : content;
+
+
+            div.innerHTML = `
+                ${isAi ? avatarHtml : ''}
+                <div class="max-w-[85%] md:max-w-[75%]">
+                    <div class="${isAi ? 'text-zinc-200 bg-surface border border-white/5 rounded-2xl rounded-tl-sm' : 'bg-primary text-white rounded-2xl rounded-tr-sm'} px-4 py-3 shadow-lg leading-relaxed text-[15px] whitespace-pre-wrap">
+                        ${formattedContent}
+                    </div>
+                    ${actionsHtml}
+                </div>
+                ${!isAi ? avatarHtml : ''}
+            `;
+            list.appendChild(div);
+            scrollToBottom();
+        }
+
+        function appendThinking(id) {
+            const list = document.getElementById('messages-list');
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `flex w-full justify-start`;
+            
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            const bot = chat ? ([...VERIFIED_BOTS, ...state.customChars].find(b => b.id === chat.botId) || VERIFIED_BOTS[0]) : VERIFIED_BOTS[0];
+            
+            // --- New: Select random thinking message ---
+            const randomMessage = THINKING_MESSAGES[Math.floor(Math.random() * THINKING_MESSAGES.length)];
+            // ------------------------------------------
+
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br ${bot.color} flex items-center justify-center text-[10px] text-white shadow-lg mr-3 mt-1 shrink-0 animate-pulse">
+                    <i class="fas ${bot.icon}"></i>
+                </div>
+                <div class="flex items-center gap-2 bg-surface border border-white/5 px-4 py-3 rounded-2xl rounded-tl-sm mt-1">
+                    <span class="text-sm text-zinc-400">${randomMessage}</span>
+                    <div class="flex items-center gap-1">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            list.appendChild(div);
+        }
+
+        // --- Utils ---
+        function saveMessage(role, content) {
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            if(chat) {
+                chat.messages.push({ role, content });
+                setStorage('x2_chats', state.chats);
+            }
+        }
+
+        function updateChatTitle(text) {
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            if(chat && chat.title.startsWith('Chat with')) {
+                // Only set the title to the user's first query if it's the first message
+                if(chat.messages.length === 1 && chat.messages[0].role === 'user') {
+                    chat.title = text.length > 25 ? text.substring(0, 25) + '...' : text;
+                    setStorage('x2_chats', state.chats);
+                    renderChatList();
+                }
+            }
+        }
+
+        function scrollToBottom() {
+            const anchor = document.getElementById('chat-anchor');
+            // This scrolls the anchor element into view, which is placed at the end of the chat list,
+            // respecting the large padding-bottom added to the container to clear the input area.
+            if(anchor) anchor.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function speakText(btn) {
+            const text = decodeURIComponent(btn.getAttribute('data-text'));
+            if('speechSynthesis' in window) {
+                // If speaking, stop.
+                if(window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    btn.innerHTML = '<i class="fas fa-play text-xs"></i>';
+                    return;
+                }
+                
+                // Play
+                const u = new SpeechSynthesisUtterance(text);
+                // Set voice to something age-appropriate/clear, if possible (default is usually fine)
+                // u.voice = window.speechSynthesis.getVoices().find(v => v.name.includes('Google US English')); // Example: if voices were loaded
+                u.onend = () => { btn.innerHTML = '<i class="fas fa-play text-xs"></i>'; };
+                window.speechSynthesis.speak(u);
+                btn.innerHTML = '<i class="fas fa-stop text-xs text-red-400"></i>';
+            } else {
+                // Fallback for browsers without Web Speech API
+                console.log("Text-to-Speech not supported in this browser.");
+            }
+        }
+        
+        function copyToClipboard(btn) {
+            const text = decodeURIComponent(btn.getAttribute('data-text'));
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            // Simple visual feedback
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check text-green-400 text-xs"></i>';
+            setTimeout(() => {
+                btn.innerHTML = originalIcon;
+            }, 1000);
+        }
+
+
+        function clearChat() {
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            if(chat) {
+                // Custom UI confirmation instead of alert/confirm
+                if(window.confirm(`Are you sure you want to clear the messages in the chat with ${chat.botName}?`)) {
+                    chat.messages = [];
+                    // Resetting the title
+                    chat.title = `Chat with ${chat.botName}`; 
+                    setStorage('x2_chats', state.chats);
+                    loadChat(chat.id);
+                }
+            }
+        }
+
+        // --- Settings & Admin ---
+        function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function verifyAdmin() {
+            const val = document.getElementById('admin-pass').value;
+            const msg = document.getElementById('admin-msg');
+            if(val === ADMIN_PASS) {
+                state.isAdmin = true;
+                setStorage('x2_admin', true);
+                msg.textContent = "Unlimited Access Unlocked";
+                msg.className = "text-xs mt-2 h-4 text-green-400";
+                updateAdminUI();
+            } else {
+                msg.textContent = "Invalid Code";
+                msg.className = "text-xs mt-2 h-4 text-red-400";
+            }
+        }
+
+        function updateAdminUI() {
+            if(state.isAdmin) {
+                document.getElementById('status-display').textContent = "Admin (Unlimited)";
+                document.getElementById('status-display').classList.add('text-primary');
+                document.getElementById('limit-warning').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
