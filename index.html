@@ -7,32 +7,56 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
         :root {
-            /* Default (Formerly Christmas, sans snow) */
-            --bg-color: #020617; 
-            --text-main: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --accent: #ef4444; /* Red Accent */
-            --accent-hover: #dc2626;
-            --border: #1e293b;
-            --hover-bg: rgba(255, 255, 255, 0.1);
-            --like-color: #22c55e; /* Green Likes */
-            --retweet-color: #3b82f6;
-            --bookmark-color: #eab308;
+            /* Default (X Dark) */
+            --bg-color: #000000;
+            --text-main: #e7e9ea;
+            --text-secondary: #71767b;
+            --accent: #1d9bf0;
+            --accent-hover: #1a8cd8;
+            --border: #2f3336;
+            --hover-bg: rgba(239, 243, 244, 0.1);
+            --danger: #f4212e;
+            --like-color: #f91880;
+            --retweet-color: #00ba7c;
+            --bookmark-color: #1d9bf0;
             --gold: #ffd700;
             --platinum: #e5e4e2;
             --font-stack: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Green/Blue Theme */
-        body.theme-greenblue {
-            --bg-color: #001219;
-            --text-main: #e0fbfc;
-            --text-secondary: #98c1d9;
-            --accent: #0a9396; /* Teal */
-            --accent-hover: #005f73;
-            --border: #293241;
-            --hover-bg: rgba(10, 147, 150, 0.15);
-            --like-color: #ee9b00;
+        /* Halloween Theme */
+        body.theme-halloween {
+            --bg-color: #120500;
+            --text-main: #ffe0b2;
+            --text-secondary: #d97706;
+            --accent: #f97316;
+            --accent-hover: #ea580c;
+            --border: #431407;
+            --hover-bg: rgba(249, 115, 22, 0.15);
+            --like-color: #ef4444;
+        }
+
+        /* Christmas Theme */
+        body.theme-christmas {
+            --bg-color: #020617; /* Very dark blue */
+            --text-main: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent: #ef4444; /* Red */
+            --accent-hover: #dc2626;
+            --border: #1e293b;
+            --hover-bg: rgba(255, 255, 255, 0.1);
+            --like-color: #22c55e; /* Green likes */
+        }
+
+        /* Thanksgiving Theme */
+        body.theme-thanksgiving {
+            --bg-color: #1c1917; /* Warm dark grey */
+            --text-main: #fef3c7;
+            --text-secondary: #a8a29e;
+            --accent: #d97706; /* Amber */
+            --accent-hover: #b45309;
+            --border: #44403c;
+            --hover-bg: rgba(217, 119, 6, 0.15);
         }
 
         @font-face {
@@ -55,6 +79,24 @@
             height: 100vh;
             overscroll-behavior-y: contain;
             transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Falling Particles Container */
+        #particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            top: -50px;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
         }
 
         /* Scrollbar aesthetics */
@@ -113,6 +155,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .animate-like { animation: like-bounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .number-pop { animation: pop-number 0.3s ease-out; }
         .msg-slide { animation: slide-up 0.3s ease-out forwards; }
@@ -135,8 +182,6 @@
             animation: spin 0.8s linear infinite;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         /* Utility */
         .hidden { display: none !important; }
         .flex { display: flex; }
@@ -153,7 +198,6 @@
         .text-sm { font-size: 14px; }
         .text-xl { font-size: 20px; }
         .w-full { width: 100%; }
-        .relative { position: relative; }
         .rounded-full { border-radius: 9999px; }
 
         /* Auth Screen */
@@ -355,45 +399,14 @@
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(12px);
             padding: 0 16px;
-            height: auto;
-            min-height: 53px;
+            height: 53px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            align-items: center;
             border-bottom: 1px solid var(--border);
             z-index: 10;
+            font-weight: 700;
+            font-size: 20px;
             cursor: pointer;
-        }
-        .header-top {
-            width: 100%; height: 53px; display: flex; align-items: center;
-        }
-        /* Feed Filter Tabs */
-        .feed-tabs {
-            display: flex;
-            width: 100%;
-        }
-        .feed-tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px 0;
-            font-weight: 600;
-            color: var(--text-secondary);
-            cursor: pointer;
-            position: relative;
-            transition: 0.2s;
-        }
-        .feed-tab:hover { background: var(--hover-bg); }
-        .feed-tab.active { color: var(--text-main); font-weight: 700; }
-        .feed-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 56px;
-            height: 4px;
-            background-color: var(--accent);
-            border-radius: 2px;
         }
 
         /* Theme Card */
@@ -425,7 +438,6 @@
             cursor: pointer;
             transition: background-color 0.2s;
             animation: fade-in 0.4s ease-out;
-            position: relative;
         }
         .post:hover { background-color: var(--hover-bg); }
         .post-content { width: 100%; }
@@ -478,32 +490,6 @@
         .stat-item.bookmark-btn.bookmarked svg { fill: var(--bookmark-color); }
 
         .stat-icon { width: 18px; height: 18px; fill: currentColor; }
-
-        /* Post Menu */
-        .post-menu-overlay {
-            position: absolute;
-            top: 20px; right: 10px;
-            background: var(--bg-color);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            z-index: 50;
-            display: none;
-            flex-direction: column;
-            width: 150px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        .post-menu-overlay.active { display: flex; }
-        .post-menu-item {
-            padding: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .post-menu-item:hover { background: var(--hover-bg); }
-        .post-menu-item.danger { color: var(--danger); }
-        .edited-label { font-size: 12px; color: var(--text-secondary); margin-left: 8px; }
 
         /* Detailed Post View */
         .detail-container { padding: 0 16px; border-bottom: 1px solid var(--border); }
@@ -922,6 +908,8 @@
 </head>
 <body>
 
+    <div id="particles"></div>
+
     <!-- Auth Screen -->
     <div id="auth-screen">
         <img src="favicon.png" class="logo-large">
@@ -958,7 +946,7 @@
                     <span>Notifications</span>
                 </a>
                 <a href="#" class="nav-item" id="nav-messages" onclick="app.navTo('messages')">
-                    <svg viewBox="0 0 24 24"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg>
+                    <svg viewBox="0 0 24 24"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.5h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg>
                     <span>Messages</span>
                 </a>
                 <a href="#" class="nav-item" id="nav-themes" onclick="app.navTo('themes')">
@@ -1009,11 +997,6 @@
         <div class="account-menu" id="account-menu-list"></div>
     </div>
 
-    <!-- Post Options Menu -->
-    <div class="post-menu-overlay" id="post-menu-overlay">
-        <!-- Dynamic Items -->
-    </div>
-
     <!-- Create Post Modal -->
     <div id="post-modal" class="hidden modal-overlay">
         <div class="modal" style="height: auto; min-height: 200px;">
@@ -1054,8 +1037,8 @@
          <div class="mobile-nav-item" onclick="app.navTo('explore')">
             <svg viewBox="0 0 24 24"><path d="M9.8 12c0 1.216.984 2.2 2.2 2.2s2.2-.984 2.2-2.2-.984-2.2-2.2-2.2-2.2.984-2.2 2.2zm9.63-7.91l-15.02 5.5c-.85.313-1.127 1.43-.513 2.11l4.13 4.58 4.63-4.5c.343-.333.886-.102.94.364l.5 4.5 3.96 4.98c.64.805 1.88.59 2.24-.38l6.13-16.5c.29-.78-.45-1.52-1.23-1.23l-5.757 2.576z"></path></svg>
         </div>
-        <div class="mobile-nav-item" onclick="app.navTo('notifications')">
-           <svg viewBox="0 0 24 24"><path d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2zm-6.866-4l.847-6.698C6.364 6.272 8.941 4 11.996 4s5.627 2.268 6.01 5.295L18.866 16H5.134z"></path></svg>
+        <div class="mobile-nav-item" onclick="app.navTo('themes')">
+            <svg viewBox="0 0 24 24"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm-5-3a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm1-5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm3-3a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm4 2a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm2 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"></path></svg>
         </div>
         <div class="mobile-nav-item" onclick="app.navTo('messages')">
             <svg viewBox="0 0 24 24"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.5h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg>
@@ -1159,19 +1142,12 @@
                 return bot;
             },
             generateBotPost: () => {
-                 const casualTopics = [
-                    "Just had the best coffee ever.", "Traffic is absolutely crazy today.", "Anyone see the game last night?", 
-                    "Can't believe it's already Friday.", "Why is pizza so good?", "Need new music recommendations. Go.",
-                    "Coding is fun until it isn't.", "Just deployed to prod. Pray for me.", "React updates are moving too fast.",
-                    "Beautiful weather outside!", "Thinking about starting a podcast.", "Netflix recommendations?", 
-                    "Just finished a great book.", "Workout done. Feels good.", "Why do weekends go so fast?",
-                    "Anyone else tired?", "Just saw a dog wearing shoes. My day is made."
-                ];
+                const topics = ["HTML is actually turing complete if you squint hard enough.", "Just deployed to production on a Friday. Wish me luck.", "Why is centering a div still so hard?", "Crypto is going to the moon! 🚀", "Web3 is the future.", "Anyone else tired of frameworks?", "Just watched the new Marvel movie.", "Pizza with pineapple is a crime.", "Coding at 3AM hits different.", "I need more coffee.", "AI is taking over.", "Check out my new project!", "React 19 looks slick.", "CSS Grid > Flexbox. Fight me."];
                 const bot = Utils.createBot();
                 return {
                     id: Utils.generateId(),
                     authorHandle: bot.handle,
-                    text: casualTopics[Math.floor(Math.random() * casualTopics.length)],
+                    text: topics[Math.floor(Math.random() * topics.length)],
                     timestamp: Date.now(),
                     stats: { views: Math.floor(Math.random()*100), likes: Math.floor(Math.random()*20), retweets: Math.floor(Math.random()*5), replies: 0, bookmarks: 0 },
                     likedBy: [],
@@ -1195,8 +1171,7 @@
                     if(!parsed.chats) parsed.chats = {};
                     if(!parsed.myAccounts) parsed.myAccounts = parsed.currentUser ? [parsed.currentUser] : [];
                     if(!parsed.settings) parsed.settings = { autoReply: true, theme: 'default' };
-                    // Default theme fallback
-                    if(!parsed.settings.theme || parsed.settings.theme === 'christmas' || parsed.settings.theme === 'halloween') parsed.settings.theme = 'default';
+                    if(!parsed.settings.theme) parsed.settings.theme = 'default';
                 }
                 return parsed;
             },
@@ -1210,7 +1185,6 @@
             data: null,
             tempImage: null,
             activeProfileTab: 'Posts', 
-            activeFeedTab: 'For You', // New Feed State
             
             init: () => {
                 app.data = DB.load();
@@ -1225,37 +1199,46 @@
                 
                 app.renderWhoToFollow();
                 app.initPullToRefresh();
-                
-                // Hide menu on click outside
-                document.addEventListener('click', (e) => {
-                    const overlay = document.getElementById('post-menu-overlay');
-                    if(overlay && overlay.style.display === 'flex' && !e.target.closest('.stat-item') && !e.target.closest('.post-menu-overlay')) {
-                        overlay.style.display = 'none';
-                    }
-                });
-
                 setInterval(app.simulateLive, 1000); 
             },
 
             cleanup: () => {
-                // Keep only user posts + 6 latest bot posts
-                const userPosts = app.data.posts.filter(p => p.authorHandle === app.data.currentUser);
-                let botPosts = app.data.posts.filter(p => p.authorHandle !== app.data.currentUser);
-                
-                botPosts.sort((a,b) => b.timestamp - a.timestamp);
-                if (botPosts.length > 6) {
-                    botPosts = botPosts.slice(0, 6);
-                }
-                
-                app.data.posts = [...userPosts, ...botPosts];
+                const cutoff = Date.now() - (48 * 60 * 60 * 1000);
+                app.data.posts = app.data.posts.filter(p => {
+                    return p.timestamp > cutoff || p.authorHandle === app.data.currentUser;
+                });
                 DB.save(app.data);
             },
             
             applyTheme: (themeName) => {
                 app.data.settings.theme = themeName;
-                document.body.className = ''; 
-                if (themeName === 'greenblue') {
-                    document.body.classList.add('theme-greenblue');
+                document.body.className = ''; // reset
+                if (themeName !== 'default') {
+                    document.body.classList.add(`theme-${themeName}`);
+                }
+                
+                // Falling Particles
+                const container = document.getElementById('particles');
+                container.innerHTML = '';
+                
+                if (themeName === 'halloween' || themeName === 'christmas' || themeName === 'thanksgiving') {
+                    const emojis = {
+                        'halloween': ['🎃', '🦇', '👻'],
+                        'christmas': ['❄️', '⛄'],
+                        'thanksgiving': ['🍂', '🦃', '🍁']
+                    };
+                    const set = emojis[themeName];
+                    
+                    for(let i=0; i<20; i++) {
+                        const p = document.createElement('div');
+                        p.className = 'particle';
+                        p.innerText = set[Math.floor(Math.random() * set.length)];
+                        p.style.left = Math.random() * 100 + 'vw';
+                        p.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                        p.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                        p.style.opacity = Math.random() * 0.7 + 0.3;
+                        container.appendChild(p);
+                    }
                 }
                 DB.save(app.data);
             },
@@ -1293,11 +1276,10 @@
             },
 
             simulateStep: (quietMode) => {
-                // Bot Posting logic respecting limit
                 if (Math.random() > 0.985) {
                     const newBotPost = Utils.generateBotPost();
                     app.data.posts.unshift(newBotPost);
-                    app.cleanup(); // Enforce limit immediately
+                    if(app.data.posts.length > 300) app.data.posts.pop(); 
                 }
 
                 const user = app.data.users[app.data.currentUser];
@@ -1398,7 +1380,6 @@
                         joined: Date.now(),
                         followers: 0,
                         following: 0,
-                        followingList: [], // Added for Following Feed
                         avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${handle}`,
                         banner: '#333',
                         isVerified: false,
@@ -1460,6 +1441,7 @@
                     container.appendChild(div);
                 });
                 
+                // Add Create Account
                 const addDiv = document.createElement('div');
                 addDiv.className = 'account-menu-item';
                 addDiv.onclick = () => {
@@ -1499,7 +1481,7 @@
                 };
 
                 app.data.posts.unshift(newPost);
-                app.cleanup(); // Trigger cleanup on new post
+                DB.save(app.data);
                 
                 document.getElementById('composer-text').value = '';
                 document.getElementById('composer-image-preview').src = '';
@@ -1510,81 +1492,11 @@
                 app.navTo('home');
             },
 
-            // --- Post Options Logic ---
-            openPostOptions: (postId, event) => {
-                event.stopPropagation();
-                const overlay = document.getElementById('post-menu-overlay');
-                const post = app.data.posts.find(p => p.id === postId);
-                
-                if (!post) return;
-                
-                // Position near click
-                overlay.style.top = `${event.pageY + 10}px`;
-                overlay.style.left = `${event.pageX - 100}px`; 
-                overlay.innerHTML = '';
-                
-                if (post.authorHandle === app.data.currentUser) {
-                    overlay.innerHTML = `
-                        <div class="post-menu-item" onclick="app.editPost('${postId}')">Edit</div>
-                        <div class="post-menu-item danger" onclick="app.deletePost('${postId}')">Delete</div>
-                    `;
-                } else {
-                    overlay.innerHTML = `
-                        <div class="post-menu-item">Not interested</div>
-                        <div class="post-menu-item danger">Report</div>
-                    `;
-                }
-                
-                overlay.style.display = 'flex';
-            },
-            
-            deletePost: (postId) => {
-                 app.data.posts = app.data.posts.filter(p => p.id !== postId);
-                 DB.save(app.data);
-                 document.getElementById('post-menu-overlay').style.display = 'none';
-                 app.renderCurrentView();
-            },
-            
-            editPost: (postId) => {
-                const post = app.data.posts.find(p => p.id === postId);
-                const newText = prompt("Edit your post:", post.text);
-                if (newText !== null && newText.trim() !== "") {
-                    post.text = newText;
-                    post.isEdited = true;
-                    DB.save(app.data);
-                    app.renderCurrentView();
-                }
-                document.getElementById('post-menu-overlay').style.display = 'none';
-            },
-
-            // --- Follow Logic ---
-            toggleFollow: (handle) => {
-                const me = app.data.users[app.data.currentUser];
-                const target = app.data.users[handle];
-                
-                if(!me.followingList) me.followingList = [];
-                
-                if (me.followingList.includes(handle)) {
-                    me.followingList = me.followingList.filter(h => h !== handle);
-                    me.following--;
-                    target.followers--;
-                    alert(`Unfollowed ${handle}`);
-                } else {
-                    me.followingList.push(handle);
-                    me.following++;
-                    target.followers++;
-                    alert(`Followed ${handle}`);
-                }
-                DB.save(app.data);
-                app.renderCurrentView();
-            },
-
             navTo: (view, params = null) => {
                 app.currentView = view;
                 app.viewParams = params;
                 
                 if (view === 'profile') app.activeProfileTab = 'Posts';
-                if (view === 'home') app.activeFeedTab = 'For You';
                 
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                 if(view === 'home') document.getElementById('nav-home').classList.add('active');
@@ -1596,11 +1508,6 @@
 
                 app.renderCurrentView();
                 window.scrollTo(0,0);
-            },
-            
-            switchFeedTab: (tab) => {
-                app.activeFeedTab = tab;
-                app.renderCurrentView();
             },
             
             switchProfileTab: (tab) => {
@@ -1652,39 +1559,24 @@
             renderHeader: (container, title, backBtn = false) => {
                 const div = document.createElement('div');
                 div.className = 'header-sticky';
-                
-                let topRow = document.createElement('div');
-                topRow.className = 'header-top';
-                
+                let html = '';
                 if (backBtn || (title === 'Chat')) {
-                    topRow.innerHTML = `<div onclick="app.navTo(title === 'Chat' ? 'messages' : 'home')" style="cursor:pointer; margin-right: 20px;">←</div>`;
+                    html += `<div onclick="app.navTo(title === 'Chat' ? 'messages' : 'home')" style="cursor:pointer; margin-right: 20px;">←</div>`;
                 }
-                topRow.innerHTML += `<div style="flex:1;">${title}</div>`;
+                html += `<div style="flex:1;">${title}</div>`;
                 
+                // Add Auto Reply Toggle in Chat
                 if (title === 'Chat') {
                     const isOn = app.data.settings.autoReply;
-                    topRow.innerHTML += `
-                        <div class="flex items-center gap-2" style="font-size:12px">
-                            <span>Auto-reply</span>
-                            <div class="toggle-switch ${isOn ? 'on' : ''}" onclick="app.toggleAutoReply(this)"></div>
-                        </div>
+                    const toggle = document.createElement('div');
+                    toggle.className = 'flex items-center gap-2';
+                    toggle.style.fontSize = '12px';
+                    toggle.innerHTML = `
+                        <span>Auto-reply</span>
+                        <div class="toggle-switch ${isOn ? 'on' : ''}" onclick="app.toggleAutoReply(this)"></div>
                     `;
+                    div.appendChild(toggle);
                 }
-                
-                div.appendChild(topRow);
-
-                // Feed Tabs
-                if (title === 'Home') {
-                    const tabs = document.createElement('div');
-                    tabs.className = 'feed-tabs';
-                    tabs.innerHTML = `
-                        <div class="feed-tab ${app.activeFeedTab === 'For You' ? 'active' : ''}" onclick="app.switchFeedTab('For You')">For You</div>
-                        <div class="feed-tab ${app.activeFeedTab === 'Following' ? 'active' : ''}" onclick="app.switchFeedTab('Following')">Following</div>
-                        <div class="feed-tab ${app.activeFeedTab === 'Media' ? 'active' : ''}" onclick="app.switchFeedTab('Media')">Media</div>
-                    `;
-                    div.appendChild(tabs);
-                }
-
                 container.appendChild(div);
             },
             
@@ -1696,8 +1588,10 @@
             
             renderThemeSelector: (container) => {
                 const themes = [
-                    { id: 'default', name: 'Default', icon: '🌌' },
-                    { id: 'greenblue', name: 'Green/Blue', icon: '🌊' }
+                    { id: 'default', name: 'Default', icon: '🌑' },
+                    { id: 'halloween', name: 'Halloween', icon: '🎃' },
+                    { id: 'christmas', name: 'Christmas', icon: '🎄' },
+                    { id: 'thanksgiving', name: 'Thanksgiving', icon: '🦃' }
                 ];
                 
                 const grid = document.createElement('div');
@@ -1709,7 +1603,7 @@
                     card.innerHTML = `<span class="theme-icon">${t.icon}</span><strong>${t.name}</strong>`;
                     card.onclick = () => {
                         app.applyTheme(t.id);
-                        app.renderThemeSelector(container);
+                        app.renderThemeSelector(container); // Re-render to update active state
                     };
                     grid.appendChild(card);
                 });
@@ -1724,19 +1618,7 @@
                 if(!container) container = document.getElementById('main-content');
                 
                 let posts = app.data.posts;
-                const currentUser = app.data.users[app.data.currentUser];
-
-                // Global Feed Filters
-                if (app.currentView === 'home') {
-                    if (app.activeFeedTab === 'Following') {
-                         const following = currentUser.followingList || [];
-                         posts = posts.filter(p => following.includes(p.authorHandle) || p.authorHandle === app.data.currentUser);
-                    } else if (app.activeFeedTab === 'Media') {
-                         posts = posts.filter(p => p.image);
-                    }
-                }
                 
-                // Profile Filters
                 if (app.currentView === 'profile') {
                      const handle = app.viewParams ? app.viewParams.handle : app.data.currentUser;
                      if (app.activeProfileTab === 'Posts') posts = posts.filter(p => p.authorHandle === handle);
@@ -1751,7 +1633,7 @@
                     empty.style.padding = '30px';
                     empty.style.textAlign = 'center';
                     empty.style.color = 'var(--text-secondary)';
-                    empty.innerText = "No posts to show.";
+                    empty.innerText = "Nothing to see here yet.";
                     feedDiv.appendChild(empty);
                 }
 
@@ -1766,13 +1648,11 @@
                     const el = document.createElement('div');
                     el.className = 'post';
                     el.onclick = (e) => {
-                         if(e.target.closest('.stat-item') || e.target.closest('.mini-avatar') || e.target.tagName === 'A' || e.target.closest('.post-options-btn')) return;
+                         if(e.target.closest('.stat-item') || e.target.closest('.mini-avatar') || e.target.tagName === 'A') return;
                          app.navTo('post', {id: post.id});
                     };
                     
                     const verifiedHtml = author.isVerified ? `<svg viewBox="0 0 24 24" class="verified-badge"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .495.083.965.238 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path></svg>` : '';
-                    
-                    const editedHtml = post.isEdited ? `<span class="edited-label">Edited</span>` : '';
 
                     el.innerHTML = `
                         <img src="${author.avatar}" class="mini-avatar" onclick="app.navTo('profile', {handle: '${author.handle}'})">
@@ -1783,9 +1663,8 @@
                                     <span class="user-handle">${author.handle}</span>
                                     <span>·</span>
                                     <span>${Utils.timeAgo(post.timestamp)}</span>
-                                    ${editedHtml}
                                 </div>
-                                <div class="text-gray post-options-btn" style="font-size:16px; cursor:pointer;" onclick="app.openPostOptions('${post.id}', event)">···</div>
+                                <div class="text-gray" style="font-size:16px;">···</div>
                             </div>
                             <div class="post-text">${post.text}</div>
                             ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
@@ -1819,7 +1698,6 @@
                 container.appendChild(feedDiv);
             },
             
-            // New Messaging Views
             renderMessages: (container) => {
                 const myHandle = app.data.currentUser;
                 const conversations = app.data.messages[myHandle] || [];
@@ -1883,6 +1761,8 @@
                         div.className = `chat-bubble ${msg.sender === myHandle ? 'sent' : 'received'} msg-slide`;
                         div.innerText = msg.text;
                         div.ondblclick = () => app.toggleReaction(div, convoId, idx);
+                        // Add ID to wrapper to find it later easily? No, bubble structure is complex.
+                        // We will add ID to the status element below.
                         
                         if(msg.reaction) {
                             const r = document.createElement('div');
@@ -1896,12 +1776,13 @@
                         if(msg.sender === myHandle && idx === messages.length - 1) {
                             const status = document.createElement('div');
                             status.className = 'chat-status';
-                            status.id = `chat-status-${idx}`;
+                            status.id = `chat-status-${idx}`; // UNIQUE ID FOR DIRECT UPDATE
                             status.innerText = msg.status;
                             msgsDiv.appendChild(status);
                         }
                     });
                     
+                    // Only scroll on init
                     setTimeout(() => msgsDiv.scrollTop = msgsDiv.scrollHeight, 50);
                 };
                 renderMsgs();
@@ -1926,6 +1807,7 @@
             },
             
             toggleReaction: (el, convoId, msgIdx) => {
+                // Simple reaction picker overlay
                 if(el.querySelector('.reaction-menu')) {
                     el.querySelector('.reaction-menu').remove();
                     return;
@@ -1940,6 +1822,7 @@
                         e.stopPropagation();
                         app.data.chats[convoId][msgIdx].reaction = emoji;
                         DB.save(app.data);
+                        // Re-render specifically this user chat to show reaction
                         app.renderChat(document.getElementById('main-content'), convoId.split('_').find(h=>h!==app.data.currentUser));
                     };
                     menu.appendChild(span);
@@ -1980,12 +1863,15 @@
                 };
                 
                 updateMeta(myHandle, toHandle, text);
+                
+                // Simulate updating the other user's inbox
                 updateMeta(toHandle, myHandle, text);
                 
                 input.value = '';
                 DB.save(app.data);
                 app.renderChat(document.getElementById('main-content'), toHandle);
                 
+                // Helper to update DOM without re-render
                 const updateStatusDOM = (status) => {
                     if (app.currentView === 'chat') {
                         const statusEl = document.getElementById(`chat-status-${msgIndex}`);
@@ -1993,6 +1879,7 @@
                     }
                 };
                 
+                // Simulation Logic using direct DOM update
                 setTimeout(() => { 
                     newMsg.status = 'Delivered'; 
                     DB.save(app.data); 
@@ -2005,6 +1892,7 @@
                     updateStatusDOM('Read');
                 }, 3000);
                 
+                // Bot Reply
                 if (app.data.settings.autoReply) {
                     setTimeout(() => {
                         const botReplies = ["Haha true", "Yeah totally!", "Nice one", "👍", "What?", "Send me the link", "Lol", "Ok", "For real?", "👀"];
@@ -2018,6 +1906,7 @@
                         updateMeta(toHandle, myHandle, replyText);
                         DB.save(app.data);
                         
+                        // Only full re-render for NEW message to append it
                         if(app.currentView==='chat') app.renderChat(document.getElementById('main-content'), toHandle);
                     }, 5000 + Math.random() * 3000);
                 }
@@ -2047,14 +1936,13 @@
                 if(user.handle === app.data.currentUser) {
                     actionBtn = `<button class="edit-profile-btn" onclick="app.openEditProfile()">Edit profile</button>`;
                 } else {
-                    const following = app.data.users[app.data.currentUser].followingList || [];
-                    const isFollowing = following.includes(user.handle);
                     actionBtn = `
                         <button class="edit-profile-btn" onclick="app.navTo('chat', {handle: '${user.handle}'})" style="padding:6px; border-radius:50%; margin-right:8px;"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:white;"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15.004c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5H4.498c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5H4.498zm15.5 5.487l-7.588 3.452c-.266.121-.558.121-.824 0l-7.588-3.452V18.5c0 .276.224.5.5.5h15.004c.276 0 .5-.224.5-.5v-8.013z"></path></svg></button>
-                        <button class="edit-profile-btn" onclick="app.toggleFollow('${user.handle}')">${isFollowing ? 'Unfollow' : 'Follow'}</button>
+                        <button class="edit-profile-btn" onclick="alert('Followed!')">Follow</button>
                     `;
                 }
                 
+                // Account Switcher Arrow
                 const switcherArrow = user.handle === app.data.currentUser ? 
                     `<div onclick="document.querySelector('.account-switcher-overlay').style.display='block'" style="display:inline-block; cursor:pointer; margin-left:6px;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:white;"><path d="M3.543 8.96l1.414-1.42L12 14.59l7.043-7.05 1.414 1.42L12 17.41 3.543 8.96z"></path></svg></div>` 
                     : '';
@@ -2110,7 +1998,6 @@
                 const div = document.createElement('div');
                 div.className = 'detail-container';
                 const verifiedHtml = author.isVerified ? `<svg viewBox="0 0 24 24" class="verified-badge"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .495.083.965.238 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path></svg>` : '';
-                const editedHtml = post.isEdited ? `<span class="edited-label">Edited</span>` : '';
 
                 div.innerHTML = `
                     <div class="detail-header">
@@ -2119,14 +2006,14 @@
                             <span class="text-bold" style="display:flex; align-items:center;">${author.name} ${verifiedHtml}</span>
                             <span class="text-gray">${author.handle}</span>
                         </div>
-                        <div class="text-gray post-options-btn" style="margin-left:auto; font-size:16px; cursor:pointer;" onclick="app.openPostOptions('${post.id}', event)">···</div>
+                        <div style="margin-left:auto; color:gray;">···</div>
                     </div>
                     <div class="detail-text">${post.text}</div>
                     ${post.image ? `<img src="${post.image}" class="post-image">` : ''}
                     
                     <div class="detail-meta">
                         ${new Date(post.timestamp).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})} · ${new Date(post.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric'})}
-                        · <span style="color:white" id="detail-views-${post.id}">${Utils.formatNumber(post.stats.views)}</span> <span style="font-weight:400">Views</span> ${editedHtml}
+                        · <span style="color:white" id="detail-views-${post.id}">${Utils.formatNumber(post.stats.views)}</span> <span style="font-weight:400">Views</span>
                     </div>
 
                     <div class="detail-stats">
@@ -2167,6 +2054,246 @@
                 });
             },
             
+            renderTrending: (container) => {
+                 // Top 10 by impact, unique authors
+                 let sorted = [...app.data.posts].sort((a,b) => (b.stats.views + b.stats.likes*5) - (a.stats.views + a.stats.likes*5));
+                 const uniqueAuthors = new Set();
+                 const uniquePosts = [];
+                 
+                 for(let post of sorted) {
+                     if(!uniqueAuthors.has(post.authorHandle)) {
+                         uniqueAuthors.add(post.authorHandle);
+                         uniquePosts.push(post);
+                     }
+                     if(uniquePosts.length >= 10) break;
+                 }
+                 
+                 const h2 = document.createElement('h2');
+                 h2.innerText = "Trending";
+                 h2.style.padding = "16px";
+                 h2.style.borderBottom = "1px solid var(--border)";
+                 container.appendChild(h2);
+                 
+                 uniquePosts.forEach((post, index) => {
+                     const author = app.data.users[post.authorHandle];
+                     const el = document.createElement('div');
+                     el.className = 'post';
+                     el.onclick = () => app.navTo('post', {id: post.id});
+                     el.innerHTML = `
+                         <div style="font-size: 16px; font-weight: bold; color: var(--text-secondary); width: 30px;">${index+1}</div>
+                         <div style="flex:1;">
+                              <div class="text-gray text-sm" style="margin-bottom:4px;">Trending in Peyza</div>
+                              <div class="text-bold">${author.name}</div>
+                              <div class="text-gray" style="font-size: 14px; margin-top:2px;">${Utils.formatNumber(post.stats.views)} views</div>
+                         </div>
+                         <img src="${author.avatar}" style="width: 60px; height: 60px; border-radius: 8px; object-fit:cover;">
+                     `;
+                     container.appendChild(el);
+                 });
+            },
+            
+            renderNotifications: (container) => {
+                // Find replies to current user posts
+                const myHandle = app.data.currentUser;
+                const notifications = [];
+                
+                app.data.posts.forEach(post => {
+                    if(post.authorHandle === myHandle) {
+                        post.replies.forEach(reply => {
+                            notifications.push({
+                                type: 'reply',
+                                timestamp: reply.timestamp,
+                                author: reply.author,
+                                text: reply.text,
+                                parentId: post.id
+                            });
+                        });
+                    }
+                });
+                
+                notifications.sort((a,b) => b.timestamp - a.timestamp);
+                
+                if(notifications.length === 0) {
+                    container.innerHTML = `<div class="p-4 text-center text-gray">No notifications yet</div>`;
+                    return;
+                }
+                
+                notifications.forEach(notif => {
+                     const el = document.createElement('div');
+                     el.className = 'post'; // reuse style
+                     el.onclick = () => app.navTo('post', {id: notif.parentId});
+                     el.innerHTML = `
+                        <img src="${notif.author.avatar}" class="mini-avatar">
+                        <div class="post-content">
+                            <div class="text-bold" style="margin-bottom: 4px;">${notif.author.name} replied</div>
+                            <div class="text-gray" style="margin-bottom: 8px;">${notif.text}</div>
+                        </div>
+                     `;
+                     container.appendChild(el);
+                });
+            },
+
+            renderWhoToFollow: () => {
+                const container = document.getElementById('who-to-follow-list');
+                container.innerHTML = '';
+                // Generate 3 random bots to follow
+                for(let i=0; i<3; i++) {
+                    const bot = Utils.createBot();
+                    const div = document.createElement('div');
+                    div.className = 'follow-item';
+                    div.innerHTML = `
+                         <div class="flex items-center gap-2" onclick="app.navTo('profile', {handle: '${bot.handle}'})">
+                             <img src="${bot.avatar}" class="mini-avatar">
+                             <div class="flex flex-col">
+                                 <span class="text-bold text-sm">${bot.name}</span>
+                                 <span class="text-gray text-sm">${bot.handle}</span>
+                             </div>
+                        </div>
+                        <button class="follow-btn-small" onclick="this.innerText = 'Following'">Follow</button>
+                    `;
+                    container.appendChild(div);
+                }
+            },
+
+            interact: (id, type, el) => {
+                const post = app.data.posts.find(p => p.id === id);
+                if (!post) return;
+
+                if (type === 'replies') {
+                    if (app.currentView !== 'post') {
+                        app.navTo('post', {id: id});
+                    } else {
+                        app.focusComposer();
+                    }
+                    return; // CRITICAL: Stop execution here
+                }
+
+                let isActive = false;
+                let countChange = 1;
+
+                if (type === 'likes') {
+                    if (!post.likedBy) post.likedBy = [];
+                    isActive = post.likedBy.includes(app.data.currentUser);
+                    if (isActive) {
+                        post.likedBy = post.likedBy.filter(u => u !== app.data.currentUser);
+                        countChange = -1;
+                    } else {
+                        post.likedBy.push(app.data.currentUser);
+                    }
+                } else if (type === 'retweets') {
+                    if (!post.retweetedBy) post.retweetedBy = [];
+                    isActive = post.retweetedBy.includes(app.data.currentUser);
+                     if (isActive) {
+                        post.retweetedBy = post.retweetedBy.filter(u => u !== app.data.currentUser);
+                        countChange = -1;
+                    } else {
+                        post.retweetedBy.push(app.data.currentUser);
+                    }
+                } else if (type === 'bookmarks') {
+                    if (!post.bookmarkedBy) post.bookmarkedBy = [];
+                     isActive = post.bookmarkedBy.includes(app.data.currentUser);
+                     if (isActive) {
+                        post.bookmarkedBy = post.bookmarkedBy.filter(u => u !== app.data.currentUser);
+                        countChange = -1;
+                    } else {
+                        post.bookmarkedBy.push(app.data.currentUser);
+                    }
+                }
+
+                post.stats[type] += countChange;
+                
+                // Update UI
+                // 1. Text Update
+                let countEl = el.querySelector('span'); // Feed default
+                if (!countEl && app.currentView === 'post') {
+                    // In detail view, the counter is separate, find by ID
+                    countEl = document.getElementById(`detail-${type}-${id}`);
+                }
+
+                if (countEl) {
+                    countEl.innerText = Utils.formatNumber(post.stats[type]);
+                    countEl.classList.remove('number-pop');
+                    void countEl.offsetWidth; // trigger reflow
+                    countEl.classList.add('number-pop');
+                }
+
+                // 2. Icon/Class Update
+                const svgPath = el.querySelector('svg path');
+                const svg = el.querySelector('svg');
+                
+                if (isActive && countChange === -1) {
+                    el.classList.remove('liked', 'retweeted', 'bookmarked');
+                    // Set outline path
+                    if(type === 'likes') {
+                        if(svgPath) svgPath.setAttribute('d', 'M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z');
+                    } else if(type === 'bookmarks') {
+                        if(svgPath) svgPath.setAttribute('d', 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z');
+                    }
+                    if(svg) svg.classList.remove('animate-like');
+                } else {
+                    el.classList.add(type === 'likes' ? 'liked' : (type === 'retweets' ? 'retweeted' : 'bookmarked'));
+                    // Set filled path
+                    if(type === 'likes') {
+                        if(svgPath) svgPath.setAttribute('d', 'M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.894 1.81.844 4.17-.514 6.67z');
+                    } else if(type === 'bookmarks') {
+                        if(svgPath) svgPath.setAttribute('d', 'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z');
+                    }
+                    if(svg && (type === 'likes' || type === 'bookmarks')) {
+                        svg.classList.remove('animate-like');
+                        void svg.offsetWidth;
+                        svg.classList.add('animate-like');
+                    }
+                }
+                
+                DB.save(app.data);
+            },
+
+            openEditProfile: () => {
+                const user = app.data.users[app.data.currentUser];
+                if (!user) return; 
+
+                // Safe defaults
+                const avatar = user.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.handle}`;
+                const banner = user.banner || '#333';
+
+                document.getElementById('edit-name').value = user.name || '';
+                document.getElementById('edit-bio').value = user.bio || '';
+                document.getElementById('edit-followers').value = user.followers || 0;
+                document.getElementById('edit-verified').checked = user.isVerified || false;
+                
+                // Populate hidden fields
+                document.getElementById('edit-avatar').value = avatar;
+                document.getElementById('edit-banner').value = banner;
+                
+                // Previews
+                document.getElementById('preview-avatar').src = avatar;
+                document.getElementById('preview-cover').style.backgroundImage = `url(${banner})`;
+                if(!banner.startsWith('http') && !banner.startsWith('data:')) document.getElementById('preview-cover').style.backgroundColor = banner;
+
+                // Verification Logic
+                const verifyDiv = document.getElementById('verification-status');
+                if(user.isVerified) {
+                    verifyDiv.innerHTML = '<span style="color:var(--accent); font-weight:bold;">✓ Account Verified</span>';
+                } else {
+                    verifyDiv.innerHTML = `<button class="auth-btn outline" onclick="app.requestVerification()">Request Verification</button> <p style="font-size:12px; color:gray; margin-top:4px;">Requires 100k followers</p>`;
+                }
+
+                const modal = document.getElementById('edit-modal');
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex'; // Force display just in case
+            },
+            
+            requestVerification: () => {
+                const user = app.data.users[app.data.currentUser];
+                if(user.followers >= 100000) {
+                    user.isVerified = true;
+                    document.getElementById('edit-verified').checked = true;
+                    document.getElementById('verification-status').innerHTML = '<span style="color:var(--accent); font-weight:bold;">✓ Account Verified! (Save to apply)</span>';
+                } else {
+                    alert(`You need ${Utils.formatNumber(100000)} followers. You have ${Utils.formatNumber(user.followers)}.`);
+                }
+            },
+
             saveProfile: () => {
                 const user = app.data.users[app.data.currentUser];
                 user.name = document.getElementById('edit-name').value;
