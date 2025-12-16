@@ -307,10 +307,11 @@
 
     <script>
         // --- Configuration & State ---
-        // Changed to use the official Gemini API endpoint for stability in the Canvas environment.
+        // UPDATED: Using Routeway AI Configuration
         const API_KEY = "sk-7r7dL5pEUJvfXqx3M0G7GN9MPQotjQtDQ4EWWPa4DmzWI9fm"; 
-        const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+        const AI_MODEL = "deepseek-r1t2-chimera:free"; // New model
+        const API_URL = `https://api.routeway.ai/v1/chat/completions`; // New API Endpoint
+        
         const ADMIN_PASS = "568300";
         
         // Custom thinking messages
@@ -698,28 +699,27 @@
 
             const chat = state.chats.find(c => c.id === state.currentChatId);
             
-            // Prepare history for Gemini API: model accepts 'user' and 'model' roles
+            // Prepare history for Routeway/OpenAI API: 
             const history = chat.messages.slice(-10); // Last 10 messages for context
-            const contents = history.map(m => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }]
-            }));
-            // Add the new user message
-            contents.push({
-                role: 'user',
-                parts: [{ text: text }]
+            const messages = [];
+
+            // 1. Add System Prompt
+            messages.push({ role: 'system', content: chat.systemPrompt });
+
+            // 2. Add History
+            history.forEach(m => {
+                // The stored roles ('user', 'assistant') match the required roles.
+                messages.push({ role: m.role, content: m.content }); 
             });
 
+            // 3. Add the new user message
+            messages.push({ role: 'user', content: text });
+
+            // Construct the payload for Routeway AI
             const payload = {
-                contents: contents,
-                // System instruction is set outside of contents
-                systemInstruction: {
-                    parts: [{ text: chat.systemPrompt }]
-                },
-                tools: [{ "google_search": {} }] // Enable Google Search for grounding
+                model: AI_MODEL,
+                messages: messages,
             };
-            
-            const apiUrlWithKey = `${API_URL}?key=${API_KEY}`;
             
             // Implement Exponential Backoff
             const maxRetries = 3;
@@ -733,9 +733,12 @@
                         setStorage('x2_usage', state.dailyUsage);
                     }
                     
-                    const response = await fetch(apiUrlWithKey, {
+                    const response = await fetch(API_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}` // Using Authorization header
+                        },
                         body: JSON.stringify(payload)
                     });
 
@@ -744,7 +747,7 @@
                         break; // Success, break out of loop
                     } else {
                         // Log HTTP error but proceed to retry
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
                     }
                 } catch (e) {
                     attempt++;
@@ -766,11 +769,10 @@
             }
 
             try {
-                const candidate = data?.candidates?.[0];
+                // Routeway/OpenAI response structure: data.choices[0].message.content
+                const reply = data?.choices?.[0]?.message?.content;
 
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    let reply = candidate.content.parts[0].text;
-                    
+                if (reply) {
                     // --- Truncate response to 40% ---
                     const truncationLength = Math.ceil(reply.length * 0.40);
                     let truncatedReply = reply.substring(0, truncationLength);
@@ -784,7 +786,9 @@
                     appendMessageToUI('assistant', truncatedReply, true);
                     saveMessage('assistant', truncatedReply); // Save the truncated version
                 } else {
-                    appendMessageToUI('assistant', "Peyza X2 is temporarily unavailable or returned an empty response. Please try again.", true);
+                    // Log the full error response for debugging
+                    console.error("Routeway API Error/Empty Response:", data);
+                    appendMessageToUI('assistant', "Peyza X2 is temporarily unavailable or returned an empty response. Please check the console for errors.", true);
                 }
             } catch (e) {
                 console.error("API Response Parsing Error:", e);
