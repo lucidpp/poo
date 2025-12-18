@@ -47,7 +47,7 @@
         /* Animations */
         @keyframes pop {
             0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+            50% { transform: scale(1.4); }
             100% { transform: scale(1); }
         }
         .animate-pop {
@@ -84,6 +84,12 @@
         }
         .reposted {
             color: #22c55e !important;
+        }
+        .bookmarked {
+            color: #3b82f6 !important;
+        }
+        .bookmarked i {
+            font-weight: 900 !important;
         }
     </style>
 </head>
@@ -247,6 +253,8 @@
                             <!-- Options injected -->
                         </select>
                     </div>
+                    
+                    <div id="replying-to-indicator" class="hidden text-sm text-gray-500 mb-1">Replying to <span class="text-rose-500">@post</span></div>
 
                     <textarea id="compose-input" class="w-full h-32 resize-none outline-none text-xl placeholder-gray-500 bg-transparent dark:text-white mt-2" placeholder="What is happening?!"></textarea>
                     <div class="border-t border-gray-100 dark:border-darkBorder pt-3 flex justify-between items-center text-rose-500 text-lg">
@@ -413,11 +421,13 @@ class PeyzaApp {
         this.posts = this.loadPosts();
         this.currentView = 'home'; 
         this.viewParam = null;
-        this.feedFilter = 'foryou'; 
+        this.feedFilter = 'foryou';
+        this.profileFilter = 'posts'; // Default profile filter
         this.settings = this.loadSettings();
         
         // Session state
         this.editingHandle = null; 
+        this.replyingTo = null;
 
         this.init();
     }
@@ -447,7 +457,7 @@ class PeyzaApp {
             bio: 'Just a guest exploring Peyza.', location: 'Internet',
             joined: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
             followers: 42, following: 15, isVerified: false,
-            likedPosts: [], repostedPosts: [],
+            likedPosts: [], repostedPosts: [], bookmarks: [],
             isPremium: false, createdBots: [] // Handles of created bots
         };
     }
@@ -547,6 +557,17 @@ class PeyzaApp {
         };
         this.posts.unshift(newPost);
         this.savePosts();
+        
+        // If it was a reply, increment original post reply count
+        if (this.replyingTo) {
+            const originalPost = this.posts.find(p => p.id === this.replyingTo);
+            if(originalPost) {
+                originalPost.stats.replies++;
+                this.savePosts();
+            }
+            this.replyingTo = null;
+        }
+
         this.renderView();
     }
 
@@ -680,6 +701,11 @@ class PeyzaApp {
         });
         this.renderView();
     }
+    
+    setProfileFilter(filter) {
+        this.profileFilter = filter;
+        this.renderProfile(this.viewParam);
+    }
 
     // --- THEME ---
 
@@ -749,7 +775,7 @@ class PeyzaApp {
 
         const isMe = handle === this.user.handle;
         const isMyBot = this.user.createdBots.includes(handle);
-        const canEdit = isMe || (this.user.isPremium && isMyBot) || (this.user.isPremium && this.settings.godModeEnabled); // Simulating god mode editing
+        const canEdit = isMe || (this.user.isPremium && isMyBot) || (this.user.isPremium && this.settings.godModeEnabled); 
 
         const banner = profileData.banner || `https://picsum.photos/seed/${handle}/800/300`;
 
@@ -797,13 +823,18 @@ class PeyzaApp {
 
                 <!-- Tabs -->
                 <div class="flex border-b border-gray-100 dark:border-darkBorder mt-2">
-                    <div class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white">
+                    <div onclick="app.setProfileFilter('posts')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter === 'posts' ? 'text-black dark:text-white' : 'text-gray-500'}">
                         Posts
-                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px]"><div class="bg-rose-500 w-12 rounded-full"></div></div>
+                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter === 'posts' ? '' : 'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div>
                     </div>
-                    <div class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer text-gray-500 font-medium text-sm">Replies</div>
-                    <div class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer text-gray-500 font-medium text-sm">Media</div>
-                    <div class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer text-gray-500 font-medium text-sm">Likes</div>
+                    <div onclick="app.setProfileFilter('media')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter === 'media' ? 'text-black dark:text-white' : 'text-gray-500'}">
+                        Media
+                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter === 'media' ? '' : 'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div>
+                    </div>
+                    <div onclick="app.setProfileFilter('likes')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter === 'likes' ? 'text-black dark:text-white' : 'text-gray-500'}">
+                        Likes
+                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter === 'likes' ? '' : 'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div>
+                    </div>
                 </div>
 
                 <!-- Profile Feed -->
@@ -819,19 +850,38 @@ class PeyzaApp {
         const post = this.posts.find(p => p.id === postId);
         if (!post) return;
 
+        // Dynamic Author Info
+        let avatar = post.authorAvatar;
+        let name = post.authorName;
+        let isVerified = post.isVerified;
+
+        if (post.authorHandle === this.user.handle) {
+            avatar = this.user.avatar;
+            name = this.user.name;
+            isVerified = this.user.isVerified;
+        } else {
+             const bot = this.bots.find(b => b.handle === post.authorHandle);
+             if (bot) {
+                 avatar = bot.avatar;
+                 name = bot.name;
+                 isVerified = bot.isVerified;
+             }
+        }
+
         const isLiked = this.user.likedPosts.includes(postId);
         const isReposted = this.user.repostedPosts.includes(postId);
+        const isBookmarked = this.user.bookmarks.includes(postId);
         const container = document.getElementById('main-view');
         
         let html = `
             <div class="px-4 py-3 border-b border-gray-100 dark:border-darkBorder animate-fade-in">
                 <div class="flex gap-3 items-center mb-3">
                      <div class="w-10 h-10 rounded-full overflow-hidden cursor-pointer" onclick="app.navigate('profile', '${post.authorHandle}')">
-                        <img src="${post.authorAvatar}" class="w-full h-full object-cover">
+                        <img src="${avatar}" class="w-full h-full object-cover">
                     </div>
                     <div>
                         <div class="font-bold flex items-center cursor-pointer hover:underline dark:text-white" onclick="app.navigate('profile', '${post.authorHandle}')">
-                            ${post.authorName} ${post.isVerified ? VERIFIED_ICON : ''}
+                            ${name} ${isVerified ? VERIFIED_ICON : ''}
                         </div>
                         <div class="text-gray-500 text-sm">@${post.authorHandle}</div>
                     </div>
@@ -846,7 +896,7 @@ class PeyzaApp {
                 </div>
 
                 <div class="flex justify-between py-1 border-b border-gray-100 dark:border-darkBorder text-gray-500 px-2" id="stats-${post.id}">
-                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full">
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full" onclick="app.openReplyModal('${post.id}')">
                         <i class="fa-regular fa-comment text-xl"></i> 
                     </div>
                     <div class="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-500 flex items-center justify-center w-full py-3 transition group rounded-full ${isReposted ? 'reposted' : ''}" onclick="app.toggleRepost('${post.id}', this)">
@@ -855,10 +905,10 @@ class PeyzaApp {
                     <div class="cursor-pointer hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 flex items-center justify-center w-full py-3 transition group rounded-full ${isLiked ? 'liked' : ''}" onclick="app.toggleLike('${post.id}', this)">
                         <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-xl transition-transform active:scale-125"></i>
                     </div>
-                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full">
-                        <i class="fa-regular fa-bookmark text-xl"></i>
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full ${isBookmarked ? 'bookmarked' : ''}" onclick="app.toggleBookmark('${post.id}', this)">
+                        <i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl transition-transform active:scale-125"></i>
                     </div>
-                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full">
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full" onclick="app.shareApp()">
                         <i class="fa-solid fa-arrow-up-from-bracket text-xl"></i>
                     </div>
                 </div>
@@ -898,16 +948,34 @@ class PeyzaApp {
         const isLiked = this.user.likedPosts && this.user.likedPosts.includes(post.id);
         const isReposted = this.user.repostedPosts && this.user.repostedPosts.includes(post.id);
 
+        // Dynamic User Info in Feed
+        let avatar = post.authorAvatar;
+        let name = post.authorName;
+        let isVerified = post.isVerified;
+
+        if (post.authorHandle === this.user.handle) {
+            avatar = this.user.avatar;
+            name = this.user.name;
+            isVerified = this.user.isVerified;
+        } else {
+             const bot = this.bots.find(b => b.handle === post.authorHandle);
+             if (bot) {
+                 avatar = bot.avatar;
+                 name = bot.name;
+                 isVerified = bot.isVerified;
+             }
+        }
+
         return `
             <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec/50 cursor-pointer transition duration-200" onclick="app.navigate('post', '${post.id}')">
                 <div class="shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-200" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">
-                    <img src="${post.authorAvatar}" class="w-full h-full object-cover">
+                    <img src="${avatar}" class="w-full h-full object-cover">
                 </div>
                 <div class="w-full">
                     <div class="flex justify-between items-start">
                         <div class="flex items-center gap-1 text-[15px]">
-                            <span class="font-bold hover:underline truncate max-w-[150px] dark:text-white" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">${post.authorName}</span>
-                            ${post.isVerified ? VERIFIED_ICON : ''}
+                            <span class="font-bold hover:underline truncate max-w-[150px] dark:text-white" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">${name}</span>
+                            ${isVerified ? VERIFIED_ICON : ''}
                             <span class="text-gray-500 truncate" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">@${post.authorHandle}</span>
                             <span class="text-gray-500">·</span>
                             <span class="text-gray-500 hover:underline">${this.timeAgo(post.createdAt)}</span>
@@ -926,7 +994,7 @@ class PeyzaApp {
                     ` : ''}
 
                     <div class="flex justify-between mt-3 text-gray-500 max-w-[425px]" id="stats-${post.id}">
-                        <div class="flex items-center gap-2 group hover:text-blue-500 transition" onclick="event.stopPropagation()">
+                        <div class="flex items-center gap-2 group hover:text-blue-500 transition" onclick="event.stopPropagation(); app.openReplyModal('${post.id}')">
                             <div class="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 p-2 rounded-full -m-2 transition"><i class="fa-regular fa-comment"></i></div>
                             <span class="text-xs">${post.stats.replies}</span>
                         </div>
@@ -948,9 +1016,25 @@ class PeyzaApp {
         `;
     }
 
-    // Add the missing method
     getPostsByHandle(handle) {
-        const userPosts = this.posts.filter(p => p.authorHandle === handle).sort((a,b) => b.createdAt - a.createdAt);
+        let userPosts;
+        
+        if (this.profileFilter === 'likes') {
+            // If viewing current user's profile and filter is likes
+            if (handle === this.user.handle) {
+                userPosts = this.posts.filter(p => this.user.likedPosts.includes(p.id));
+            } else {
+                return '<div class="p-8 text-center text-gray-500 dark:text-gray-400">Likes are private</div>';
+            }
+        } else {
+            userPosts = this.posts.filter(p => p.authorHandle === handle);
+            if (this.profileFilter === 'media') {
+                userPosts = userPosts.filter(p => p.image);
+            }
+        }
+
+        userPosts.sort((a,b) => b.createdAt - a.createdAt);
+        
         if (userPosts.length === 0) return '<div class="p-8 text-center text-gray-500 dark:text-gray-400">No posts yet</div>';
         
         let html = '';
@@ -1001,6 +1085,9 @@ class PeyzaApp {
         document.getElementById('compose-modal').classList.remove('hidden');
         document.getElementById('compose-avatar').src = this.user.avatar;
         
+        // Hide reply indicator if fresh post
+        if(!this.replyingTo) document.getElementById('replying-to-indicator').classList.add('hidden');
+        
         // Populate identity selector if user has bots
         const selector = document.getElementById('author-selector');
         const select = document.getElementById('post-as-select');
@@ -1025,9 +1112,20 @@ class PeyzaApp {
             selector.classList.add('hidden');
         }
     }
+    
+    openReplyModal(postId) {
+        this.replyingTo = postId;
+        this.openComposeModal();
+        const post = this.posts.find(p => p.id === postId);
+        const indicator = document.getElementById('replying-to-indicator');
+        indicator.classList.remove('hidden');
+        indicator.innerHTML = `Replying to <span class="text-rose-500">@${post ? post.authorHandle : 'unknown'}</span>`;
+    }
+
     closeComposeModal() {
         document.getElementById('compose-modal').classList.add('hidden');
         document.getElementById('compose-input').value = '';
+        this.replyingTo = null;
     }
 
     publishPost() {
@@ -1254,6 +1352,34 @@ class PeyzaApp {
         }
         if(count) count.innerText = this.formatNumber(post.stats.reposts);
         this.saveUser(); this.savePosts();
+    }
+    
+    toggleBookmark(postId, btn) {
+        if (!this.user.bookmarks) this.user.bookmarks = [];
+        const index = this.user.bookmarks.indexOf(postId);
+        const icon = btn.querySelector('i');
+        
+        if(index === -1) {
+            this.user.bookmarks.push(postId);
+            btn.classList.add('bookmarked');
+            icon.classList.remove('fa-regular'); icon.classList.add('fa-solid', 'animate-pop');
+            this.showToast('Post bookmarked');
+        } else {
+            this.user.bookmarks.splice(index, 1);
+            btn.classList.remove('bookmarked');
+            icon.classList.add('fa-regular'); icon.classList.remove('fa-solid', 'animate-pop');
+            this.showToast('Removed from bookmarks');
+        }
+        this.saveUser();
+    }
+    
+    shareApp() {
+        const text = "Check out Peyza! The best Twitter-themed simulation app. #Peyza";
+        navigator.clipboard.writeText(text).then(() => {
+            this.showToast('Link copied to clipboard!');
+        }).catch(() => {
+            this.showToast('Failed to copy link');
+        });
     }
 
     toggleFollow(handle, btn) {
