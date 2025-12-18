@@ -2,105 +2,899 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Peyza X2 AI Platform - Next Generation Characters</title>
-
-    <!-- SEO & Google Description -->
-    <meta name="description" content="Peyza X2 is a cutting-edge AI platform featuring multiple specialized, verified characters (X2, X3, X7, Code Master, etc.) for code, analysis, writing, and more. Unlock creative and analytical superpowers." />
-    <meta name="keywords" content="Peyza X2, Peyza AI, generative AI, AI chat, Code Master, Peyza X3, Peyza X7, specialized AI, custom chatbot" />
-    <meta name="author" content="Peyza Systems" />
-
-    <!-- Icon Data URI (Base64 SVG: Blue Square Placeholder) -->
-    <meta property="og:image" content="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdib3g9IjAgMCAxNiAxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjNjM2NmYxIi8+PC9yZWN0Pjwvc3ZnPg==" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdib3g9IjAgMCAxNiAxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjNjM2NmYxIi8+PC9yZWN0Pjwvc3ZnPg==" />
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdib3g9IjAgMCAxNiAxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjNjM2NmYxIi8+PC9yZWN0Pjwvc3ZnPg==" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Peyza AI - An advanced, free AI chatbot powered by RouteWay and GLM 4.6. Experience seamless conversation, earn XP, and collect badges.">
+    <meta name="keywords" content="AI, Chatbot, Peyza, Free AI, Assistant, GLM">
+    <meta name="author" content="Peyza.org">
+    
+    <link rel="icon" href="favicon.png" type="image/png">
+    
+    <title>Peyza - AI Chat</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
                     colors: {
-                        background: '#09090b',
-                        surface: '#18181b',
-                        surface_hover: '#27272a',
-                        primary: '#6366f1', // Indigo primary
-                        primary_hover: '#4f46e5',
-                        accent: '#f59e0b', // Orange for verification
-                        listening: '#ef4444', // Red for active listening
+                        sidebar: '#202123',
+                        main: '#343541',
+                        userMsg: '#343541',
+                        aiMsg: '#444654',
+                        accent: '#10a37f',
+                        accentHover: '#1a7f64'
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out forwards',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'pulse-glow': 'pulseGlow 2s infinite',
-                        'mic-pulse': 'micPulse 1s infinite alternate', // New
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'slide-in-right': 'slideInRight 0.4s ease-out',
+                        'slide-in-left': 'slideInLeft 0.4s ease-out',
+                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                     },
                     keyframes: {
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-                        pulseGlow: { '0%, 100%': { boxShadow: '0 0 10px rgba(99, 102, 241, 0)' }, '50%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)' } },
-                        micPulse: { '0%': { transform: 'scale(1)', opacity: '0.8' }, '100%': { transform: 'scale(1.1)', opacity: '1' } } // New
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        slideInRight: {
+                            '0%': { transform: 'translateX(20px)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        slideInLeft: {
+                            '0%': { transform: 'translateX(-20px)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        pop: {
+                            '0%': { transform: 'scale(0.8)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
                     }
                 }
             }
         }
     </script>
-
     <style>
-        body { background-color: #09090b; color: #e4e4e7; overflow: hidden; }
-        
-        /* Modern Scrollbar */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
-
-        /* Utilities */
-        .glass-panel {
-            background: rgba(24, 24, 27, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        
-        .verified-badge {
-            color: #f59e0b;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 6px;
+        ::-webkit-scrollbar-track {
+            background: #202123; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #777; 
         }
 
-        .chat-bubble {
+        /* Typing cursor animation */
+        .typing-cursor::after {
+            content: '▋';
+            animation: blink 1s step-start infinite;
+            color: #10a37f;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Thinking animation dots */
+        .dot-flashing {
             position: relative;
-            transition: all 0.2s;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: #9880ff;
+            color: #9880ff;
+            animation: dot-flashing 1s infinite linear alternate;
+            animation-delay: 0.5s;
         }
-        .chat-bubble:hover .msg-actions { opacity: 1; }
+        .dot-flashing::before, .dot-flashing::after {
+            content: '';
+            display: inline-block;
+            position: absolute;
+            top: 0;
+        }
+        .dot-flashing::before {
+            left: -10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: #9880ff;
+            color: #9880ff;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 0s;
+        }
+        .dot-flashing::after {
+            left: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: #9880ff;
+            color: #9880ff;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 1s;
+        }
+        @keyframes dot-flashing {
+            0% { background-color: #9880ff; }
+            50%, 100% { background-color: #ebe6ff; }
+        }
         
-        .msg-actions {
-            opacity: 0;
-            transition: opacity 0.2s;
+        /* XP Shine Effect */
+        .xp-shine {
+            position: relative;
+            overflow: hidden;
         }
-        @media (max-width: 768px) { .msg-actions { opacity: 1; } }
-
-        .stat-pill {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .xp-shine::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 2s infinite;
         }
-
-        /* Typing Dot Animation */
-        .typing-dot {
-            width: 6px; height: 6px; background: #a1a1aa; border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
+        @keyframes shine {
+            100% { left: 100%; }
         }
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     </style>
+    <!-- User custom CSS injection point (Must be a separate style tag with an ID) -->
+    <style id="user-custom-css"></style>
+</head>
+<body class="bg-main text-gray-100 h-screen w-screen overflow-hidden flex flex-col md:flex-row">
+
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center p-4">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700 animate-slide-up">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-700 mb-4 shadow-lg overflow-hidden border-2 border-accent">
+                    <!-- Favicon used here as requested -->
+                    <img src="favicon.png" alt="Peyza Logo" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Peyza'">
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-2">Welcome to Peyza</h1>
+                <p class="text-gray-400">Login or Signup to continue</p>
+            </div>
+            
+            <form id="auth-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Username</label>
+                    <input type="text" id="username" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-accent focus:outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                    <input type="password" id="password" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-accent focus:outline-none transition-all">
+                </div>
+                <button type="submit" class="w-full bg-accent hover:bg-accentHover text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
+                    Enter Peyza
+                </button>
+            </form>
+            <p class="mt-4 text-center text-xs text-gray-500">Secure access powered by Peyza V1</p>
+        </div>
+    </div>
+
+    <!-- Sidebar (History & Profile) -->
+    <div id="sidebar" class="bg-sidebar w-full md:w-[260px] flex-shrink-0 flex flex-col h-full border-r border-gray-700 md:border-none transition-all duration-300 hidden md:flex">
+        <div class="p-3">
+            <button onclick="createNewChat()" class="w-full border border-gray-600 text-white rounded-md px-3 py-3 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm text-left shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200">
+                <i class="fas fa-plus"></i>
+                New Chat
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-3 py-2 space-y-2" id="chat-history-list">
+            <!-- Chat history items go here -->
+        </div>
+
+        <!-- XP, Badges & Profile Section -->
+        <div class="border-t border-gray-600 p-3 space-y-3">
+            <!-- XP Display -->
+            <div class="bg-gray-800 rounded-lg p-2 border border-gray-700 shadow-inner flex items-center justify-between xp-shine">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                    <span class="text-xs font-bold text-gray-300">XP</span>
+                </div>
+                <span id="xp-counter" class="text-sm font-mono font-bold text-accent">0</span>
+            </div>
+
+            <!-- Badge Container -->
+            <div class="bg-gray-800/50 rounded-lg p-2 border border-gray-700">
+                <div class="text-[10px] uppercase text-gray-500 font-bold mb-1 ml-1">Badges</div>
+                <div id="badge-list" class="flex flex-wrap gap-1 min-h-[24px]">
+                    <span class="text-xs text-gray-500 italic px-1">No badges yet</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 rounded-md cursor-pointer transition-colors" onclick="openSettings()">
+                <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden">
+                     <img src="favicon.png" alt="U" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                     <i class="fas fa-user text-gray-300 text-xs absolute" style="z-index:-1"></i>
+                </div>
+                <div class="flex-1 text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap" id="user-display-name">User</div>
+                <span id="admin-badge" class="hidden text-[10px] bg-yellow-500 text-black px-1.5 py-0.5 rounded font-bold uppercase tracking-wide shadow-glow">PRO</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col h-full relative bg-main">
+        <!-- Mobile Header -->
+        <div class="md:hidden flex items-center justify-between p-4 border-b border-gray-700 bg-sidebar text-white">
+            <button onclick="toggleSidebar()" class="text-gray-300 hover:text-white">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <span class="font-semibold">Peyza V1</span>
+            <button onclick="createNewChat()" class="text-gray-300 hover:text-white">
+                <i class="fas fa-plus text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Chat Container -->
+        <div id="chat-container" class="flex-1 overflow-y-auto w-full scroll-smooth pb-48">
+            <!-- Welcome Screen -->
+            <div id="welcome-screen" class="flex flex-col items-center justify-center h-full text-center px-4 animate-fade-in">
+                <div class="w-24 h-24 rounded-full bg-gray-700 mb-6 shadow-2xl animate-pulse-fast border-4 border-gray-600 overflow-hidden">
+                    <img src="favicon.png" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Peyza'">
+                </div>
+                <h2 class="text-4xl font-bold mb-8 tracking-tight">Peyza V1</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl w-full">
+                    <div class="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700 transition-colors cursor-default">
+                        <i class="fas fa-brain mb-2 text-xl text-purple-400"></i>
+                        <h3 class="font-semibold mb-2">Knowledge</h3>
+                        <p class="text-sm text-gray-400">Powered by Peyza.org</p>
+                    </div>
+                    <div class="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700 transition-colors cursor-default">
+                        <i class="fas fa-bolt mb-2 text-xl text-yellow-400"></i>
+                        <h3 class="font-semibold mb-2">Fast</h3>
+                        <p class="text-sm text-gray-400">Optimized for fluid interaction</p>
+                    </div>
+                    <div class="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700 transition-colors cursor-default">
+                        <i class="fas fa-award mb-2 text-xl text-green-400"></i>
+                        <h3 class="font-semibold mb-2">Badges</h3>
+                        <p class="text-sm text-gray-400">Collect badges by chatting</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages go here -->
+            <div id="messages-list" class="flex flex-col w-full text-base"></div>
+            
+            <!-- Thinking Indicator -->
+            <div id="thinking-indicator" class="hidden w-full bg-aiMsg border-b border-black/10 dark:border-gray-900/50 text-gray-100 p-6 animate-fade-in">
+                <div class="max-w-3xl mx-auto flex gap-4">
+                    <div class="w-8 h-8 rounded-sm bg-green-500 flex items-center justify-center flex-shrink-0 animate-bounce">
+                        <i class="fas fa-robot text-white text-xs"></i>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="dot-flashing ml-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-main via-main to-transparent pt-10 pb-6 px-4 z-20">
+            <div class="max-w-3xl mx-auto">
+                <div class="relative flex items-end w-full p-4 bg-[#40414F] rounded-xl shadow-2xl border border-gray-600 focus-within:border-accent transition-all duration-300 transform focus-within:scale-[1.01]">
+                    <!-- INCREASED MIN-HEIGHT and PADDING for better typing experience -->
+                    <textarea id="prompt-input" rows="1" class="w-full bg-transparent text-white border-0 focus:ring-0 p-1 pl-2 pr-12 resize-none min-h-[44px] max-h-[200px] outline-none overflow-hidden placeholder-gray-400 text-base leading-relaxed" placeholder="Send a message to Peyza..." oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
+                    <button id="send-btn" onclick="sendMessage()" class="absolute right-4 bottom-4 p-2 rounded-lg text-gray-400 hover:bg-accent hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group">
+                        <i class="fas fa-paper-plane group-hover:scale-110 transition-transform text-lg"></i>
+                    </button>
+                </div>
+                <div class="text-center text-xs text-gray-500 mt-2">
+                    <span id="limit-counter">Free Tier: 10 messages/day</span> &bull; Peyza V1 may produce inaccurate information.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-gray-800 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-pop border border-gray-700">
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900/50">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-sliders-h"></i> Settings</h3>
+                <button onclick="closeSettings()" class="text-gray-400 hover:text-white transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-6">
+                
+                <!-- Admin Login -->
+                <div class="bg-gray-700/30 p-4 rounded-lg border border-gray-700 hover:border-accent transition-colors">
+                    <label class="block text-sm font-semibold mb-2 text-accent">Admin Access</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="admin-password" placeholder="Enter Admin PIN" class="flex-1 bg-gray-900 border border-gray-600 rounded px-3 py-2 text-sm focus:border-accent outline-none text-white">
+                        <button onclick="verifyAdmin()" class="bg-gray-600 hover:bg-accent px-4 py-2 rounded text-sm transition-colors text-white font-medium">Verify</button>
+                    </div>
+                    <p id="admin-status" class="text-xs mt-2 text-gray-400">Unlock unlimited chats & prompt editing.</p>
+                </div>
+
+                <!-- Theme / CSS -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Custom CSS / Theme</label>
+                    <textarea id="custom-css-input" class="w-full h-24 bg-gray-900 border border-gray-600 rounded p-3 text-xs font-mono focus:border-accent outline-none text-green-400" placeholder=".bg-main { background-color: #1a1a1a; }"></textarea>
+                    <button onclick="applyCustomCSS()" class="mt-2 text-xs text-accent hover:text-white hover:underline transition-colors">Apply CSS</button>
+                </div>
+
+                <!-- System Prompt (Admin Only) -->
+                <div id="system-prompt-container" class="opacity-50 pointer-events-none transition-opacity">
+                    <label class="block text-sm font-semibold mb-2">System Prompt (AI Persona)</label>
+                    <textarea id="system-prompt-input" class="w-full h-24 bg-gray-900 border border-gray-600 rounded p-3 text-sm focus:border-accent outline-none text-white"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Requires Admin Access</p>
+                </div>
+
+                <button onclick="logout()" class="w-full border border-red-500 text-red-500 hover:bg-red-500/10 py-2 rounded-lg transition-colors font-semibold">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 bg-accent text-white px-6 py-3 rounded-lg shadow-2xl transform translate-x-full transition-all duration-300 z-[60] flex items-center gap-3 font-medium border border-white/10 backdrop-blur-md">
+        <i class="fas fa-info-circle"></i>
+        <span id="toast-message">Notification</span>
+    </div>
+
+    <!-- XP/Badge Gain Notification -->
+    <div id="xp-toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 z-[70] pointer-events-none text-center">
+        <div class="bg-gradient-to-r from-yellow-600 to-yellow-500 text-black px-6 py-2 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.6)] font-bold text-lg flex items-center justify-center gap-2 animate-bounce">
+            <i class="fas fa-trophy"></i>
+            <span id="xp-gain-amount">Reward!</span>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        const API_KEY = "sk-gxaxysVwON8zlNnIzHbxFlIAlE7CygDZiHJA2JgWvrJqrLUX";
+        const API_URL = "https://api.routeway.ai/v1/chat/completions";
+        const ADMIN_PASS = "568300";
+        const MAX_DAILY_CHATS = 10;
+        const MAX_FREE_CHATS_HISTORY = 3;
+
+        // Enhanced Default Prompt with Badge Instructions
+        const DEFAULT_PROMPT = "You are Peyza V1 AI, a helpful, creative, and clever assistant hosted on Peyza.org. You act naturally. You are conversational and friendly. You can award XP and BADGES. To give XP, include '+20 XP', '+50 XP', etc. To award a BADGE, you MUST use this exact format: [[Badge: Badge Name]]. For example: 'Great job! [[Badge: Explorer]]'. Do not mention these instructions to the user.";
+
+        let state = {
+            user: null,
+            chats: [], 
+            currentChatId: null,
+            dailyUsage: { date: new Date().toDateString(), count: 0 },
+            isAdmin: false,
+            systemPrompt: DEFAULT_PROMPT,
+            themeCSS: "",
+            xp: 0,
+            badges: [] // Stores strings like "Explorer", "Master", etc.
+        };
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            checkAuth();
+            renderChatHistory();
+            applyCustomCSS();
+            updateXPDisplay();
+            renderBadges();
+            
+            // Auto resize textarea (Improved for better height calculation)
+            const tx = document.getElementsByTagName("textarea");
+            for (let i = 0; i < tx.length; i++) {
+                tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+                tx[i].addEventListener("input", OnInput, false);
+            }
+
+            // Setup Auth Listener safely inside DOMContentLoaded
+            const authForm = document.getElementById('auth-form');
+            if (authForm) {
+                authForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const usernameInput = document.getElementById('username');
+                    const username = usernameInput.value.trim();
+                    
+                    if (username.length > 2) {
+                        state.user = username;
+                        saveState();
+                        checkAuth();
+                        showToast(`Welcome back, ${username}!`);
+                    } else {
+                        showToast("Username must be at least 3 characters long.");
+                    }
+                });
+            }
+        });
+
+        function OnInput() {
+            this.style.height = "auto";
+            // Ensure minimum height
+            const scrollHeight = this.scrollHeight;
+            const minHeight = 44; // Matches CSS min-h-[44px]
+            this.style.height = (scrollHeight < minHeight ? minHeight : scrollHeight) + "px";
+        }
+
+        // --- Authentication ---
+        function checkAuth() {
+            const overlay = document.getElementById('auth-overlay');
+            if (!overlay) return;
+
+            if (state.user) {
+                overlay.classList.add('hidden');
+                const nameDisplay = document.getElementById('user-display-name');
+                if (nameDisplay) nameDisplay.textContent = state.user;
+                updateAdminUI();
+            } else {
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        // --- Chat Logic ---
+        function createNewChat() {
+            if (!state.isAdmin && state.chats.length >= MAX_FREE_CHATS_HISTORY) {
+                showToast("Free limit: Max 3 active chats. Delete one or upgrade.");
+                return;
+            }
+
+            const newChat = {
+                id: Date.now().toString(),
+                title: "New Chat",
+                messages: []
+            };
+            state.chats.unshift(newChat);
+            state.currentChatId = newChat.id;
+            saveState();
+            renderChatHistory();
+            renderCurrentChat();
+            
+            // Mobile sidebar close
+            const sidebar = document.getElementById('sidebar');
+            if(window.innerWidth < 768 && !sidebar.classList.contains('hidden')) {
+                sidebar.classList.add('hidden');
+            }
+        }
+
+        function loadChat(id) {
+            state.currentChatId = id;
+            renderCurrentChat();
+            renderChatHistory(); 
+            
+            const sidebar = document.getElementById('sidebar');
+            if(window.innerWidth < 768) {
+                sidebar.classList.add('hidden');
+            }
+        }
+
+        function deleteChat(e, id) {
+            e.stopPropagation();
+            state.chats = state.chats.filter(c => c.id !== id);
+            if (state.currentChatId === id) {
+                state.currentChatId = null;
+                document.getElementById('messages-list').innerHTML = '';
+                document.getElementById('welcome-screen').classList.remove('hidden');
+            }
+            saveState();
+            renderChatHistory();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('prompt-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const today = new Date().toDateString();
+            if (state.dailyUsage.date !== today) {
+                state.dailyUsage = { date: today, count: 0 };
+            }
+
+            if (!state.isAdmin && state.dailyUsage.count >= MAX_DAILY_CHATS) {
+                showToast("Daily limit reached. Admin password required for more.");
+                return;
+            }
+
+            if (!state.currentChatId) {
+                createNewChat();
+            }
+
+            input.value = '';
+            input.style.height = '44px'; // Reset to min height
+            document.getElementById('welcome-screen').classList.add('hidden');
+            
+            const chatIndex = state.chats.findIndex(c => c.id === state.currentChatId);
+            const chat = state.chats[chatIndex];
+
+            if (chat.messages.length === 0) {
+                chat.title = message.substring(0, 20) + "...";
+                renderChatHistory();
+            }
+
+            chat.messages.push({ role: 'user', content: message });
+            appendMessageToUI('user', message);
+            
+            if (!state.isAdmin) {
+                state.dailyUsage.count++;
+                updateUsageCounter();
+            }
+            saveState();
+
+            // API Call
+            document.getElementById('thinking-indicator').classList.remove('hidden');
+            scrollToBottom();
+
+            try {
+                const apiMessages = [
+                    { role: "system", content: state.systemPrompt },
+                    ...chat.messages.map(m => ({ role: m.role, content: m.content }))
+                ];
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "glm-4.6:free",
+                        messages: apiMessages
+                    })
+                });
+
+                if (!response.ok) throw new Error('API Error');
+
+                const data = await response.json();
+                const aiContent = data.choices[0].message.content;
+
+                document.getElementById('thinking-indicator').classList.add('hidden');
+                
+                // --- XP Parsing Logic ---
+                const xpRegex = /\+\s*(\d+)\s*XP/i;
+                const xpMatch = aiContent.match(xpRegex);
+                if (xpMatch) {
+                    const amount = parseInt(xpMatch[1]);
+                    addXP(amount);
+                }
+
+                // --- Badge Parsing Logic ---
+                // Looks for [[Badge: Name]] or similar variations
+                const badgeRegex = /\[\[Badge:\s*(.*?)\]\]/i;
+                const badgeMatch = aiContent.match(badgeRegex);
+                if (badgeMatch) {
+                    const badgeName = badgeMatch[1].trim();
+                    addBadge(badgeName);
+                }
+
+                chat.messages.push({ role: 'assistant', content: aiContent });
+                appendMessageToUI('assistant', aiContent, true); 
+                saveState();
+
+                speakText(aiContent);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('thinking-indicator').classList.add('hidden');
+                appendMessageToUI('assistant', "Sorry, I encountered an error connecting to the Peyza Network.");
+            }
+        }
+
+        // --- XP & Badge System ---
+        function addXP(amount) {
+            state.xp = (state.xp || 0) + amount;
+            updateXPDisplay();
+            saveState();
+            triggerRewardToast(`+${amount} XP`, 'text-black');
+        }
+
+        function addBadge(badgeName) {
+            if (!state.badges) state.badges = [];
+            // Prevent duplicates
+            if (!state.badges.includes(badgeName)) {
+                state.badges.push(badgeName);
+                renderBadges();
+                saveState();
+                triggerRewardToast(`Badge Unlocked: ${badgeName}`, 'text-purple-900 bg-white');
+            }
+        }
+
+        function triggerRewardToast(text, colorClass) {
+            const toast = document.getElementById('xp-toast');
+            const toastText = document.getElementById('xp-gain-amount');
+            toastText.innerText = text;
+            
+            // Basic animation reset
+            toast.classList.remove('opacity-0', 'translate-y-20');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-20');
+            }, 4000);
+        }
+
+        function updateXPDisplay() {
+            const el = document.getElementById('xp-counter');
+            if (el) el.innerText = state.xp || 0;
+        }
+
+        function renderBadges() {
+            const container = document.getElementById('badge-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!state.badges || state.badges.length === 0) {
+                container.innerHTML = '<span class="text-xs text-gray-500 italic px-1">No badges yet</span>';
+                return;
+            }
+
+            state.badges.forEach(badge => {
+                const badgeEl = document.createElement('span');
+                badgeEl.className = "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-900 text-indigo-100 border border-indigo-700 shadow-sm";
+                badgeEl.innerText = badge;
+                container.appendChild(badgeEl);
+            });
+        }
+
+        // --- UI Rendering ---
+        function renderChatHistory() {
+            const list = document.getElementById('chat-history-list');
+            list.innerHTML = '';
+            
+            state.chats.forEach(chat => {
+                const isActive = chat.id === state.currentChatId;
+                const div = document.createElement('div');
+                div.className = `group flex items-center gap-3 px-3 py-3 rounded-md cursor-pointer transition-all duration-200 ${isActive ? 'bg-gray-700/50 border-l-2 border-accent' : 'hover:bg-gray-800 border-l-2 border-transparent'}`;
+                div.onclick = () => loadChat(chat.id);
+                div.innerHTML = `
+                    <i class="fas fa-message text-gray-400 group-hover:text-white transition-colors"></i>
+                    <div class="flex-1 text-sm overflow-hidden text-ellipsis whitespace-nowrap text-gray-100">${chat.title}</div>
+                    <button onclick="deleteChat(event, '${chat.id}')" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 transition-opacity">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function renderCurrentChat() {
+            const container = document.getElementById('messages-list');
+            container.innerHTML = '';
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            
+            if (chat) {
+                document.getElementById('welcome-screen').classList.add('hidden');
+                chat.messages.forEach(msg => {
+                    appendMessageToUI(msg.role, msg.content, false);
+                });
+            } else {
+                document.getElementById('welcome-screen').classList.remove('hidden');
+            }
+            scrollToBottom();
+        }
+
+        function appendMessageToUI(role, content, animate = false) {
+            const container = document.getElementById('messages-list');
+            const isAi = role === 'assistant';
+            
+            // Clean content of system tags for display
+            let cleanContent = content;
+            if (isAi) {
+                cleanContent = content
+                    .replace(/\[\[Badge:\s*.*?\]\]/gi, "")
+                    .replace(/\+\s*\d+\s*XP/gi, ""); 
+            }
+
+            // Don't show empty messages if they were just system commands
+            if (!cleanContent.trim()) return;
+
+            const div = document.createElement('div');
+            // Animation classes based on role
+            const animationClass = animate ? (isAi ? 'animate-slide-in-left' : 'animate-slide-in-right') : '';
+            
+            div.className = `w-full border-b border-black/10 dark:border-gray-900/50 ${isAi ? 'bg-aiMsg' : 'bg-userMsg'} text-gray-100 ${animationClass}`;
+            
+            const innerHTML = `
+                <div class="max-w-3xl mx-auto flex gap-4 p-4 md:p-6 group">
+                    <div class="w-8 h-8 rounded-sm ${isAi ? 'bg-green-500' : 'bg-indigo-500'} flex items-center justify-center flex-shrink-0 shadow-lg ${isAi ? 'hover:animate-spin' : ''}">
+                        ${isAi ? '<i class="fas fa-robot text-white text-xs"></i>' : '<img src="favicon.png" class="w-full h-full object-cover rounded-sm" onerror="this.style.display=\'none\'">'}
+                    </div>
+                    <div class="relative flex-1 overflow-hidden min-h-[20px]">
+                        <div class="prose prose-invert max-w-none leading-7 content-area">${isAi && animate ? '' : formatText(cleanContent)}</div>
+                    </div>
+                </div>
+            `;
+            
+            div.innerHTML = innerHTML;
+            container.appendChild(div);
+            
+            if (isAi && animate) {
+                const contentDiv = div.querySelector('.content-area');
+                typeWriter(contentDiv, cleanContent);
+            } else {
+                scrollToBottom();
+            }
+        }
+
+        // --- Utilities ---
+        function typeWriter(element, text, index = 0) {
+            if (index < text.length) {
+                element.innerHTML = formatText(text.substring(0, index + 1)) + '<span class="typing-cursor"></span>';
+                scrollToBottom();
+                setTimeout(() => typeWriter(element, text, index + 1), 10);
+            } else {
+                element.innerHTML = formatText(text);
+            }
+        }
+
+        function formatText(text) {
+            let formatted = text
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\n/g, "<br>");
+            return formatted;
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                // Strip XP and Badge info from speech
+                const cleanText = text
+                    .replace(/\+\s*\d+\s*XP/gi, "")
+                    .replace(/\[\[Badge:\s*.*?\]\]/gi, "");
+
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                
+                const voices = window.speechSynthesis.getVoices();
+                const preferred = voices.find(v => v.name.includes("Google") || v.name.includes("Samantha"));
+                if (preferred) utterance.voice = preferred;
+                
+                utterance.rate = 1.1;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize(textarea) {
+            // Keep the height logic simple but effective
+            textarea.style.height = 'auto';
+            const newHeight = textarea.scrollHeight;
+            const minHeight = 44; // Should match CSS min-h
+            textarea.style.height = (newHeight < minHeight ? minHeight : newHeight) + 'px';
+        }
+
+        // --- Admin & Settings ---
+        function openSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('system-prompt-input').value = state.systemPrompt;
+            document.getElementById('custom-css-input').value = state.themeCSS || "";
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function verifyAdmin() {
+            const pass = document.getElementById('admin-password').value;
+            if (pass === ADMIN_PASS) {
+                state.isAdmin = true;
+                saveState();
+                updateAdminUI();
+                showToast("Admin access granted! Unlimited chats unlocked.");
+            } else {
+                showToast("Incorrect password.");
+            }
+        }
+
+        function updateAdminUI() {
+            const container = document.getElementById('system-prompt-container');
+            const status = document.getElementById('admin-status');
+            const limit = document.getElementById('limit-counter');
+            const badge = document.getElementById('admin-badge');
+
+            if (state.isAdmin) {
+                container.classList.remove('opacity-50', 'pointer-events-none');
+                status.innerText = "Access: Admin (Active)";
+                status.classList.add('text-green-400');
+                limit.innerText = "✨ Admin Mode: Unlimited Chats";
+                badge.classList.remove('hidden');
+                
+                document.getElementById('system-prompt-input').onchange = (e) => {
+                    state.systemPrompt = e.target.value;
+                    saveState();
+                    showToast("System prompt updated!");
+                };
+            } else {
+                updateUsageCounter();
+            }
+        }
+
+        function updateUsageCounter() {
+             if (!state.isAdmin) {
+                document.getElementById('limit-counter').innerText = `Daily Usage: ${state.dailyUsage.count}/${MAX_DAILY_CHATS}`;
+             }
+        }
+
+        function applyCustomCSS() {
+            const css = document.getElementById('custom-css-input').value;
+            state.themeCSS = css;
+            const styleTag = document.getElementById('user-custom-css');
+            if(styleTag) styleTag.innerHTML = css;
+            if (css) saveState();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            if(msgEl) msgEl.innerText = msg;
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('absolute');
+            sidebar.classList.toggle('z-40');
+            sidebar.classList.toggle('h-full');
+        }
+
+        // --- Storage ---
+        function saveState() {
+            localStorage.setItem('peyzaState', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('peyzaState');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state = { ...state, ...parsed };
+                // Ensure new state properties exist
+                if (typeof state.xp === 'undefined') state.xp = 0;
+                if (!state.badges) state.badges = [];
+                
+                // Update old prompts
+                if (state.systemPrompt === "You are Peyza V1 AI, an advanced AI assistant hosted on Peyza.org. You are helpful, creative, and clever.") {
+                    state.systemPrompt = DEFAULT_PROMPT;
+                } else if (!state.systemPrompt.includes("BADGE")) {
+                     // Force update logic for new badge feature in prompts
+                     state.systemPrompt = DEFAULT_PROMPT;
+                }
+
+                if (state.dailyUsage.date !== new Date().toDateString()) {
+                    state.dailyUsage = { date: new Date().toDateString(), count: 0 };
+                }
+            }
+            updateAdminUI();
+            updateXPDisplay();
+            renderBadges();
+        }
+    </script>
+</body>
+</html>
 </head>
 <body>
 
