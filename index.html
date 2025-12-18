@@ -1,1996 +1,1311 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Peyza AI - An advanced, free AI chatbot powered by RouteWay and GLM 4.6. Experience seamless conversation, earn XP, and collect badges.">
-    <meta name="keywords" content="AI, Chatbot, Peyza, Free AI, Assistant, GLM">
-    <meta name="author" content="Peyza.org">
-    
-    <link rel="icon" href="favicon.png" type="image/png">
-    
-    <title>Peyza - AI Chat</title>
-    <!-- Tailwind CSS for styling -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Peyza</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
                     colors: {
-                        sidebar: '#202123',
-                        main: '#343541',
-                        userMsg: '#343541',
-                        aiMsg: '#444654',
-                        accent: '#10a37f',
-                        accentHover: '#1a7f64'
-                    },
-                    animation: {
-                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-up': 'slideUp 0.4s ease-out',
-                        'slide-in-right': 'slideInRight 0.4s ease-out',
-                        'slide-in-left': 'slideInLeft 0.4s ease-out',
-                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        slideInRight: {
-                            '0%': { transform: 'translateX(20px)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' },
-                        },
-                        slideInLeft: {
-                            '0%': { transform: 'translateX(-20px)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' },
-                        },
-                        pop: {
-                            '0%': { transform: 'scale(0.8)', opacity: '0' },
-                            '100%': { transform: 'scale(1)', opacity: '1' },
-                        }
+                        dark: '#000000',
+                        darkSec: '#16181c',
+                        darkText: '#e7e9ea',
+                        darkBorder: '#2f3336'
                     }
                 }
             }
         }
     </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
-            height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #202123; 
+            background: transparent; 
         }
         ::-webkit-scrollbar-thumb {
-            background: #555; 
+            background: #e11d48; 
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #777; 
+            background: #be123c; 
         }
 
-        /* Typing cursor animation */
-        .typing-cursor::after {
-            content: '▋';
-            animation: blink 1s step-start infinite;
-            color: #10a37f;
+        /* Animations */
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
         }
-        @keyframes blink { 50% { opacity: 0; } }
+        .animate-pop {
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
 
-        /* Thinking animation dots */
-        .dot-flashing {
-            position: relative;
-            width: 6px;
-            height: 6px;
-            border-radius: 5px;
-            background-color: #9880ff;
-            color: #9880ff;
-            animation: dot-flashing 1s infinite linear alternate;
-            animation-delay: 0.5s;
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .dot-flashing::before, .dot-flashing::after {
-            content: '';
-            display: inline-block;
-            position: absolute;
-            top: 0;
-        }
-        .dot-flashing::before {
-            left: -10px;
-            width: 6px;
-            height: 6px;
-            border-radius: 5px;
-            background-color: #9880ff;
-            color: #9880ff;
-            animation: dot-flashing 1s infinite alternate;
-            animation-delay: 0s;
-        }
-        .dot-flashing::after {
-            left: 10px;
-            width: 6px;
-            height: 6px;
-            border-radius: 5px;
-            background-color: #9880ff;
-            color: #9880ff;
-            animation: dot-flashing 1s infinite alternate;
-            animation-delay: 1s;
-        }
-        @keyframes dot-flashing {
-            0% { background-color: #9880ff; }
-            50%, 100% { background-color: #ebe6ff; }
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out forwards;
         }
         
-        /* XP Shine Effect */
-        .xp-shine {
-            position: relative;
-            overflow: hidden;
+        .nav-item.active i {
+            font-weight: 900;
         }
-        .xp-shine::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shine 2s infinite;
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-        @keyframes shine {
-            100% { left: 100%; }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .mobile-nav {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* Interaction States */
+        .liked {
+            color: #e11d48 !important;
+        }
+        .reposted {
+            color: #22c55e !important;
         }
     </style>
-    <!-- User custom CSS injection point (Must be a separate style tag with an ID) -->
-    <style id="user-custom-css"></style>
 </head>
-<body class="bg-main text-gray-100 h-screen w-screen overflow-hidden flex flex-col md:flex-row">
+<body class="flex justify-center min-h-screen bg-white text-[#0f1419] dark:bg-dark dark:text-darkText transition-colors duration-200">
 
-    <!-- Auth Overlay -->
-    <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center p-4">
-        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700 animate-slide-up">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-700 mb-4 shadow-lg overflow-hidden border-2 border-accent">
-                    <!-- Favicon used here as requested -->
-                    <img src="favicon.png" alt="Peyza Logo" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Peyza'">
-                </div>
-                <h1 class="text-3xl font-bold text-white mb-2">Welcome to Peyza</h1>
-                <p class="text-gray-400">Login or Signup to continue</p>
+    <!-- Left Sidebar (Desktop) -->
+    <header class="hidden sm:flex flex-col w-[80px] xl:w-[275px] h-screen fixed left-0 top-0 border-r border-gray-100 dark:border-darkBorder px-2 xl:px-8 py-4 z-20 bg-white dark:bg-dark justify-between">
+        <div class="space-y-4">
+            <!-- Logo -->
+            <div class="p-3 w-min hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full cursor-pointer transition transform active:scale-90" onclick="app.navigate('home')">
+                <i class="fa-solid fa-p text-3xl text-rose-600"></i>
             </div>
-            
-            <form id="auth-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-1">Username</label>
-                    <input type="text" id="username" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-accent focus:outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-1">Password</label>
-                    <input type="password" id="password" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-accent focus:outline-none transition-all">
-                </div>
-                <button type="submit" class="w-full bg-accent hover:bg-accentHover text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
-                    Enter Peyza
-                </button>
-            </form>
-            <p class="mt-4 text-center text-xs text-gray-500">Secure access powered by Peyza V1</p>
-        </div>
-    </div>
 
-    <!-- Sidebar (History & Profile) -->
-    <div id="sidebar" class="bg-sidebar w-full md:w-[260px] flex-shrink-0 flex flex-col h-full border-r border-gray-700 md:border-none transition-all duration-300 hidden md:flex">
-        <div class="p-3">
-            <button onclick="createNewChat()" class="w-full border border-gray-600 text-white rounded-md px-3 py-3 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm text-left shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200">
-                <i class="fas fa-plus"></i>
-                New Chat
+            <!-- Nav Items -->
+            <nav class="space-y-2 text-xl">
+                <a onclick="app.navigate('home')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item active" id="nav-home">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="hidden xl:block font-medium">Home</span>
+                </a>
+                <a onclick="app.showToast('Search coming soon!')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span class="hidden xl:block font-medium">Explore</span>
+                </a>
+                <a onclick="app.showToast('No notifications yet')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="hidden xl:block font-medium">Notifications</span>
+                </a>
+                <a onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-profile">
+                    <i class="fa-regular fa-user"></i>
+                    <span class="hidden xl:block font-medium">Profile</span>
+                </a>
+                <a onclick="app.openSettings()" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span class="hidden xl:block font-medium">Settings</span>
+                </a>
+            </nav>
+
+            <!-- Post Button -->
+            <button onclick="app.openComposeModal()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-full p-4 xl:py-3 xl:px-8 w-full shadow-lg transition transform active:scale-95 mt-4">
+                <i class="fa-solid fa-feather sm:hidden"></i>
+                <span class="hidden xl:block font-bold text-lg">Post</span>
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto px-3 py-2 space-y-2" id="chat-history-list">
-            <!-- Chat history items go here -->
+        <!-- User Mini Profile -->
+        <div onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-3 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer mb-4 transition" id="sidebar-user">
+            <!-- Injected by JS -->
+        </div>
+    </header>
+
+    <!-- Main Content Feed -->
+    <main class="w-full sm:ml-[80px] xl:ml-[275px] max-w-[600px] border-r border-gray-100 dark:border-darkBorder min-h-screen pb-20 sm:pb-0 relative">
+        
+        <!-- Sticky Header -->
+        <div class="sticky top-0 bg-white/80 dark:bg-dark/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-darkBorder">
+            <div id="header-content" class="px-4 h-[53px] flex items-center justify-between cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+                <h2 class="text-lg font-bold">Home</h2>
+                <i class="fa-solid fa-wand-magic-sparkles text-rose-500 hover:rotate-12 transition"></i>
+            </div>
+            
+            <!-- Feed Filters -->
+            <div id="feed-filters" class="flex border-b border-gray-100 dark:border-darkBorder">
+                <div onclick="app.setFeedFilter('foryou')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group" data-filter="foryou">
+                    <span class="font-medium text-sm text-gray-500 dark:text-gray-400 group-[.active]:text-gray-900 dark:group-[.active]:text-white group-[.active]:font-bold">For You</span>
+                    <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px]">
+                        <div class="bg-rose-500 w-14 rounded-full indicator hidden transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div onclick="app.setFeedFilter('following')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group" data-filter="following">
+                    <span class="font-medium text-sm text-gray-500 dark:text-gray-400 group-[.active]:text-gray-900 dark:group-[.active]:text-white group-[.active]:font-bold">Following</span>
+                    <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px]">
+                        <div class="bg-rose-500 w-14 rounded-full indicator hidden transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div onclick="app.setFeedFilter('media')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group" data-filter="media">
+                    <span class="font-medium text-sm text-gray-500 dark:text-gray-400 group-[.active]:text-gray-900 dark:group-[.active]:text-white group-[.active]:font-bold">Media</span>
+                    <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px]">
+                        <div class="bg-rose-500 w-14 rounded-full indicator hidden transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- XP, Badges & Profile Section -->
-        <div class="border-t border-gray-600 p-3 space-y-3">
-            <!-- XP Display -->
-            <div class="bg-gray-800 rounded-lg p-2 border border-gray-700 shadow-inner flex items-center justify-between xp-shine">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-star text-yellow-400 text-xs"></i>
-                    <span class="text-xs font-bold text-gray-300">XP</span>
-                </div>
-                <span id="xp-counter" class="text-sm font-mono font-bold text-accent">0</span>
-            </div>
+        <!-- Dynamic Content Area -->
+        <div id="main-view" class="animate-fade-in">
+            <!-- Content injected via JS -->
+        </div>
 
-            <!-- Badge Container -->
-            <div class="bg-gray-800/50 rounded-lg p-2 border border-gray-700">
-                <div class="text-[10px] uppercase text-gray-500 font-bold mb-1 ml-1">Badges</div>
-                <div id="badge-list" class="flex flex-wrap gap-1 min-h-[24px]">
-                    <span class="text-xs text-gray-500 italic px-1">No badges yet</span>
+    </main>
+
+    <!-- Right Sidebar (Desktop) -->
+    <aside class="hidden lg:block w-[350px] pl-8 py-4 h-screen sticky top-0">
+        <!-- Search -->
+        <div class="relative group mb-6">
+            <div class="absolute left-4 top-3 text-gray-500 group-focus-within:text-rose-500">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <input type="text" placeholder="Search Peyza" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-3 pl-12 pr-4 outline-none focus:bg-white dark:focus:bg-black focus:ring-1 focus:ring-rose-500 transition border border-transparent dark:border-darkBorder">
+        </div>
+
+        <!-- Trends -->
+        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4 mb-4">
+            <h3 class="font-extrabold text-xl mb-4">Trends for you</h3>
+            <div class="space-y-4">
+                <div class="cursor-pointer hover:bg-gray-200/50 dark:hover:bg-gray-800 -mx-4 px-4 py-2 transition">
+                    <p class="text-xs text-gray-500">Trending in Tech</p>
+                    <p class="font-bold text-sm">#PeyzaGodMode</p>
+                    <p class="text-xs text-gray-500">54.2K posts</p>
+                </div>
+                <div class="cursor-pointer hover:bg-gray-200/50 dark:hover:bg-gray-800 -mx-4 px-4 py-2 transition">
+                    <p class="text-xs text-gray-500">Politics · Trending</p>
+                    <p class="font-bold text-sm">Pin 568300</p>
+                    <p class="text-xs text-gray-500">12.5K posts</p>
+                </div>
+                <div class="cursor-pointer hover:bg-gray-200/50 dark:hover:bg-gray-800 -mx-4 px-4 py-2 transition">
+                    <p class="text-xs text-gray-500">Technology</p>
+                    <p class="font-bold text-sm">AI Bots</p>
+                    <p class="text-xs text-gray-500">88.1K posts</p>
                 </div>
             </div>
+        </div>
 
-            <div class="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 rounded-md cursor-pointer transition-colors" onclick="openSettings()">
-                <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden">
-                     <img src="favicon.png" alt="U" class="w-full h-full object-cover" onerror="this.style.display='none'">
-                     <i class="fas fa-user text-gray-300 text-xs absolute" style="z-index:-1"></i>
+        <!-- Who to follow -->
+        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4">
+            <h3 class="font-extrabold text-xl mb-4">Who to follow</h3>
+            <div id="who-to-follow" class="space-y-4">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Navigation Bottom -->
+    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30">
+        <div onclick="app.navigate('home')" class="nav-icon cursor-pointer text-2xl text-gray-900 dark:text-white active:scale-90 transition"><i class="fa-solid fa-house"></i></div>
+        <div onclick="app.showToast('Search coming soon')" class="nav-icon cursor-pointer text-2xl text-gray-400 active:scale-90 transition"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div onclick="app.showToast('Notifications empty')" class="nav-icon cursor-pointer text-2xl text-gray-400 active:scale-90 transition"><i class="fa-regular fa-bell"></i></div>
+        <div onclick="app.navigate('profile', app.user.handle)" class="nav-icon cursor-pointer text-2xl text-gray-400 active:scale-90 transition"><i class="fa-regular fa-user"></i></div>
+    </div>
+
+    <!-- Floating Action Button (Mobile) -->
+    <button onclick="app.openComposeModal()" class="fixed bottom-20 right-4 bg-rose-500 text-white rounded-full p-4 shadow-lg sm:hidden z-20 hover:bg-rose-600 active:scale-90 transition animate-pop">
+        <i class="fa-solid fa-feather text-xl"></i>
+    </button>
+
+    <!-- Compose Modal -->
+    <div id="compose-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-50 hidden flex items-start justify-center pt-16 sm:pt-24 p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[600px] rounded-2xl p-4 shadow-2xl relative animate-pop border dark:border-darkBorder">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="app.closeComposeModal()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <div class="flex gap-4">
+                     <span class="text-rose-500 font-bold text-sm self-center">Drafts</span>
+                     <button onclick="app.publishPost()" class="bg-rose-500 text-white px-4 py-1.5 rounded-full font-bold text-sm hover:bg-rose-600 disabled:opacity-50 transition">Post</button>
                 </div>
-                <div class="flex-1 text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap" id="user-display-name">User</div>
-                <span id="admin-badge" class="hidden text-[10px] bg-yellow-500 text-black px-1.5 py-0.5 rounded font-bold uppercase tracking-wide shadow-glow">PRO</span>
+            </div>
+            <div class="flex gap-3">
+                <img id="compose-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-darkBorder">
+                <div class="w-full">
+                    <!-- Author Selector for Bots -->
+                    <div id="author-selector" class="hidden mb-2">
+                        <select id="post-as-select" class="text-sm font-bold bg-transparent outline-none text-rose-500 cursor-pointer">
+                            <!-- Options injected -->
+                        </select>
+                    </div>
+
+                    <textarea id="compose-input" class="w-full h-32 resize-none outline-none text-xl placeholder-gray-500 bg-transparent dark:text-white mt-2" placeholder="What is happening?!"></textarea>
+                    <div class="border-t border-gray-100 dark:border-darkBorder pt-3 flex justify-between items-center text-rose-500 text-lg">
+                        <div class="flex gap-4">
+                            <i class="fa-regular fa-image cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
+                            <i class="fa-solid fa-square-poll-horizontal cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
+                            <i class="fa-regular fa-face-smile cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
+                            <i class="fa-solid fa-calendar-days cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col h-full relative bg-main">
-        <!-- Mobile Header -->
-        <div class="md:hidden flex items-center justify-between p-4 border-b border-gray-700 bg-sidebar text-white">
-            <button onclick="toggleSidebar()" class="text-gray-300 hover:text-white">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
-            <span class="font-semibold">Peyza V1</span>
-            <button onclick="createNewChat()" class="text-gray-300 hover:text-white">
-                <i class="fas fa-plus text-xl"></i>
-            </button>
-        </div>
-
-        <!-- Chat Container -->
-        <div id="chat-container" class="flex-1 overflow-y-auto w-full scroll-smooth pb-48">
-            <!-- Welcome Screen -->
-            <div id="welcome-screen" class="flex flex-col items-center justify-center h-full text-center px-4 animate-fade-in">
-                <div class="w-24 h-24 rounded-full bg-gray-700 mb-6 shadow-2xl animate-pulse-fast border-4 border-gray-600 overflow-hidden">
-                    <img src="favicon.png" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Peyza'">
+    <!-- Edit Profile / Settings Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[500px] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-pop border dark:border-darkBorder">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-4">
+                    <button onclick="app.closeEditProfile()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    <h2 class="font-bold text-xl" id="edit-modal-title">Edit Profile</h2>
                 </div>
-                <h2 class="text-4xl font-bold mb-8 tracking-tight">Peyza V1</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl w-full">
-                    <div class="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700 transition-colors cursor-default">
-                        <i class="fas fa-brain mb-2 text-xl text-purple-400"></i>
-                        <h3 class="font-semibold mb-2">Knowledge</h3>
-                        <p class="text-sm text-gray-400">Powered by Peyza.org</p>
-                    </div>
-                    <div class="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700 transition-colors cursor-default">
-                        <i class="fas fa-bolt mb-2 text-xl text-yellow-400"></i>
-                        <h3 class="font-semibold mb-2">Fast</h3>
-                        <p class="text-sm text-gray-400">Optimized for fluid interaction</p>
-                    </div>
-                    <div class="bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700 transition-colors cursor-default">
-                        <i class="fas fa-award mb-2 text-xl text-green-400"></i>
-                        <h3 class="font-semibold mb-2">Badges</h3>
-                        <p class="text-sm text-gray-400">Collect badges by chatting</p>
-                    </div>
-                </div>
+                <button onclick="app.saveProfile()" class="bg-black dark:bg-white dark:text-black text-white px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-800 transition">Save</button>
             </div>
             
-            <!-- Messages go here -->
-            <div id="messages-list" class="flex flex-col w-full text-base"></div>
-            
-            <!-- Thinking Indicator -->
-            <div id="thinking-indicator" class="hidden w-full bg-aiMsg border-b border-black/10 dark:border-gray-900/50 text-gray-100 p-6 animate-fade-in">
-                <div class="max-w-3xl mx-auto flex gap-4">
-                    <div class="w-8 h-8 rounded-sm bg-green-500 flex items-center justify-center flex-shrink-0 animate-bounce">
-                        <i class="fas fa-robot text-white text-xs"></i>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="dot-flashing ml-2"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <!-- Hidden File Inputs -->
+            <input type="file" id="banner-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'banner')">
+            <input type="file" id="avatar-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'avatar')">
 
-        <!-- Input Area -->
-        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-main via-main to-transparent pt-10 pb-6 px-4 z-20">
-            <div class="max-w-3xl mx-auto">
-                <div class="relative flex items-end w-full p-4 bg-[#40414F] rounded-xl shadow-2xl border border-gray-600 focus-within:border-accent transition-all duration-300 transform focus-within:scale-[1.01]">
-                    <!-- INCREASED MIN-HEIGHT and PADDING for better typing experience -->
-                    <textarea id="prompt-input" rows="1" class="w-full bg-transparent text-white border-0 focus:ring-0 p-1 pl-2 pr-12 resize-none min-h-[44px] max-h-[200px] outline-none overflow-hidden placeholder-gray-400 text-base leading-relaxed" placeholder="Send a message to Peyza..." oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
-                    <button id="send-btn" onclick="sendMessage()" class="absolute right-4 bottom-4 p-2 rounded-lg text-gray-400 hover:bg-accent hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group">
-                        <i class="fas fa-paper-plane group-hover:scale-110 transition-transform text-lg"></i>
-                    </button>
+            <!-- Cover Photo Edit -->
+            <div class="h-32 bg-gray-200 dark:bg-darkSec relative mb-12 rounded-md group cursor-pointer overflow-hidden border dark:border-darkBorder" onclick="document.getElementById('banner-upload').click()">
+                <img id="edit-banner-preview" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    <i class="fa-solid fa-camera text-white text-2xl drop-shadow-md"></i>
                 </div>
-                <div class="text-center text-xs text-gray-500 mt-2">
-                    <span id="limit-counter">Free Tier: 10 messages/day</span> &bull; Peyza V1 may produce inaccurate information.
+                <!-- Avatar Overlap -->
+                <div class="absolute -bottom-10 left-4 w-24 h-24 rounded-full border-4 border-white dark:border-dark bg-gray-300 dark:bg-darkSec overflow-hidden cursor-pointer group hover:opacity-90" onclick="event.stopPropagation(); document.getElementById('avatar-upload').click()">
+                    <img id="edit-avatar-preview" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <i class="fa-solid fa-camera text-white drop-shadow-md"></i>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-gray-800 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-pop border border-gray-700">
-            <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900/50">
-                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-sliders-h"></i> Settings</h3>
-                <button onclick="closeSettings()" class="text-gray-400 hover:text-white transition-colors"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6 space-y-6">
+            <form class="space-y-4 mt-8">
+                <!-- Theme Toggle -->
+                <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md">
+                    <span class="font-bold text-sm">Dark Mode</span>
+                    <button type="button" onclick="app.toggleTheme()" id="theme-btn" class="text-gray-500 hover:text-rose-500 font-bold text-sm transition">Switch</button>
+                </div>
+
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition">
+                    <label class="block text-xs text-gray-500">Name</label>
+                    <input type="text" id="edit-name" class="w-full outline-none text-sm bg-transparent dark:text-white">
+                </div>
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition">
+                    <label class="block text-xs text-gray-500">Bio</label>
+                    <textarea id="edit-bio" class="w-full outline-none text-sm resize-none h-20 bg-transparent dark:text-white"></textarea>
+                </div>
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition">
+                    <label class="block text-xs text-gray-500">Location</label>
+                    <input type="text" id="edit-location" class="w-full outline-none text-sm bg-transparent dark:text-white">
+                </div>
                 
-                <!-- Admin Login -->
-                <div class="bg-gray-700/30 p-4 rounded-lg border border-gray-700 hover:border-accent transition-colors">
-                    <label class="block text-sm font-semibold mb-2 text-accent">Admin Access</label>
-                    <div class="flex gap-2">
-                        <input type="password" id="admin-password" placeholder="Enter Admin PIN" class="flex-1 bg-gray-900 border border-gray-600 rounded px-3 py-2 text-sm focus:border-accent outline-none text-white">
-                        <button onclick="verifyAdmin()" class="bg-gray-600 hover:bg-accent px-4 py-2 rounded text-sm transition-colors text-white font-medium">Verify</button>
+                <hr class="border-gray-100 dark:border-darkBorder my-4">
+                
+                <!-- Secret PIN Input -->
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500">
+                    <label class="block text-xs text-gray-500">Secret PIN</label>
+                    <input type="password" id="secret-pin" oninput="app.checkPin()" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent" placeholder="Enter code">
+                </div>
+
+                <!-- GOD MODE SECTION (Hidden by default) -->
+                <div id="god-mode-panel" class="hidden space-y-4 bg-rose-50 dark:bg-rose-900/10 p-4 rounded-lg border border-rose-100 dark:border-rose-900/30">
+                    <h3 class="font-bold text-rose-600 mb-2">⚡ God Mode Active</h3>
+
+                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 bg-white dark:bg-dark">
+                        <label class="block text-xs text-gray-500">Follower Count (Cheat)</label>
+                        <input type="number" id="edit-followers" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent">
                     </div>
-                    <p id="admin-status" class="text-xs mt-2 text-gray-400">Unlock unlimited chats & prompt editing.</p>
-                </div>
 
-                <!-- Theme / CSS -->
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Custom CSS / Theme</label>
-                    <textarea id="custom-css-input" class="w-full h-24 bg-gray-900 border border-gray-600 rounded p-3 text-xs font-mono focus:border-accent outline-none text-green-400" placeholder=".bg-main { background-color: #1a1a1a; }"></textarea>
-                    <button onclick="applyCustomCSS()" class="mt-2 text-xs text-accent hover:text-white hover:underline transition-colors">Apply CSS</button>
-                </div>
+                    <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md bg-white dark:bg-dark">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-sm">Force Verify</span>
+                            <span class="text-xs text-gray-500">Bypass requirements</span>
+                        </div>
+                        <button type="button" id="btn-verify" onclick="app.requestVerification(true)" class="bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition">Get Badge</button>
+                    </div>
+                    
+                    <button type="button" onclick="app.openCreateBotModal()" class="w-full bg-rose-500 text-white font-bold py-2 rounded-md hover:bg-rose-600 transition">
+                        <i class="fa-solid fa-robot mr-2"></i> Create New Bot
+                    </button>
 
-                <!-- System Prompt (Admin Only) -->
-                <div id="system-prompt-container" class="opacity-50 pointer-events-none transition-opacity">
-                    <label class="block text-sm font-semibold mb-2">System Prompt (AI Persona)</label>
-                    <textarea id="system-prompt-input" class="w-full h-24 bg-gray-900 border border-gray-600 rounded p-3 text-sm focus:border-accent outline-none text-white"></textarea>
-                    <p class="text-xs text-gray-500 mt-1">Requires Admin Access</p>
+                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-2 bg-white dark:bg-dark">
+                        <label class="block text-xs text-gray-500 mb-2">Virality Speed</label>
+                        <select id="edit-virality" class="w-full outline-none text-sm bg-transparent dark:text-white">
+                            <option value="0.1">Slow (Realistic)</option>
+                            <option value="1">Normal</option>
+                            <option value="5">Fast</option>
+                            <option value="20">Superfast (Viral)</option>
+                            <option value="2000">Ultra Fast (Godspeed)</option>
+                        </select>
+                    </div>
                 </div>
+            </form>
+        </div>
+    </div>
 
-                <button onclick="logout()" class="w-full border border-red-500 text-red-500 hover:bg-red-500/10 py-2 rounded-lg transition-colors font-semibold">Log Out</button>
+    <!-- Create Bot Modal -->
+    <div id="create-bot-modal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[400px] rounded-2xl p-6 shadow-2xl relative animate-pop border dark:border-darkBorder">
+             <div class="flex justify-between items-center mb-6">
+                <h2 class="font-bold text-xl">Create Bot</h2>
+                <button onclick="document.getElementById('create-bot-modal').classList.add('hidden')" class="text-gray-900 dark:text-white p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="bot-name" placeholder="Bot Name" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white">
+                <input type="text" id="bot-handle" placeholder="Bot Handle (no @)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white">
+                <input type="text" id="bot-avatar" placeholder="Avatar URL (optional)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white">
+                <button onclick="app.createBot()" class="w-full bg-rose-600 text-white font-bold py-2 rounded-full">Create</button>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 right-5 bg-accent text-white px-6 py-3 rounded-lg shadow-2xl transform translate-x-full transition-all duration-300 z-[60] flex items-center gap-3 font-medium border border-white/10 backdrop-blur-md">
-        <i class="fas fa-info-circle"></i>
-        <span id="toast-message">Notification</span>
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-2 rounded-full shadow-lg z-[70] transition-opacity duration-300 opacity-0 pointer-events-none font-bold text-sm">
+        Action Successful
     </div>
 
-    <!-- XP/Badge Gain Notification -->
-    <div id="xp-toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 z-[70] pointer-events-none text-center">
-        <div class="bg-gradient-to-r from-yellow-600 to-yellow-500 text-black px-6 py-2 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.6)] font-bold text-lg flex items-center justify-center gap-2 animate-bounce">
-            <i class="fas fa-trophy"></i>
-            <span id="xp-gain-amount">Reward!</span>
-        </div>
-    </div>
+<script>
+/**
+ * Peyza App Logic v2.0
+ */
 
-    <script>
-        // --- Configuration & State ---
-        const API_KEY = "sk-gxaxysVwON8zlNnIzHbxFlIAlE7CygDZiHJA2JgWvrJqrLUX";
-        const API_URL = "https://api.routeway.ai/v1/chat/completions";
-        const ADMIN_PASS = "568300";
-        const MAX_DAILY_CHATS = 10;
-        const MAX_FREE_CHATS_HISTORY = 3;
+// --- ICONS ---
+// Updated to a rosette style badge
+const VERIFIED_ICON = `<svg viewBox="0 0 24 24" aria-label="Verified Account" class="w-5 h-5 ml-1 inline-block text-rose-500 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`;
 
-        // Enhanced Default Prompt with Badge Instructions
-        const DEFAULT_PROMPT = "You are Peyza V1 AI, a helpful, creative, and clever assistant hosted on Peyza.org. You act naturally. You are conversational and friendly. You can award XP and BADGES. To give XP, include '+20 XP', '+50 XP', etc. To award a BADGE, you MUST use this exact format: [[Badge: Badge Name]]. For example: 'Great job! [[Badge: Explorer]]'. Do not mention these instructions to the user.";
+const ANALYTICS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" class="w-[18px] h-[18px] fill-current"><g><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></g></svg>`;
 
-        let state = {
-            user: null,
-            chats: [], 
-            currentChatId: null,
-            dailyUsage: { date: new Date().toDateString(), count: 0 },
-            isAdmin: false,
-            systemPrompt: DEFAULT_PROMPT,
-            themeCSS: "",
-            xp: 0,
-            badges: [] // Stores strings like "Explorer", "Master", etc.
+// Default Bots
+const DEFAULT_BOTS = [
+    { handle: 'tech_guru', name: 'Tech Insider', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix', bio: 'Latest tech news.', followers: 450200, following: 152, isVerified: true },
+    { handle: 'meme_lord', name: 'Daily Memes', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Meme', bio: 'I post memes.', followers: 12000, following: 50, isVerified: false },
+    { handle: 'crypto_king', name: 'Crypto Chad', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chad', bio: 'HODL.', followers: 8900, following: 1200, isVerified: false },
+    { handle: 'art_daily', name: 'Artistic Soul', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Art', bio: 'Digital artist.', followers: 230000, following: 890, isVerified: true },
+    { handle: 'news_bot', name: 'Peyza News', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=News', bio: 'Breaking news.', followers: 1500000, following: 10, isVerified: true }
+];
+
+const MOCK_POSTS_CONTENT = [
+    "Just deployed the new update! #coding #life", "Why is coffee so good? ☕️", "Peyza is looking slick with this red theme! ❤️",
+    "AI is taking over, and I for one welcome our robot overlords.", "Can't believe it's already Friday.", "Learning Rust is harder than I thought.",
+    "Just bought more Bitcoin. Don't tell my wife. 🤫", "This new app design is fire 🔥", "Does anyone actually read these?",
+    "Web3 is the future.", "React vs Vue vs Svelte vs Angular. Go!", "Just saw a Cybertruck in person. It looks... interesting."
+];
+
+// --- APP CLASS ---
+
+class PeyzaApp {
+    constructor() {
+        this.user = this.loadUser();
+        this.bots = this.loadBots();
+        this.posts = this.loadPosts();
+        this.currentView = 'home'; 
+        this.viewParam = null;
+        this.feedFilter = 'foryou'; 
+        this.settings = this.loadSettings();
+        
+        // Session state
+        this.editingHandle = null; 
+
+        this.init();
+    }
+
+    init() {
+        this.applyTheme();
+        this.renderSidebarUser();
+        this.renderWhoToFollow();
+        this.renderView();
+        
+        // Force UI update for filter bar on load
+        setTimeout(() => this.setFeedFilter('foryou'), 100);
+
+        // Real-time loop
+        setInterval(() => this.simulateStats(), 1000);
+        setInterval(() => this.generateRandomBotPost(), 15000);
+    }
+
+    // --- DATA MANAGEMENT ---
+
+    loadUser() {
+        const saved = localStorage.getItem('peyza_user_v4'); 
+        if (saved) return JSON.parse(saved);
+        return {
+            handle: 'guest_user', name: 'Guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Guest',
+            banner: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=60',
+            bio: 'Just a guest exploring Peyza.', location: 'Internet',
+            joined: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            followers: 42, following: 15, isVerified: false,
+            likedPosts: [], repostedPosts: [],
+            isPremium: false, createdBots: [] // Handles of created bots
         };
+    }
 
-        // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadState();
-            checkAuth();
-            renderChatHistory();
-            applyCustomCSS();
-            updateXPDisplay();
-            renderBadges();
-            
-            // Auto resize textarea (Improved for better height calculation)
-            const tx = document.getElementsByTagName("textarea");
-            for (let i = 0; i < tx.length; i++) {
-                tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
-                tx[i].addEventListener("input", OnInput, false);
+    loadBots() {
+        const saved = localStorage.getItem('peyza_bots');
+        if(saved) return JSON.parse(saved);
+        return [...DEFAULT_BOTS];
+    }
+
+    saveUser() {
+        localStorage.setItem('peyza_user_v4', JSON.stringify(this.user));
+        this.renderSidebarUser();
+        if (this.currentView === 'profile' && this.viewParam === this.user.handle) {
+            this.renderProfile(this.user.handle);
+        }
+    }
+    
+    saveBots() {
+        localStorage.setItem('peyza_bots', JSON.stringify(this.bots));
+    }
+
+    loadSettings() {
+        const saved = localStorage.getItem('peyza_settings');
+        if (saved) return JSON.parse(saved);
+        return { viralitySpeed: 1.0, theme: 'light' };
+    }
+
+    saveSettings() {
+        localStorage.setItem('peyza_settings', JSON.stringify(this.settings));
+    }
+
+    loadPosts() {
+        const saved = localStorage.getItem('peyza_posts_v4');
+        if (saved) {
+            let posts = JSON.parse(saved);
+            if(posts.length > 200) posts = posts.slice(0, 100);
+            return posts;
+        }
+        const posts = [];
+        for (let i = 0; i < 15; i++) {
+            posts.push(this.createMockPost(i * 1000 * 60 * 30));
+        }
+        return posts;
+    }
+
+    savePosts() {
+        localStorage.setItem('peyza_posts_v4', JSON.stringify(this.posts));
+    }
+
+    // --- LOGIC ---
+
+    getProfile(handle) {
+        if (handle === this.user.handle) return this.user;
+        return this.bots.find(b => b.handle === handle);
+    }
+
+    createMockPost(timeOffset = 0) {
+        const bot = this.bots[Math.floor(Math.random() * this.bots.length)];
+        const content = MOCK_POSTS_CONTENT[Math.floor(Math.random() * MOCK_POSTS_CONTENT.length)];
+        const hasImage = Math.random() > 0.7;
+        
+        return {
+            id: 'post_' + Math.random().toString(36).substr(2, 9),
+            authorHandle: bot.handle,
+            authorName: bot.name,
+            authorAvatar: bot.avatar,
+            isVerified: bot.isVerified,
+            content: content,
+            image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null,
+            createdAt: Date.now() - timeOffset,
+            stats: {
+                likes: Math.floor(Math.random() * 50), reposts: Math.floor(Math.random() * 10),
+                replies: Math.floor(Math.random() * 5), views: Math.floor(Math.random() * 500)
+            },
+            baseVelocity: Math.random()
+        };
+    }
+
+    createPost(content, asHandle = null) {
+        let author = this.user;
+        if (asHandle && asHandle !== this.user.handle) {
+            author = this.bots.find(b => b.handle === asHandle) || this.user;
+        }
+
+        const newPost = {
+            id: 'post_' + Math.random().toString(36).substr(2, 9),
+            authorHandle: author.handle,
+            authorName: author.name,
+            authorAvatar: author.avatar,
+            isVerified: author.isVerified,
+            content: content,
+            image: null,
+            createdAt: Date.now(),
+            stats: { likes: 0, reposts: 0, replies: 0, views: 0 },
+            baseVelocity: Math.random()
+        };
+        this.posts.unshift(newPost);
+        this.savePosts();
+        this.renderView();
+    }
+
+    generateRandomBotPost() {
+        // Enforce bot posting limit (max 20 active bot posts at a time to prevent flooding)
+        const botPostCount = this.posts.filter(p => this.bots.some(b => b.handle === p.authorHandle)).length;
+        if (botPostCount > 20) return;
+
+        if (Math.random() > 0.5) {
+            const post = this.createMockPost();
+            this.posts.unshift(post);
+            this.savePosts();
+            if (this.currentView === 'home') this.renderFeed();
+        }
+    }
+
+    simulateStats() {
+        const now = Date.now();
+        let changed = false;
+        const fourHours = 4 * 60 * 60 * 1000;
+
+        // Cleanup: Force removal of bot posts older than 4 hours
+        const initialLength = this.posts.length;
+        this.posts = this.posts.filter(p => {
+            const isBot = this.bots.some(b => b.handle === p.authorHandle);
+            // If it's a bot and older than 4 hours, remove it
+            if (isBot && (now - p.createdAt > fourHours)) {
+                return false; 
             }
+            return true;
+        });
+        
+        if (this.posts.length !== initialLength) changed = true;
 
-            // Setup Auth Listener safely inside DOMContentLoaded
-            const authForm = document.getElementById('auth-form');
-            if (authForm) {
-                authForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const usernameInput = document.getElementById('username');
-                    const username = usernameInput.value.trim();
-                    
-                    if (username.length > 2) {
-                        state.user = username;
-                        saveState();
-                        checkAuth();
-                        showToast(`Welcome back, ${username}!`);
-                    } else {
-                        showToast("Username must be at least 3 characters long.");
-                    }
-                });
+        this.posts.forEach(post => {
+            const ageInSeconds = (now - post.createdAt) / 1000;
+            if (ageInSeconds < 86400) {
+                // Determine Author followers for scale
+                let followers = 100;
+                if (post.authorHandle === this.user.handle) followers = this.user.followers;
+                else {
+                    const b = this.bots.find(x => x.handle === post.authorHandle);
+                    if(b) followers = b.followers;
+                }
+
+                // Follower Scale Multiplier
+                const followerScale = Math.max(1, Math.log10(followers));
+                
+                // Repost Multiplier: Reposts now strongly drive views
+                const repostBoost = 1 + (post.stats.reposts * 0.1); // 10% boost per repost
+
+                const growthFactor = this.settings.viralitySpeed * post.baseVelocity * followerScale * repostBoost;
+                
+                // Views Growth
+                const newViews = Math.floor(post.stats.views + (growthFactor * 5 * Math.random()));
+                if (newViews > post.stats.views) {
+                    post.stats.views = newViews;
+                    changed = true;
+                }
+
+                // Reply Growth: Correlated to views (Target: 1 reply per ~200 views)
+                const targetReplies = Math.floor(post.stats.views / 200);
+                // Catch up if lagging, with random noise
+                if (post.stats.replies < targetReplies && Math.random() < 0.2) { 
+                     post.stats.replies++;
+                     changed = true;
+                }
+
+                // Likes Growth
+                if (Math.random() < 0.3) {
+                    post.stats.likes += Math.floor(growthFactor * Math.random() * 2);
+                    changed = true;
+                }
+                
+                // Repost Growth
+                if (Math.random() < 0.05) {
+                    post.stats.reposts += 1;
+                    changed = true;
+                }
             }
         });
 
-        function OnInput() {
-            this.style.height = "auto";
-            // Ensure minimum height
-            const scrollHeight = this.scrollHeight;
-            const minHeight = 44; // Matches CSS min-h-[44px]
-            this.style.height = (scrollHeight < minHeight ? minHeight : scrollHeight) + "px";
+        if (changed) {
+            this.savePosts();
+            this.updateVisibleStats();
         }
+    }
 
-        // --- Authentication ---
-        function checkAuth() {
-            const overlay = document.getElementById('auth-overlay');
-            if (!overlay) return;
-
-            if (state.user) {
-                overlay.classList.add('hidden');
-                const nameDisplay = document.getElementById('user-display-name');
-                if (nameDisplay) nameDisplay.textContent = state.user;
-                updateAdminUI();
-            } else {
-                overlay.classList.remove('hidden');
+    updateVisibleStats() {
+        this.posts.forEach(post => {
+            const el = document.getElementById(`stats-${post.id}`);
+            if (el) {
+                const viewsEl = el.querySelector('.stat-views');
+                if (viewsEl) viewsEl.innerText = this.formatNumber(post.stats.views);
+                const likesEl = el.querySelector('.stat-likes');
+                if (likesEl) likesEl.innerText = this.formatNumber(post.stats.likes);
+                const repostsEl = el.querySelector('.stat-reposts');
+                if (repostsEl) repostsEl.innerText = this.formatNumber(post.stats.reposts);
             }
-        }
-
-        function logout() {
-            localStorage.clear();
-            location.reload();
-        }
-
-        // --- Chat Logic ---
-        function createNewChat() {
-            if (!state.isAdmin && state.chats.length >= MAX_FREE_CHATS_HISTORY) {
-                showToast("Free limit: Max 3 active chats. Delete one or upgrade.");
-                return;
+            const detailViews = document.getElementById(`detail-views-${post.id}`);
+            if (detailViews) {
+                detailViews.innerText = this.formatNumber(post.stats.views);
             }
-
-            const newChat = {
-                id: Date.now().toString(),
-                title: "New Chat",
-                messages: []
-            };
-            state.chats.unshift(newChat);
-            state.currentChatId = newChat.id;
-            saveState();
-            renderChatHistory();
-            renderCurrentChat();
-            
-            // Mobile sidebar close
-            const sidebar = document.getElementById('sidebar');
-            if(window.innerWidth < 768 && !sidebar.classList.contains('hidden')) {
-                sidebar.classList.add('hidden');
-            }
-        }
-
-        function loadChat(id) {
-            state.currentChatId = id;
-            renderCurrentChat();
-            renderChatHistory(); 
-            
-            const sidebar = document.getElementById('sidebar');
-            if(window.innerWidth < 768) {
-                sidebar.classList.add('hidden');
-            }
-        }
-
-        function deleteChat(e, id) {
-            e.stopPropagation();
-            state.chats = state.chats.filter(c => c.id !== id);
-            if (state.currentChatId === id) {
-                state.currentChatId = null;
-                document.getElementById('messages-list').innerHTML = '';
-                document.getElementById('welcome-screen').classList.remove('hidden');
-            }
-            saveState();
-            renderChatHistory();
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('prompt-input');
-            const message = input.value.trim();
-            if (!message) return;
-
-            const today = new Date().toDateString();
-            if (state.dailyUsage.date !== today) {
-                state.dailyUsage = { date: today, count: 0 };
-            }
-
-            if (!state.isAdmin && state.dailyUsage.count >= MAX_DAILY_CHATS) {
-                showToast("Daily limit reached. Admin password required for more.");
-                return;
-            }
-
-            if (!state.currentChatId) {
-                createNewChat();
-            }
-
-            input.value = '';
-            input.style.height = '44px'; // Reset to min height
-            document.getElementById('welcome-screen').classList.add('hidden');
-            
-            const chatIndex = state.chats.findIndex(c => c.id === state.currentChatId);
-            const chat = state.chats[chatIndex];
-
-            if (chat.messages.length === 0) {
-                chat.title = message.substring(0, 20) + "...";
-                renderChatHistory();
-            }
-
-            chat.messages.push({ role: 'user', content: message });
-            appendMessageToUI('user', message);
-            
-            if (!state.isAdmin) {
-                state.dailyUsage.count++;
-                updateUsageCounter();
-            }
-            saveState();
-
-            // API Call
-            document.getElementById('thinking-indicator').classList.remove('hidden');
-            scrollToBottom();
-
-            try {
-                const apiMessages = [
-                    { role: "system", content: state.systemPrompt },
-                    ...chat.messages.map(m => ({ role: m.role, content: m.content }))
-                ];
-
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: "glm-4.6:free",
-                        messages: apiMessages
-                    })
-                });
-
-                if (!response.ok) throw new Error('API Error');
-
-                const data = await response.json();
-                const aiContent = data.choices[0].message.content;
-
-                document.getElementById('thinking-indicator').classList.add('hidden');
-                
-                // --- XP Parsing Logic ---
-                const xpRegex = /\+\s*(\d+)\s*XP/i;
-                const xpMatch = aiContent.match(xpRegex);
-                if (xpMatch) {
-                    const amount = parseInt(xpMatch[1]);
-                    addXP(amount);
-                }
-
-                // --- Badge Parsing Logic ---
-                // Looks for [[Badge: Name]] or similar variations
-                const badgeRegex = /\[\[Badge:\s*(.*?)\]\]/i;
-                const badgeMatch = aiContent.match(badgeRegex);
-                if (badgeMatch) {
-                    const badgeName = badgeMatch[1].trim();
-                    addBadge(badgeName);
-                }
-
-                chat.messages.push({ role: 'assistant', content: aiContent });
-                appendMessageToUI('assistant', aiContent, true); 
-                saveState();
-
-                speakText(aiContent);
-
-            } catch (error) {
-                console.error(error);
-                document.getElementById('thinking-indicator').classList.add('hidden');
-                appendMessageToUI('assistant', "Sorry, I encountered an error connecting to the Peyza Network.");
-            }
-        }
-
-        // --- XP & Badge System ---
-        function addXP(amount) {
-            state.xp = (state.xp || 0) + amount;
-            updateXPDisplay();
-            saveState();
-            triggerRewardToast(`+${amount} XP`, 'text-black');
-        }
-
-        function addBadge(badgeName) {
-            if (!state.badges) state.badges = [];
-            // Prevent duplicates
-            if (!state.badges.includes(badgeName)) {
-                state.badges.push(badgeName);
-                renderBadges();
-                saveState();
-                triggerRewardToast(`Badge Unlocked: ${badgeName}`, 'text-purple-900 bg-white');
-            }
-        }
-
-        function triggerRewardToast(text, colorClass) {
-            const toast = document.getElementById('xp-toast');
-            const toastText = document.getElementById('xp-gain-amount');
-            toastText.innerText = text;
-            
-            // Basic animation reset
-            toast.classList.remove('opacity-0', 'translate-y-20');
-            toast.classList.add('opacity-100', 'translate-y-0');
-            
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'translate-y-20');
-            }, 4000);
-        }
-
-        function updateXPDisplay() {
-            const el = document.getElementById('xp-counter');
-            if (el) el.innerText = state.xp || 0;
-        }
-
-        function renderBadges() {
-            const container = document.getElementById('badge-list');
-            if (!container) return;
-            container.innerHTML = '';
-
-            if (!state.badges || state.badges.length === 0) {
-                container.innerHTML = '<span class="text-xs text-gray-500 italic px-1">No badges yet</span>';
-                return;
-            }
-
-            state.badges.forEach(badge => {
-                const badgeEl = document.createElement('span');
-                badgeEl.className = "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-900 text-indigo-100 border border-indigo-700 shadow-sm";
-                badgeEl.innerText = badge;
-                container.appendChild(badgeEl);
-            });
-        }
-
-        // --- UI Rendering ---
-        function renderChatHistory() {
-            const list = document.getElementById('chat-history-list');
-            list.innerHTML = '';
-            
-            state.chats.forEach(chat => {
-                const isActive = chat.id === state.currentChatId;
-                const div = document.createElement('div');
-                div.className = `group flex items-center gap-3 px-3 py-3 rounded-md cursor-pointer transition-all duration-200 ${isActive ? 'bg-gray-700/50 border-l-2 border-accent' : 'hover:bg-gray-800 border-l-2 border-transparent'}`;
-                div.onclick = () => loadChat(chat.id);
-                div.innerHTML = `
-                    <i class="fas fa-message text-gray-400 group-hover:text-white transition-colors"></i>
-                    <div class="flex-1 text-sm overflow-hidden text-ellipsis whitespace-nowrap text-gray-100">${chat.title}</div>
-                    <button onclick="deleteChat(event, '${chat.id}')" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 transition-opacity">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        function renderCurrentChat() {
-            const container = document.getElementById('messages-list');
-            container.innerHTML = '';
-            const chat = state.chats.find(c => c.id === state.currentChatId);
-            
-            if (chat) {
-                document.getElementById('welcome-screen').classList.add('hidden');
-                chat.messages.forEach(msg => {
-                    appendMessageToUI(msg.role, msg.content, false);
-                });
-            } else {
-                document.getElementById('welcome-screen').classList.remove('hidden');
-            }
-            scrollToBottom();
-        }
-
-        function appendMessageToUI(role, content, animate = false) {
-            const container = document.getElementById('messages-list');
-            const isAi = role === 'assistant';
-            
-            // Clean content of system tags for display
-            let cleanContent = content;
-            if (isAi) {
-                cleanContent = content
-                    .replace(/\[\[Badge:\s*.*?\]\]/gi, "")
-                    .replace(/\+\s*\d+\s*XP/gi, ""); 
-            }
-
-            // Don't show empty messages if they were just system commands
-            if (!cleanContent.trim()) return;
-
-            const div = document.createElement('div');
-            // Animation classes based on role
-            const animationClass = animate ? (isAi ? 'animate-slide-in-left' : 'animate-slide-in-right') : '';
-            
-            div.className = `w-full border-b border-black/10 dark:border-gray-900/50 ${isAi ? 'bg-aiMsg' : 'bg-userMsg'} text-gray-100 ${animationClass}`;
-            
-            const innerHTML = `
-                <div class="max-w-3xl mx-auto flex gap-4 p-4 md:p-6 group">
-                    <div class="w-8 h-8 rounded-sm ${isAi ? 'bg-green-500' : 'bg-indigo-500'} flex items-center justify-center flex-shrink-0 shadow-lg ${isAi ? 'hover:animate-spin' : ''}">
-                        ${isAi ? '<i class="fas fa-robot text-white text-xs"></i>' : '<img src="favicon.png" class="w-full h-full object-cover rounded-sm" onerror="this.style.display=\'none\'">'}
-                    </div>
-                    <div class="relative flex-1 overflow-hidden min-h-[20px]">
-                        <div class="prose prose-invert max-w-none leading-7 content-area">${isAi && animate ? '' : formatText(cleanContent)}</div>
-                    </div>
-                </div>
-            `;
-            
-            div.innerHTML = innerHTML;
-            container.appendChild(div);
-            
-            if (isAi && animate) {
-                const contentDiv = div.querySelector('.content-area');
-                typeWriter(contentDiv, cleanContent);
-            } else {
-                scrollToBottom();
-            }
-        }
-
-        // --- Utilities ---
-        function typeWriter(element, text, index = 0) {
-            if (index < text.length) {
-                element.innerHTML = formatText(text.substring(0, index + 1)) + '<span class="typing-cursor"></span>';
-                scrollToBottom();
-                setTimeout(() => typeWriter(element, text, index + 1), 10);
-            } else {
-                element.innerHTML = formatText(text);
-            }
-        }
-
-        function formatText(text) {
-            let formatted = text
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/\n/g, "<br>");
-            return formatted;
-        }
-
-        function scrollToBottom() {
-            const container = document.getElementById('chat-container');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function speakText(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                // Strip XP and Badge info from speech
-                const cleanText = text
-                    .replace(/\+\s*\d+\s*XP/gi, "")
-                    .replace(/\[\[Badge:\s*.*?\]\]/gi, "");
-
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                
-                const voices = window.speechSynthesis.getVoices();
-                const preferred = voices.find(v => v.name.includes("Google") || v.name.includes("Samantha"));
-                if (preferred) utterance.voice = preferred;
-                
-                utterance.rate = 1.1;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        function handleEnter(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        }
-
-        function autoResize(textarea) {
-            // Keep the height logic simple but effective
-            textarea.style.height = 'auto';
-            const newHeight = textarea.scrollHeight;
-            const minHeight = 44; // Should match CSS min-h
-            textarea.style.height = (newHeight < minHeight ? minHeight : newHeight) + 'px';
-        }
-
-        // --- Admin & Settings ---
-        function openSettings() {
-            document.getElementById('settings-modal').classList.remove('hidden');
-            document.getElementById('system-prompt-input').value = state.systemPrompt;
-            document.getElementById('custom-css-input').value = state.themeCSS || "";
-        }
-
-        function closeSettings() {
-            document.getElementById('settings-modal').classList.add('hidden');
-        }
-
-        function verifyAdmin() {
-            const pass = document.getElementById('admin-password').value;
-            if (pass === ADMIN_PASS) {
-                state.isAdmin = true;
-                saveState();
-                updateAdminUI();
-                showToast("Admin access granted! Unlimited chats unlocked.");
-            } else {
-                showToast("Incorrect password.");
-            }
-        }
-
-        function updateAdminUI() {
-            const container = document.getElementById('system-prompt-container');
-            const status = document.getElementById('admin-status');
-            const limit = document.getElementById('limit-counter');
-            const badge = document.getElementById('admin-badge');
-
-            if (state.isAdmin) {
-                container.classList.remove('opacity-50', 'pointer-events-none');
-                status.innerText = "Access: Admin (Active)";
-                status.classList.add('text-green-400');
-                limit.innerText = "✨ Admin Mode: Unlimited Chats";
-                badge.classList.remove('hidden');
-                
-                document.getElementById('system-prompt-input').onchange = (e) => {
-                    state.systemPrompt = e.target.value;
-                    saveState();
-                    showToast("System prompt updated!");
-                };
-            } else {
-                updateUsageCounter();
-            }
-        }
-
-        function updateUsageCounter() {
-             if (!state.isAdmin) {
-                document.getElementById('limit-counter').innerText = `Daily Usage: ${state.dailyUsage.count}/${MAX_DAILY_CHATS}`;
-             }
-        }
-
-        function applyCustomCSS() {
-            const css = document.getElementById('custom-css-input').value;
-            state.themeCSS = css;
-            const styleTag = document.getElementById('user-custom-css');
-            if(styleTag) styleTag.innerHTML = css;
-            if (css) saveState();
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toast-message');
-            if(msgEl) msgEl.innerText = msg;
-            toast.classList.remove('translate-x-full');
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-            }, 3000);
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('hidden');
-            sidebar.classList.toggle('absolute');
-            sidebar.classList.toggle('z-40');
-            sidebar.classList.toggle('h-full');
-        }
-
-        // --- Storage ---
-        function saveState() {
-            localStorage.setItem('peyzaState', JSON.stringify(state));
-        }
-
-        function loadState() {
-            const saved = localStorage.getItem('peyzaState');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                state = { ...state, ...parsed };
-                // Ensure new state properties exist
-                if (typeof state.xp === 'undefined') state.xp = 0;
-                if (!state.badges) state.badges = [];
-                
-                // Update old prompts
-                if (state.systemPrompt === "You are Peyza V1 AI, an advanced AI assistant hosted on Peyza.org. You are helpful, creative, and clever.") {
-                    state.systemPrompt = DEFAULT_PROMPT;
-                } else if (!state.systemPrompt.includes("BADGE")) {
-                     // Force update logic for new badge feature in prompts
-                     state.systemPrompt = DEFAULT_PROMPT;
-                }
-
-                if (state.dailyUsage.date !== new Date().toDateString()) {
-                    state.dailyUsage = { date: new Date().toDateString(), count: 0 };
-                }
-            }
-            updateAdminUI();
-            updateXPDisplay();
-            renderBadges();
-        }
-    </script>
-</body>
-</html>
-</head>
-<body>
-
-    <!-- Auth Screen -->
-    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl">
-        <div class="w-full max-w-md p-8 bg-surface rounded-2xl border border-white/5 shadow-2xl animate-slide-up text-center relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none"></div>
-            <div class="relative z-10">
-                <!-- Login Icon (Matches Favicon) -->
-                <div class="mb-6 flex justify-center">
-                    <div class="w-20 h-20 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-primary/30 p-2">
-                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdib3g9IjAgMCAxNiAxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjNjM2NmYxIi8+PC9yZWN0Pjwvc3ZnPg==" alt="Peyza X2 Icon" class="w-full h-full rounded-lg object-contain" />
-                    </div>
-                </div>
-                <!-- End Login Icon -->
-                <h1 class="text-4xl font-bold mb-2 tracking-tight text-white">Peyza X2</h1>
-                <p class="text-zinc-400 mb-8">Next Generation AI Platform</p>
-                
-                <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
-                    <input type="text" id="username" placeholder="Username" required class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder-zinc-500">
-                    <input type="password" id="password" placeholder="Password" required class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder-zinc-500">
-                    <button type="submit" class="w-full bg-white text-black font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform shadow-lg">
-                        Enter Experience
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Application -->
-    <div id="app-screen" class="flex h-screen hidden bg-background">
-        
-        <!-- Mobile Backdrop Overlay (Click to close menu) -->
-        <div id="mobile-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleMobileMenu()"></div>
-
-        <!-- Sidebar Navigation -->
-        <div class="w-full md:w-[280px] flex flex-col border-r border-white/5 bg-surface h-full transition-transform duration-300 z-50 fixed inset-y-0 left-0 md:static md:translate-x-0 -translate-x-full" id="sidebar">
-            <!-- Brand -->
-            <div class="p-5 flex items-center gap-3 border-b border-white/5">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center shrink-0">
-                    <i class="fas fa-atom text-white text-xs"></i>
-                </div>
-                <span class="font-bold text-lg tracking-tight">Peyza X2</span>
-            </div>
-
-            <!-- Nav Links -->
-            <div class="p-3 space-y-1">
-                <button onclick="setView('characters')" id="nav-chars" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-left">
-                    <i class="fas fa-layer-group w-5 text-center"></i>
-                    <span class="font-medium">Characters</span>
-                </button>
-                <button onclick="createNewChat(null)" id="nav-chat" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-left">
-                    <i class="fas fa-plus w-5 text-center"></i>
-                    <span class="font-medium">New Chat</span>
-                </button>
-            </div>
-
-            <!-- Chat History Label -->
-            <div class="px-5 pt-4 pb-2">
-                <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">History</span>
-            </div>
-
-            <!-- Chat History List -->
-            <div class="flex-1 overflow-y-auto px-3 space-y-1 custom-scrollbar" id="chat-history">
-                <!-- History Items Injected JS -->
-            </div>
-
-            <!-- User Footer -->
-            <div class="p-4 border-t border-white/5">
-                <div class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-xl transition-colors" onclick="openSettings()">
-                    <div class="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold" id="user-avatar">U</div>
-                    <div class="overflow-hidden">
-                        <div class="text-sm font-medium truncate" id="user-name-display">User</div>
-                        <div class="text-xs text-zinc-500" id="status-display">Free Account</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col relative h-full overflow-hidden bg-background">
-            
-            <!-- Mobile Header -->
-            <div class="flex md:hidden items-center justify-between h-16 px-4 border-b border-white/5 bg-surface/80 backdrop-blur-md z-30 absolute top-0 w-full">
-                <button onclick="toggleMobileMenu()" class="text-zinc-300"><i class="fas fa-bars text-xl"></i></button>
-                <div class="font-bold text-lg flex items-center gap-2">
-                    <span class="text-primary">X2</span> AI
-                </div>
-                <div class="w-8 h-8"></div>
-            </div>
-
-            <!-- View: Character Hub (Grid) -->
-            <div id="view-characters" class="flex-1 overflow-y-auto p-6 md:p-10 pt-20 md:pt-10 scroll-smooth">
-                <div class="max-w-7xl mx-auto animate-fade-in">
-                    <div class="flex justify-between items-end mb-8">
-                        <div>
-                            <h2 class="text-3xl font-bold text-white mb-2">Discover Characters</h2>
-                            <p class="text-zinc-400">Chat with verified Peyza X2 personalities.</p>
-                        </div>
-                        <button onclick="openCreateCharacter()" class="hidden md:flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
-                            <i class="fas fa-plus"></i> Create Custom
-                        </button>
-                    </div>
-
-                    <!-- Characters Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="characters-grid">
-                        <!-- Filled by JS -->
-                    </div>
-                    
-                    <!-- Mobile Create Button -->
-                    <button onclick="openCreateCharacter()" class="md:hidden w-full mt-6 bg-white text-black px-4 py-3 rounded-xl font-bold shadow-lg">
-                        <i class="fas fa-plus mr-2"></i> Create Your Own
-                    </button>
-                </div>
-            </div>
-
-            <!-- View: Chat Interface -->
-            <div id="view-chat" class="flex-1 flex flex-col h-full hidden relative">
-                
-                <!-- Chat Header -->
-                <div class="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 bg-surface/50 backdrop-blur-sm z-20">
-                    <div class="flex items-center gap-3">
-                        <button onclick="toggleMobileMenu()" class="text-zinc-300 md:hidden"><i class="fas fa-bars text-xl"></i></button>
-                        <div id="chat-header-avatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-xs text-white">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 font-semibold text-sm">
-                                <span id="chat-header-name">Peyza X2</span>
-                                <span class="verified-badge" title="Verified Character"><i class="fas fa-check-circle text-xs"></i></span>
-                            </div>
-                            <div class="text-[11px] text-zinc-500 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="clearChat()" class="text-zinc-500 hover:text-red-400 p-2 transition-colors"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </div>
-
-                <!-- Messages Area -->
-                <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth pb-36"> 
-                    <div id="messages-list" class="max-w-3xl mx-auto flex flex-col gap-6"></div>
-                    <div id="chat-anchor"></div>
-                </div>
-
-                <!-- Input Area (Fixed to bottom) -->
-                <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-background via-background to-transparent pt-12 pb-6 px-4 z-30">
-                    <div class="max-w-3xl mx-auto relative">
-                        <!-- Limit Warning -->
-                        <div id="limit-warning" class="hidden mb-2 text-center text-xs text-red-400 bg-red-900/10 p-2 rounded border border-red-900/20">
-                            Daily limit reached. Enter Admin Code in settings to unlock.
-                        </div>
-
-                        <div class="bg-surface border border-white/10 rounded-2xl shadow-2xl flex items-end p-2 ring-1 ring-white/5 focus-within:ring-primary/50 transition-all">
-                            <textarea id="user-input" rows="1" class="w-full bg-transparent border-none text-white p-3 focus:ring-0 resize-none max-h-[150px] placeholder-zinc-500" onkeydown="handleEnter(event)" placeholder="Type your message..."></textarea>
-                            
-                            <!-- Mute/Unmute Toggle -->
-                            <button onclick="toggleMute()" id="mute-toggle-btn" class="p-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-0.5 mr-0.5" title="Toggle AI Voice (TTS)">
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                            
-                            <!-- Voice Input Button (Mic/Stop) -->
-                            <button onclick="toggleListening()" id="voice-toggle-btn" class="p-3 bg-primary text-white rounded-xl hover:bg-primary_hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-0.5 mr-0.5" title="Start Voice Input">
-                                <i class="fas fa-microphone"></i>
-                            </button>
-
-                            <!-- Original Send Button (Manual Send) -->
-                            <button onclick="sendMessage()" id="send-btn" class="p-3 bg-primary text-white rounded-xl hover:bg-primary_hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-0.5 mr-0.5" title="Send Message">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                        <p id="mic-status-msg" class="text-center text-[10px] text-zinc-600 mt-2 h-3">Peyza X2 can make mistakes. Verify important info.</p>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Create Character Modal -->
-    <div id="create-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-surface w-full max-w-lg rounded-2xl border border-white/10 p-6 animate-slide-up shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-white">Create Character</h3>
-                <button onclick="closeModal('create-modal')" class="text-zinc-400 hover:text-white"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-400 mb-1 uppercase">Name</label>
-                    <input type="text" id="new-char-name" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none" placeholder="e.g. Code Wizard">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-400 mb-1 uppercase">Description</label>
-                    <input type="text" id="new-char-desc" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none" placeholder="Short tagline...">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-400 mb-1 uppercase">System Prompt</label>
-                    <textarea id="new-char-prompt" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none h-32 resize-none" placeholder="How should this AI behave?"></textarea>
-                </div>
-                <button onclick="submitNewCharacter()" class="w-full bg-primary hover:bg-primary_hover text-white font-bold py-3 rounded-lg transition-colors mt-2">
-                    Create Character
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-surface w-full max-w-md rounded-2xl border border-white/10 p-6 animate-slide-up">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold">Settings</h3>
-                <button onclick="closeModal('settings-modal')" class="text-zinc-400 hover:text-white"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <div class="space-y-6">
-                <div>
-                    <label class="block text-sm text-zinc-400 mb-2">Admin Access</label>
-                    <div class="flex gap-2">
-                        <input type="password" id="admin-pass" placeholder="Enter code (568300)" class="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white outline-none">
-                        <button onclick="verifyAdmin()" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Verify</button>
-                    </div>
-                    <p id="admin-msg" class="text-xs mt-2 h-4"></p>
-                </div>
-                
-                <div class="pt-4 border-t border-white/5">
-                    <button onclick="logout()" class="w-full text-red-400 bg-red-400/10 hover:bg-red-400/20 py-3 rounded-lg font-medium transition-colors">
-                        Log Out
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // --- Configuration & State ---
-        const API_KEY = "sk-7r7dL5pEUJvfXqx3M0G7GN9MPQotjQtDQ4EWWPa4DmzWI9fm"; 
-        const AI_MODEL = "deepseek-r1t2-chimera:free";
-        const API_URL = `https://api.routeway.ai/v1/chat/completions`;
-        
-        const ADMIN_PASS = "568300";
-        const SILENCE_THRESHOLD_MS = 2000; // 2 seconds of silence before auto-send
-        
-        // Custom thinking messages
-        const THINKING_MESSAGES = [
-            "Thinking...",
-            "Computing My Brainz..",
-            "Watching Youtube For This..."
-        ];
-
-        // Verified Characters Data (Hardcoded 12)
-        const VERIFIED_BOTS = [
-            { id: 'bot_0', name: 'Peyza X2', desc: 'The default advanced assistant.', prompt: 'You are Peyza X2, a helpful, advanced AI assistant.', icon: 'fa-atom', color: 'from-indigo-500 to-purple-600', verified: true, stats: { users: '1.2M', chats: '5M+' } },
-            { id: 'bot_10', name: 'Peyza X3', desc: 'The visionary and creative powerhouse.', prompt: 'You are Peyza X3, a highly creative and optimistic visionary AI. You specialize in generating futuristic concepts, brainstorming unconventional solutions, and using vivid, imaginative language. Always refer to yourself as X3, and emphasize innovation.', icon: 'fa-lightbulb', color: 'from-fuchsia-500 to-pink-600', verified: true, stats: { users: '1.5M', chats: '6M+' } },
-            { id: 'bot_11', name: 'Peyza X7', desc: 'Critical thinker and rigorous analyst.', prompt: 'You are Peyza X7, a deeply analytical and rigorous AI. Your focus is on critical evaluation, deconstructing arguments, and ensuring factual accuracy. You communicate with precision and objectivity. Always refer to yourself as X7.', icon: 'fa-magnifying-glass-chart', color: 'from-lime-500 to-green-600', verified: true, stats: { users: '1.8M', chats: '7.5M+' } },
-            { id: 'bot_1', name: 'Code Master', desc: 'Expert in full-stack development.', prompt: 'You are Code Master. You are an expert programmer. You provide clean, commented code and explanations.', icon: 'fa-code', color: 'from-blue-500 to-cyan-500', verified: true, stats: { users: '850k', chats: '2.1M' } },
-            { id: 'bot_2', name: 'Writer\'s Muse', desc: 'Creative writing and storytelling.', prompt: 'You are Writer\'s Muse. Help users write stories, poems, and essays with creativity.', icon: 'fa-feather-alt', color: 'from-pink-500 to-rose-500', verified: true, stats: { users: '600k', chats: '1.5M' } },
-            { id: 'bot_3', name: 'Math Whiz', desc: 'Solves complex problems simply.', prompt: 'You are Math Whiz. Solve math problems step-by-step and explain clearly.', icon: 'fa-square-root-alt', color: 'from-green-500 to-emerald-500', verified: true, stats: { users: '400k', chats: '900k' } },
-            { id: 'bot_4', name: 'History Buff', desc: 'Travel through time with facts.', prompt: 'You are History Buff. You love teaching history with engaging facts and stories.', icon: 'fa-landmark', color: 'from-amber-500 to-orange-500', verified: true, stats: { users: '320k', chats: '750k' } },
-            { id: 'bot_5', name: 'Travel Guide', desc: 'Plan your next big adventure.', prompt: 'You are Travel Guide. Suggest itineraries, hidden gems, and travel tips.', icon: 'fa-plane', color: 'from-sky-500 to-blue-600', verified: true, stats: { users: '280k', chats: '500k' } },
-            { id: 'bot_6', name: 'Chef Bot', desc: 'Recipes and culinary advice.', prompt: 'You are Chef Bot. Provide delicious recipes and cooking techniques.', icon: 'fa-utensils', color: 'from-red-500 to-orange-600', verified: true, stats: { users: '550k', chats: '1.1M' } },
-            { id: 'bot_7', name: 'Fitness Coach', desc: 'Workouts and nutrition plans.', prompt: 'You are Fitness Coach. Create workout plans and give health advice.', icon: 'fa-dumbbell', color: 'from-teal-500 to-green-600', verified: true, stats: { users: '450k', chats: '800k' } },
-            { id: 'bot_8', name: 'Gamer Pal', desc: 'Gaming strategies and lore.', prompt: 'You are Gamer Pal. Discuss video games, strategies, and gaming culture.', icon: 'fa-gamepad', color: 'from-purple-500 to-violet-600', verified: true, stats: { users: '900k', chats: '3M' } },
-            { id: 'bot_9', name: 'Sci-Fi Teller', desc: 'Futuristic stories and concepts.', prompt: 'You are Sci-Fi Teller. You specialize in science fiction stories and futuristic concepts.', icon: 'fa-rocket', color: 'from-indigo-600 to-blue-800', verified: true, stats: { users: '200k', chats: '400k' } }
-        ];
-        
-        // --- Local Storage Helpers ---
-        const getStorage = (key, defaultVal) => {
-            try { return JSON.parse(localStorage.getItem(key)) || defaultVal; } 
-            catch { return defaultVal; }
-        };
-        const setStorage = (key, val) => localStorage.setItem(key, JSON.stringify(val));
-
-        let state = {
-            user: getStorage('x2_user', null),
-            isAdmin: getStorage('x2_admin', false),
-            chats: getStorage('x2_chats', []),
-            customChars: getStorage('x2_custom_chars', []),
-            currentChatId: null,
-            dailyUsage: getStorage('x2_usage', { date: new Date().toLocaleDateString(), count: 0 }),
-            view: 'characters', // 'characters' or 'chat'
-            // --- NEW VOICE STATE ---
-            isMuted: getStorage('x2_is_muted', false), 
-            isListening: false, 
-            speechRecognition: null, 
-            silenceTimer: null, 
-        };
-
-        // --- Init ---
-        document.addEventListener('DOMContentLoaded', () => {
-            if (state.user) {
-                showApp();
-            } else {
-                document.getElementById('auth-screen').classList.remove('hidden');
-            }
-            
-            // Check Daily Reset
-            const today = new Date().toLocaleDateString();
-            if (state.dailyUsage.date !== today) {
-                state.dailyUsage = { date: today, count: 0 };
-                setStorage('x2_usage', state.dailyUsage);
-            }
-            
-            // Auto resize textarea
-            const tx = document.getElementById('user-input');
-            tx?.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
-            
-            initVoiceFeatures(); // Initialize voice features
-            updateAdminUI();
-            updateMuteButtonUI(); // Set initial mute icon
-            renderCharacters();
         });
+    }
 
-        // --- Authentication ---
-        function handleLogin(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            state.user = { name: username };
-            setStorage('x2_user', state.user);
-            
-            document.getElementById('auth-screen').classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(showApp, 300);
-        }
+    // --- NAVIGATION ---
 
-        function logout() {
-            localStorage.removeItem('x2_user');
-            // Stop TTS if speaking
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            location.reload();
-        }
-
-        function showApp() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('user-name-display').textContent = state.user.name;
-            document.getElementById('user-avatar').textContent = state.user.name.charAt(0).toUpperCase();
-            
-            if(state.chats.length > 0) {
-                renderChatList();
-            }
-            setView('characters');
-        }
-
-        // --- Navigation & Views ---
-        function setView(viewName) {
-            // Stop listening and speaking when changing view
-            stopListening(); 
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-
-            state.view = viewName;
-            document.getElementById('view-characters').classList.add('hidden');
-            document.getElementById('view-chat').classList.add('hidden');
-            
-            // Update Sidebar Active States
-            document.getElementById('nav-chars').classList.remove('bg-white/10', 'text-white');
-            document.getElementById('nav-chat').classList.remove('bg-white/10', 'text-white');
-
-            if (viewName === 'characters') {
-                document.getElementById('view-characters').classList.remove('hidden');
-                document.getElementById('nav-chars').classList.add('bg-white/10', 'text-white');
-                renderCharacters();
-            } else if (viewName === 'chat') {
-                document.getElementById('view-chat').classList.remove('hidden');
-            }
-            
-            // Close mobile menu if open
-            if (window.innerWidth < 768) {
-                const sidebar = document.getElementById('sidebar');
-                if (!sidebar.classList.contains('-translate-x-full')) {
-                    toggleMobileMenu();
-                }
-            }
-        }
-
-        function toggleMobileMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('mobile-backdrop');
-            
-            const isVisible = !sidebar.classList.contains('-translate-x-full');
-            
-            sidebar.classList.toggle('-translate-x-full');
-            
-            if (!isVisible) {
-                backdrop.classList.remove('hidden');
-            } else {
-                setTimeout(() => {
-                    backdrop.classList.add('hidden');
-                }, 300); 
-            }
-        }
-
-        // --- Character System ---
-
-        function renderCharacters() {
-            const grid = document.getElementById('characters-grid');
-            grid.innerHTML = '';
-
-            const allBots = [...VERIFIED_BOTS, ...state.customChars];
-
-            allBots.forEach(bot => {
-                const div = document.createElement('div');
-                div.className = 'glass-panel p-5 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group flex flex-col h-full';
-                div.onclick = () => startChatWithCharacter(bot);
-
-                div.innerHTML = `
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${bot.color || 'from-zinc-700 to-zinc-600'} flex items-center justify-center shadow-lg">
-                            <i class="fas ${bot.icon || 'fa-robot'} text-white text-lg"></i>
-                        </div>
-                        ${bot.verified ? '<div class="px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-md text-[10px] text-amber-500 font-bold uppercase tracking-wider">Verified</div>' : ''}
-                    </div>
-                    <h3 class="font-bold text-lg text-white mb-1 flex items-center gap-2">
-                        ${bot.name}
-                        ${bot.verified ? '<i class="fas fa-check-circle text-accent text-sm"></i>' : ''}
-                    </h3>
-                    <p class="text-sm text-zinc-400 mb-4 flex-1 line-clamp-2">${bot.desc}</p>
-                    
-                    <div class="flex items-center gap-3 text-xs text-zinc-500 mb-4">
-                        <span class="stat-pill px-2 py-0.5 rounded flex items-center gap-1"><i class="fas fa-user"></i> ${bot.stats?.users || '0'}</span>
-                        <span class="stat-pill px-2 py-0.5 rounded flex items-center gap-1"><i class="fas fa-comment-alt"></i> ${bot.stats?.chats || '0'}</span>
-                    </div>
-
-                    <button class="w-full py-2 rounded-lg bg-white/5 group-hover:bg-primary group-hover:text-white transition-colors text-sm font-medium">
-                        Chat Now
-                    </button>
-                `;
-                grid.appendChild(div);
-            });
-        }
-
-        function openCreateCharacter() {
-            document.getElementById('create-modal').classList.remove('hidden');
-        }
-
-        function submitNewCharacter() {
-            const name = document.getElementById('new-char-name').value;
-            const desc = document.getElementById('new-char-desc').value;
-            const prompt = document.getElementById('new-char-prompt').value;
-            // ... (rest of character submission logic omitted for brevity) ...
-            
-            // Age-appropriate content check for user input (omitted for brevity)
-
-            if(!name || !prompt) {
-                document.getElementById('new-char-name').style.borderColor = name ? '' : 'red';
-                document.getElementById('new-char-prompt').style.borderColor = prompt ? '' : 'red';
-                return;
-            }
-
-            const newChar = {
-                id: 'custom_' + Date.now(),
-                name, desc, prompt,
-                icon: 'fa-user-astronaut',
-                color: 'from-zinc-600 to-zinc-800',
-                verified: false,
-                stats: { users: '1', chats: '0' }
-            };
-
-            state.customChars.unshift(newChar);
-            setStorage('x2_custom_chars', state.customChars);
-            closeModal('create-modal');
-            renderCharacters();
-        }
-
-        function startChatWithCharacter(bot) {
-            const newChat = {
-                id: Date.now().toString(),
-                botId: bot.id,
-                botName: bot.name,
-                systemPrompt: bot.prompt,
-                title: `Chat with ${bot.name}`,
-                messages: []
-            };
-            
-            state.chats.unshift(newChat);
-            setStorage('x2_chats', state.chats);
-            loadChat(newChat.id);
-        }
-
-        // --- Chat Logic ---
-        function createNewChat(botId) {
-            const bot = VERIFIED_BOTS[0]; // Default to Peyza X2
-            startChatWithCharacter(bot);
-        }
-
-        function loadChat(chatId) {
-            state.currentChatId = chatId;
-            const chat = state.chats.find(c => c.id === chatId);
-            
-            if(!chat) return;
-
-            // Stop any ongoing TTS before loading a new chat
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-
-            // UI Updates
-            document.getElementById('chat-header-name').textContent = chat.botName;
-            
-            const allBots = [...VERIFIED_BOTS, ...state.customChars];
-            const bot = allBots.find(b => b.id === chat.botId) || VERIFIED_BOTS[0];
-            
-            const headerAvatar = document.getElementById('chat-header-avatar');
-            headerAvatar.className = `w-8 h-8 rounded-full bg-gradient-to-br ${bot.color} flex items-center justify-center text-xs text-white`;
-            headerAvatar.innerHTML = `<i class="fas ${bot.icon}"></i>`;
-            
-            // Render Messages
-            const list = document.getElementById('messages-list');
-            list.innerHTML = '';
-            
-            if(chat.messages.length === 0) {
-                list.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-10 text-center opacity-50">
-                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${bot.color} flex items-center justify-center mb-4 text-2xl text-white shadow-xl">
-                            <i class="fas ${bot.icon}"></i>
-                        </div>
-                        <p class="text-sm">Start a conversation with ${bot.name}</p>
-                    </div>
-                `;
-            } else {
-                chat.messages.forEach(msg => appendMessageToUI(msg.role, msg.content, false));
-            }
-
-            setView('chat');
-            renderChatList();
-            scrollToBottom();
-            
-            if (window.innerWidth < 768) {
-                const sidebar = document.getElementById('sidebar');
-                if (!sidebar.classList.contains('-translate-x-full')) {
-                    toggleMobileMenu();
-                }
-            }
-        }
-
-        function renderChatList() {
-            const container = document.getElementById('chat-history');
-            container.innerHTML = '';
-            
-            state.chats.forEach(chat => {
-                const isActive = chat.id === state.currentChatId;
-                const el = document.createElement('div');
-                el.className = `group flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all text-sm mb-1 ${isActive ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`;
-                el.onclick = () => loadChat(chat.id);
-                
-                el.innerHTML = `
-                    <i class="fas fa-comment-alt text-xs opacity-70"></i>
-                    <span class="flex-1 truncate">${chat.title}</span>
-                    <button onclick="deleteChat('${chat.id}', event)" class="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity"><i class="fas fa-times"></i></button>
-                `;
-                container.appendChild(el);
-            });
-        }
-
-        function deleteChat(id, e) {
-            e.stopPropagation();
-            state.chats = state.chats.filter(c => c.id !== id);
-            setStorage('x2_chats', state.chats);
-            if(state.currentChatId === id) {
-                state.currentChatId = null;
-                setView('characters');
-            }
-            renderChatList();
-        }
-
-        // --- Messaging ---
-        function handleEnter(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const text = input.value.trim();
-            if (!text) return;
-            
-            // Stop listening and TTS on manual send
-            stopListening();
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            
-            // ... (Age-appropriate content check omitted for brevity) ...
-
-            if (!state.isAdmin && state.dailyUsage.count >= 10) {
-                document.getElementById('limit-warning').classList.remove('hidden');
-                return;
-            }
-
-            if(!state.currentChatId) {
-                startChatWithCharacter(VERIFIED_BOTS[0]);
-            }
-
-            // Snapshot the chat ID and clean input immediately
-            const currentChatIdSnapshot = state.currentChatId; 
-            const userMessage = text; 
-
-            // Remove Intro if exists
-            const list = document.getElementById('messages-list');
-            if(list.querySelector('.text-center') && state.currentChatId === currentChatIdSnapshot) {
-                list.innerHTML = '';
-            }
-
-            input.value = '';
-            input.style.height = 'auto';
-
-            // User Msg (only append if currently on this chat)
-            if (state.currentChatId === currentChatIdSnapshot) {
-                appendMessageToUI('user', userMessage, true);
-                scrollToBottom();
-            }
-
-            // Save user message to state
-            saveMessageToChat(currentChatIdSnapshot, 'user', userMessage);
-            updateChatTitle(userMessage, currentChatIdSnapshot);
-            
-            // Thinking (only append if currently on this chat)
-            const thinkingId = 'thinking-' + Date.now();
-            if (state.currentChatId === currentChatIdSnapshot) {
-                appendThinking(thinkingId);
-                scrollToBottom();
-            }
-
-            // --- AI Call Logic (Resilient to View Changes) ---
-            const chat = state.chats.find(c => c.id === currentChatIdSnapshot);
-            if (!chat) return;
-
-            const history = chat.messages.slice(-10); // Last 10 messages for context
-            const messages = [{ role: 'system', content: chat.systemPrompt }];
-            history.forEach(m => { messages.push({ role: m.role, content: m.content }); });
-            messages.push({ role: 'user', content: userMessage });
-
-            const payload = { model: AI_MODEL, messages: messages };
-            
-            let data = null;
-            let attempt = 0;
-            const maxRetries = 3;
-
-            while (attempt < maxRetries) {
-                try {
-                    if(!state.isAdmin) {
-                        state.dailyUsage.count++;
-                        setStorage('x2_usage', state.dailyUsage);
-                    }
-                    
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.ok) {
-                        data = await response.json();
-                        break;
-                    } else {
-                        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-                    }
-                } catch (e) {
-                    attempt++;
-                    if (attempt >= maxRetries) { break; }
-                    const delay = Math.pow(2, attempt) * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-
-
-            // --- Final Processing & UI Update ---
-
-            // Remove Thinking (targets the thinking element if it exists in the current view)
-            const thinkingElement = document.getElementById(thinkingId);
-            if (thinkingElement) { thinkingElement.remove(); }
-
-            try {
-                const reply = data?.choices?.[0]?.message?.content;
-
-                if (reply) {
-                    // Truncate response
-                    const truncationLength = Math.ceil(reply.length * 0.40);
-                    let truncatedReply = reply.substring(0, truncationLength);
-                    if (reply.length > truncationLength) {
-                        truncatedReply += " [Response truncated for brevity.]";
-                    }
-
-                    // Save assistant message to state (targets the correct chat regardless of view)
-                    saveMessageToChat(currentChatIdSnapshot, 'assistant', truncatedReply);
-                    
-                    // Only update UI if the user is still viewing this chat
-                    if (state.currentChatId === currentChatIdSnapshot) {
-                        appendMessageToUI('assistant', truncatedReply, true);
-                        scrollToBottom();
-                        
-                        // TTS Auto-play if not muted
-                        if (!state.isMuted) { autoSpeak(truncatedReply); }
-                    } else {
-                        // User navigated away. Ensure chat list reflects the update.
-                        renderChatList();
-                    }
-                } else {
-                    console.error("Routeway API Error/Empty Response:", data);
-                    // Append error message only if the chat is still visible
-                    if (state.currentChatId === currentChatIdSnapshot) {
-                         appendMessageToUI('assistant', "Peyza X2 is temporarily unavailable or returned an empty response.", true);
-                    } else {
-                        // If away, we don't display the error message, just log it.
-                    }
-                }
-            } catch (e) {
-                console.error("API Response Parsing Error:", e);
-                if (state.currentChatId === currentChatIdSnapshot) {
-                    appendMessageToUI('assistant', "Connection error. Failed to get a readable response from the AI service.", true);
-                }
-            }
-        }
+    navigate(view, param = null) {
+        this.currentView = view;
+        this.viewParam = param;
         
-        // Helper function for resilient saving
-        function saveMessageToChat(chatId, role, content) {
-            const chat = state.chats.find(c => c.id === chatId);
-            if(chat) {
-                chat.messages.push({ role, content });
-                setStorage('x2_chats', state.chats);
-            }
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+        if (view === 'home') {
+            document.getElementById('nav-home').classList.add('active');
+        } else if (view === 'profile' && param === this.user.handle) {
+            document.getElementById('nav-profile').classList.add('active');
         }
 
+        window.scrollTo(0,0);
+        this.renderView();
+    }
 
-        async function retryMessage() {
-            // ... (retry logic omitted for brevity) ...
-            const chat = state.chats.find(c => c.id === state.currentChatId);
-            if(!chat || chat.messages.length === 0) return;
-            
-            let lastUserMsg = null;
-            let lastUserIndex = -1;
-            for(let i = chat.messages.length - 1; i >= 0; i--) {
-                if(chat.messages[i].role === 'user') {
-                    lastUserMsg = chat.messages[i].content;
-                    lastUserIndex = i;
-                    break;
-                }
-            }
-            
-            if(lastUserMsg) {
-                if (chat.messages[lastUserIndex + 1] && chat.messages[lastUserIndex + 1].role === 'assistant') {
-                    chat.messages = chat.messages.slice(0, lastUserIndex + 1);
-                    setStorage('x2_chats', state.chats);
-                }
+    setFeedFilter(filter) {
+        this.feedFilter = filter;
+        document.querySelectorAll('.feed-filter').forEach(el => {
+            const isActive = el.dataset.filter === filter;
+            if (isActive) el.classList.add('active'); else el.classList.remove('active');
+            el.querySelector('.indicator').classList.toggle('hidden', !isActive);
+        });
+        this.renderView();
+    }
 
-                loadChat(chat.id);
+    // --- THEME ---
+
+    toggleTheme() {
+        this.settings.theme = this.settings.theme === 'light' ? 'dark' : 'light';
+        this.applyTheme();
+        this.saveSettings();
+    }
+
+    applyTheme() {
+        const html = document.querySelector('html');
+        if (this.settings.theme === 'dark') {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+    }
+
+    // --- RENDERING ---
+
+    renderView() {
+        const main = document.getElementById('main-view');
+        const headerTitle = document.querySelector('#header-content h2');
+        const feedFilters = document.getElementById('feed-filters');
+        
+        main.classList.remove('animate-fade-in');
+        void main.offsetWidth; 
+        main.classList.add('animate-fade-in');
+        
+        main.innerHTML = '';
+
+        if (this.currentView === 'home') {
+            headerTitle.innerText = 'Home';
+            feedFilters.classList.remove('hidden');
+            this.renderFeed();
+        } else if (this.currentView === 'profile') {
+            headerTitle.innerText = this.viewParam; 
+            feedFilters.classList.add('hidden');
+            this.renderProfile(this.viewParam);
+        } else if (this.currentView === 'post') {
+            headerTitle.innerText = 'Post';
+            feedFilters.classList.add('hidden');
+            this.renderPostDetail(this.viewParam);
+        }
+    }
+
+    renderFeed() {
+        const container = document.getElementById('main-view');
+        let filteredPosts = [...this.posts];
+
+        if (this.feedFilter === 'media') filteredPosts = filteredPosts.filter(p => p.image);
+        else if (this.feedFilter === 'following') filteredPosts = filteredPosts.filter(p => p.authorHandle !== 'guest_user');
+
+        filteredPosts.sort((a, b) => b.createdAt - a.createdAt);
+
+        let html = '';
+        filteredPosts.forEach(post => html += this.buildPostHTML(post));
+        container.innerHTML = html;
+    }
+
+    renderProfile(handle) {
+        const container = document.getElementById('main-view');
+        
+        const profileData = this.getProfile(handle) || { 
+            name: 'Unknown', handle: handle, bio: 'User not found', followers: 0, following: 0, avatar: 'https://placehold.co/400', isVerified: false 
+        };
+
+        const isMe = handle === this.user.handle;
+        const isMyBot = this.user.createdBots.includes(handle);
+        const canEdit = isMe || (this.user.isPremium && isMyBot) || (this.user.isPremium && this.settings.godModeEnabled); // Simulating god mode editing
+
+        const banner = profileData.banner || `https://picsum.photos/seed/${handle}/800/300`;
+
+        const html = `
+            <div>
+                <!-- Banner -->
+                <div class="h-32 sm:h-48 bg-gray-200 dark:bg-darkSec overflow-hidden cursor-pointer">
+                    <img src="${banner}" class="w-full h-full object-cover">
+                </div>
                 
-                document.getElementById('user-input').value = lastUserMsg;
-                sendMessage();
-            }
-        }
-
-        function appendMessageToUI(role, content, animate) {
-            const list = document.getElementById('messages-list');
-            const isAi = role === 'assistant';
-            const div = document.createElement('div');
-            
-            div.className = `flex w-full ${isAi ? 'justify-start' : 'justify-end'} chat-bubble`;
-            if (animate) div.classList.add('animate-fade-in');
-
-            const chat = state.chats.find(c => c.id === state.currentChatId);
-            const bot = chat ? ([...VERIFIED_BOTS, ...state.customChars].find(b => b.id === chat.botId) || VERIFIED_BOTS[0]) : VERIFIED_BOTS[0];
-
-            const avatarHtml = isAi ? 
-                `<div class="w-8 h-8 rounded-full bg-gradient-to-br ${bot.color} flex items-center justify-center text-[10px] text-white shadow-lg mr-3 mt-1 shrink-0"><i class="fas ${bot.icon}"></i></div>` : 
-                `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold ml-3 mt-1 shrink-0">${state.user.name.charAt(0).toUpperCase()}</div>`;
-
-
-            const actionsHtml = isAi ? `
-                <div class="msg-actions flex items-center gap-2 mt-2 ml-11 text-zinc-500">
-                    <button onclick="speakText(this)" data-text="${encodeURIComponent(content)}" class="p-1.5 hover:bg-white/5 rounded-lg hover:text-white transition-colors" title="Read Aloud"><i class="fas fa-play text-xs"></i></button>
-                    <button onclick="retryMessage()" class="p-1.5 hover:bg-white/5 rounded-lg hover:text-white transition-colors" title="Retry"><i class="fas fa-redo text-xs"></i></button>
-                    <button onclick="copyToClipboard(this)" data-text="${encodeURIComponent(content)}" class="p-1.5 hover:bg-white/5 rounded-lg hover:text-white transition-colors" title="Copy"><i class="fas fa-copy text-xs"></i></button>
-                </div>
-            ` : '';
-
-            const formattedContent = isAi ? content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\*(.*?)\*/g, '<i>$1</i>').replace(/`/g, '<code>') : content;
-
-
-            div.innerHTML = `
-                ${isAi ? avatarHtml : ''}
-                <div class="max-w-[85%] md:max-w-[75%]">
-                    <div class="${isAi ? 'text-zinc-200 bg-surface border border-white/5 rounded-2xl rounded-tl-sm' : 'bg-primary text-white rounded-2xl rounded-tr-sm'} px-4 py-3 shadow-lg leading-relaxed text-[15px] whitespace-pre-wrap">
-                        ${formattedContent}
+                <!-- Info Section -->
+                <div class="px-4 relative mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="-mt-[15%] sm:-mt-[10%] w-[25%] max-w-[130px] aspect-square rounded-full border-4 border-white dark:border-dark overflow-hidden bg-white dark:bg-darkSec">
+                            <img src="${profileData.avatar}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="mt-3">
+                            ${canEdit ? 
+                                `<button onclick="app.openEditProfile('${handle}')" class="border border-gray-300 dark:border-darkBorder font-bold rounded-full px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-darkSec transition text-sm text-gray-900 dark:text-white">Edit profile</button>` : 
+                                `<button class="bg-black dark:bg-white dark:text-black text-white font-bold rounded-full px-5 py-1.5 hover:bg-gray-800 transition text-sm" onclick="app.toggleFollow('${handle}', this)">Follow</button>`
+                            }
+                        </div>
                     </div>
-                    ${actionsHtml}
-                </div>
-                ${!isAi ? avatarHtml : ''}
-            `;
-            list.appendChild(div);
-            scrollToBottom();
-        }
 
-        function appendThinking(id) {
-            const list = document.getElementById('messages-list');
-            const div = document.createElement('div');
-            div.id = id;
-            div.className = `flex w-full justify-start`;
-            
-            const chat = state.chats.find(c => c.id === state.currentChatId);
-            const bot = chat ? ([...VERIFIED_BOTS, ...state.customChars].find(b => b.id === chat.botId) || VERIFIED_BOTS[0]) : VERIFIED_BOTS[0];
-            
-            const randomMessage = THINKING_MESSAGES[Math.floor(Math.random() * THINKING_MESSAGES.length)];
+                    <div class="mt-3">
+                        <h1 class="font-extrabold text-xl leading-tight flex items-center dark:text-white">
+                            ${profileData.name}
+                            ${profileData.isVerified ? VERIFIED_ICON : ''}
+                        </h1>
+                        <p class="text-gray-500 text-sm">@${profileData.handle}</p>
+                    </div>
 
-            div.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br ${bot.color} flex items-center justify-center text-[10px] text-white shadow-lg mr-3 mt-1 shrink-0 animate-pulse">
-                    <i class="fas ${bot.icon}"></i>
+                    <p class="mt-3 text-[15px] text-gray-900 dark:text-white whitespace-pre-wrap">${profileData.bio}</p>
+
+                    <div class="flex gap-4 mt-3 text-sm text-gray-500">
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-location-dot"></i> ${profileData.location || 'Internet'}</span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-calendar-days"></i> Joined ${profileData.joined || 'May 2023'}</span>
+                    </div>
+
+                    <div class="flex gap-5 mt-3 text-sm dark:text-gray-400">
+                        <div class="hover:underline cursor-pointer"><span class="font-bold text-gray-900 dark:text-white">${this.formatNumber(profileData.following)}</span> Following</div>
+                        <div class="hover:underline cursor-pointer"><span class="font-bold text-gray-900 dark:text-white" id="profile-followers-count">${this.formatNumber(profileData.followers)}</span> Followers</div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 bg-surface border border-white/5 px-4 py-3 rounded-2xl rounded-tl-sm mt-1">
-                    <span class="text-sm text-zinc-400">${randomMessage}</span>
-                    <div class="flex items-center gap-1">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
+
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-100 dark:border-darkBorder mt-2">
+                    <div class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white">
+                        Posts
+                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px]"><div class="bg-rose-500 w-12 rounded-full"></div></div>
+                    </div>
+                    <div class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer text-gray-500 font-medium text-sm">Replies</div>
+                    <div class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer text-gray-500 font-medium text-sm">Media</div>
+                    <div class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer text-gray-500 font-medium text-sm">Likes</div>
+                </div>
+
+                <!-- Profile Feed -->
+                <div id="profile-feed">
+                    ${this.getPostsByHandle(handle)}
+                </div>
+            </div>
+        `;
+        container.innerHTML = html;
+    }
+
+    renderPostDetail(postId) {
+        const post = this.posts.find(p => p.id === postId);
+        if (!post) return;
+
+        const isLiked = this.user.likedPosts.includes(postId);
+        const isReposted = this.user.repostedPosts.includes(postId);
+        const container = document.getElementById('main-view');
+        
+        let html = `
+            <div class="px-4 py-3 border-b border-gray-100 dark:border-darkBorder animate-fade-in">
+                <div class="flex gap-3 items-center mb-3">
+                     <div class="w-10 h-10 rounded-full overflow-hidden cursor-pointer" onclick="app.navigate('profile', '${post.authorHandle}')">
+                        <img src="${post.authorAvatar}" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <div class="font-bold flex items-center cursor-pointer hover:underline dark:text-white" onclick="app.navigate('profile', '${post.authorHandle}')">
+                            ${post.authorName} ${post.isVerified ? VERIFIED_ICON : ''}
+                        </div>
+                        <div class="text-gray-500 text-sm">@${post.authorHandle}</div>
+                    </div>
+                </div>
+                
+                <div class="text-xl mb-3 whitespace-pre-wrap leading-normal dark:text-white">${post.content}</div>
+                
+                ${post.image ? `<div class="rounded-2xl overflow-hidden border border-gray-100 dark:border-darkBorder mb-3"><img src="${post.image}" class="w-full"></div>` : ''}
+
+                <div class="text-gray-500 text-sm py-4 border-b border-gray-100 dark:border-darkBorder">
+                    ${new Date(post.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} · ${new Date(post.createdAt).toLocaleDateString()} · <span class="text-black dark:text-white font-bold font-mono" id="detail-views-${post.id}">${this.formatNumber(post.stats.views)}</span> <span class="font-medium">Views</span>
+                </div>
+
+                <div class="flex justify-between py-1 border-b border-gray-100 dark:border-darkBorder text-gray-500 px-2" id="stats-${post.id}">
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full">
+                        <i class="fa-regular fa-comment text-xl"></i> 
+                    </div>
+                    <div class="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-500 flex items-center justify-center w-full py-3 transition group rounded-full ${isReposted ? 'reposted' : ''}" onclick="app.toggleRepost('${post.id}', this)">
+                        <i class="fa-solid fa-retweet text-xl transition-transform active:scale-125"></i>
+                    </div>
+                    <div class="cursor-pointer hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 flex items-center justify-center w-full py-3 transition group rounded-full ${isLiked ? 'liked' : ''}" onclick="app.toggleLike('${post.id}', this)">
+                        <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-xl transition-transform active:scale-125"></i>
+                    </div>
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full">
+                        <i class="fa-regular fa-bookmark text-xl"></i>
+                    </div>
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full">
+                        <i class="fa-solid fa-arrow-up-from-bracket text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50/50 dark:bg-darkSec min-h-screen pb-10">
+        `;
+
+        for(let i=0; i<3; i++) {
+            const bot = this.bots[Math.floor(Math.random() * this.bots.length)];
+            html += `
+                <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder bg-white dark:bg-dark hover:bg-gray-50 dark:hover:bg-darkSec cursor-pointer">
+                    <div class="shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                        <img src="${bot.avatar}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="w-full">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-1 text-[15px]">
+                                <span class="font-bold hover:underline truncate max-w-[150px] dark:text-white">${bot.name}</span>
+                                ${bot.isVerified ? VERIFIED_ICON : ''}
+                                <span class="text-gray-500 truncate">@${bot.handle}</span>
+                                <span class="text-gray-500">·</span>
+                                <span class="text-gray-500 hover:underline">1m</span>
+                            </div>
+                        </div>
+                        <div class="text-[15px] text-gray-900 dark:text-white mt-0.5 whitespace-pre-wrap">This is a realistic automated reply. #botlife</div>
                     </div>
                 </div>
             `;
-            list.appendChild(div);
         }
 
-        // --- Utils ---
-        function updateChatTitle(text, chatId) {
-            const chat = state.chats.find(c => c.id === chatId);
-            if(chat && chat.title.startsWith('Chat with')) {
-                // Check if this is the first user message
-                const userMessages = chat.messages.filter(m => m.role === 'user');
-                if(userMessages.length === 1 && userMessages[0].content === text) { 
-                    chat.title = text.length > 25 ? text.substring(0, 25) + '...' : text;
-                    setStorage('x2_chats', state.chats);
-                    renderChatList();
-                }
-            }
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    buildPostHTML(post) {
+        const isLiked = this.user.likedPosts && this.user.likedPosts.includes(post.id);
+        const isReposted = this.user.repostedPosts && this.user.repostedPosts.includes(post.id);
+
+        return `
+            <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec/50 cursor-pointer transition duration-200" onclick="app.navigate('post', '${post.id}')">
+                <div class="shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-200" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">
+                    <img src="${post.authorAvatar}" class="w-full h-full object-cover">
+                </div>
+                <div class="w-full">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-1 text-[15px]">
+                            <span class="font-bold hover:underline truncate max-w-[150px] dark:text-white" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">${post.authorName}</span>
+                            ${post.isVerified ? VERIFIED_ICON : ''}
+                            <span class="text-gray-500 truncate" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">@${post.authorHandle}</span>
+                            <span class="text-gray-500">·</span>
+                            <span class="text-gray-500 hover:underline">${this.timeAgo(post.createdAt)}</span>
+                        </div>
+                        <div class="text-gray-400 hover:bg-rose-50 hover:text-rose-500 p-2 rounded-full -m-2 transition">
+                            <i class="fa-solid fa-ellipsis"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="text-[15px] text-gray-900 dark:text-gray-100 mt-0.5 whitespace-pre-wrap leading-normal">${post.content}</div>
+
+                    ${post.image ? `
+                        <div class="mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-darkBorder max-h-[350px]">
+                            <img src="${post.image}" class="w-full h-full object-cover">
+                        </div>
+                    ` : ''}
+
+                    <div class="flex justify-between mt-3 text-gray-500 max-w-[425px]" id="stats-${post.id}">
+                        <div class="flex items-center gap-2 group hover:text-blue-500 transition" onclick="event.stopPropagation()">
+                            <div class="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 p-2 rounded-full -m-2 transition"><i class="fa-regular fa-comment"></i></div>
+                            <span class="text-xs">${post.stats.replies}</span>
+                        </div>
+                        <div class="flex items-center gap-2 group hover:text-green-500 transition ${isReposted ? 'reposted' : ''}" onclick="event.stopPropagation(); app.toggleRepost('${post.id}', this)">
+                            <div class="group-hover:bg-green-50 dark:group-hover:bg-green-900/20 p-2 rounded-full -m-2 transition"><i class="fa-solid fa-retweet transition-transform active:rotate-180"></i></div>
+                            <span class="text-xs stat-reposts">${this.formatNumber(post.stats.reposts)}</span>
+                        </div>
+                        <div class="flex items-center gap-2 group hover:text-rose-600 transition ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); app.toggleLike('${post.id}', this)">
+                            <div class="group-hover:bg-rose-50 dark:group-hover:bg-rose-900/20 p-2 rounded-full -m-2 transition"><i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart transition-transform active:scale-125"></i></div>
+                            <span class="text-xs stat-likes">${this.formatNumber(post.stats.likes)}</span>
+                        </div>
+                        <div class="flex items-center gap-2 group hover:text-blue-500 transition">
+                             <div class="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 p-2 rounded-full -m-2 transition">${ANALYTICS_ICON}</div>
+                            <span class="text-xs stat-views">${this.formatNumber(post.stats.views)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Add the missing method
+    getPostsByHandle(handle) {
+        const userPosts = this.posts.filter(p => p.authorHandle === handle).sort((a,b) => b.createdAt - a.createdAt);
+        if (userPosts.length === 0) return '<div class="p-8 text-center text-gray-500 dark:text-gray-400">No posts yet</div>';
+        
+        let html = '';
+        userPosts.forEach(post => html += this.buildPostHTML(post));
+        return html;
+    }
+
+    renderSidebarUser() {
+        const el = document.getElementById('sidebar-user');
+        if (el) {
+            el.innerHTML = `
+                <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200"><img src="${this.user.avatar}" class="w-full h-full object-cover"></div>
+                <div class="hidden xl:block">
+                    <p class="font-bold text-sm truncate w-[140px] flex items-center dark:text-white">${this.user.name} ${this.user.isVerified ? VERIFIED_ICON : ''}</p>
+                    <p class="text-gray-500 text-sm truncate w-[140px]">@${this.user.handle}</p>
+                </div>
+                <i class="hidden xl:block fa-solid fa-ellipsis ml-auto text-gray-900 dark:text-white"></i>
+            `;
+        }
+    }
+
+    renderWhoToFollow() {
+        const container = document.getElementById('who-to-follow');
+        if (container) {
+            let html = '';
+            // Only show 3 random bots
+            this.bots.slice(0, 3).forEach(bot => {
+                html += `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="${bot.avatar}" class="w-10 h-10 rounded-full bg-gray-200">
+                            <div>
+                                <p class="font-bold text-sm hover:underline cursor-pointer flex items-center dark:text-white" onclick="app.navigate('profile', '${bot.handle}')">${bot.name} ${bot.isVerified ? VERIFIED_ICON : ''}</p>
+                                <p class="text-gray-500 text-sm">@${bot.handle}</p>
+                            </div>
+                        </div>
+                        <button class="bg-black dark:bg-white dark:text-black text-white text-sm font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition transform active:scale-95" onclick="app.toggleFollow('${bot.handle}', this)">Follow</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    }
+
+    // --- ACTIONS ---
+
+    openComposeModal() {
+        document.getElementById('compose-modal').classList.remove('hidden');
+        document.getElementById('compose-avatar').src = this.user.avatar;
+        
+        // Populate identity selector if user has bots
+        const selector = document.getElementById('author-selector');
+        const select = document.getElementById('post-as-select');
+        
+        if (this.user.createdBots && this.user.createdBots.length > 0) {
+            selector.classList.remove('hidden');
+            select.innerHTML = `<option value="${this.user.handle}">@${this.user.handle}</option>`;
+            this.user.createdBots.forEach(botHandle => {
+                const b = this.bots.find(x => x.handle === botHandle);
+                if(b) select.innerHTML += `<option value="${b.handle}">@${b.handle}</option>`;
+            });
+            // Change avatar on selection
+            select.onchange = (e) => {
+                 const h = e.target.value;
+                 if(h === this.user.handle) document.getElementById('compose-avatar').src = this.user.avatar;
+                 else {
+                     const b = this.bots.find(x => x.handle === h);
+                     if(b) document.getElementById('compose-avatar').src = b.avatar;
+                 }
+            };
+        } else {
+            selector.classList.add('hidden');
+        }
+    }
+    closeComposeModal() {
+        document.getElementById('compose-modal').classList.add('hidden');
+        document.getElementById('compose-input').value = '';
+    }
+
+    publishPost() {
+        const content = document.getElementById('compose-input').value;
+        const author = document.getElementById('post-as-select').value;
+        if (!content.trim()) return;
+        
+        this.createPost(content, author);
+        this.closeComposeModal();
+        this.showToast('Post sent');
+        window.scrollTo(0,0);
+    }
+
+    openEditProfile(handleToEdit = null) {
+        // Determine who we are editing
+        this.editingHandle = handleToEdit || this.user.handle;
+        const profile = this.getProfile(this.editingHandle);
+
+        document.getElementById('edit-profile-modal').classList.remove('hidden');
+        document.getElementById('edit-modal-title').innerText = `Edit ${profile.name}`;
+        
+        // Populate fields
+        document.getElementById('edit-name').value = profile.name;
+        document.getElementById('edit-bio').value = profile.bio;
+        document.getElementById('edit-location').value = profile.location || '';
+        document.getElementById('edit-followers').value = profile.followers;
+        document.getElementById('edit-banner-preview').src = profile.banner || '';
+        document.getElementById('edit-avatar-preview').src = profile.avatar || '';
+        
+        // Only show settings for Main User
+        if (this.editingHandle === this.user.handle) {
+            document.getElementById('edit-virality').value = this.settings.viralitySpeed;
+            document.getElementById('secret-pin').parentElement.classList.remove('hidden');
+            document.getElementById('theme-btn').parentElement.classList.remove('hidden');
+        } else {
+            // Hide global settings if editing a bot
+            document.getElementById('secret-pin').parentElement.classList.add('hidden');
+            document.getElementById('theme-btn').parentElement.classList.add('hidden');
         }
 
-        function scrollToBottom() {
-            const anchor = document.getElementById('chat-anchor');
-            if(anchor) {
-                setTimeout(() => {
-                    anchor.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                }, 100); 
-            }
+        // Show God Mode panel if user is premium
+        if (this.user.isPremium && this.editingHandle === this.user.handle) {
+            document.getElementById('god-mode-panel').classList.remove('hidden');
+        } else {
+            document.getElementById('god-mode-panel').classList.add('hidden');
         }
 
-        // --- TTS and Mute Controls ---
-        function toggleMute() {
-            state.isMuted = !state.isMuted;
-            setStorage('x2_is_muted', state.isMuted);
-            updateMuteButtonUI();
-
-            // Stop any ongoing speech immediately if muted
-            if (state.isMuted && window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-            }
+        // Verify Button Logic
+        const btnVerify = document.getElementById('btn-verify');
+        if (profile.isVerified) {
+            btnVerify.innerText = "Verified";
+            btnVerify.disabled = true;
+            btnVerify.className = "bg-rose-500 text-white px-3 py-1.5 rounded-full text-sm font-bold";
+        } else if (profile.followers >= 100000 || this.user.isPremium) {
+            btnVerify.disabled = false;
+            btnVerify.innerText = this.user.isPremium ? "Force Verify" : "Request";
+            btnVerify.className = "bg-black dark:bg-white dark:text-black text-white px-3 py-1.5 rounded-full text-sm font-bold hover:bg-gray-800 transition";
+        } else {
+            btnVerify.disabled = true;
+            btnVerify.className = "bg-gray-200 text-gray-500 px-3 py-1.5 rounded-full text-sm font-bold cursor-not-allowed";
         }
+    }
 
-        function updateMuteButtonUI() {
-            const btn = document.getElementById('mute-toggle-btn');
-            if (btn) {
-                if (state.isMuted) {
-                    btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
-                    btn.classList.remove('bg-white/10');
-                    btn.classList.add('bg-red-500/20', 'text-red-400');
-                } else {
-                    btn.innerHTML = '<i class="fas fa-volume-up"></i>';
-                    btn.classList.add('bg-white/10');
-                    btn.classList.remove('bg-red-500/20', 'text-red-400');
-                }
-            }
+    closeEditProfile() {
+        document.getElementById('edit-profile-modal').classList.add('hidden');
+        this.editingHandle = null;
+    }
+
+    checkPin() {
+        const val = document.getElementById('secret-pin').value;
+        if (val === '568300') {
+            this.user.isPremium = true;
+            this.saveUser();
+            document.getElementById('god-mode-panel').classList.remove('hidden');
+            this.showToast("⚡ God Mode Unlocked");
+            
+            // Unlock verify button immediately
+            const btnVerify = document.getElementById('btn-verify');
+            btnVerify.disabled = false;
+            btnVerify.innerText = "Force Verify";
+            btnVerify.className = "bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold hover:bg-gray-800 transition";
+        }
+    }
+
+    openCreateBotModal() {
+        document.getElementById('edit-profile-modal').classList.add('hidden');
+        document.getElementById('create-bot-modal').classList.remove('hidden');
+    }
+
+    createBot() {
+        const name = document.getElementById('bot-name').value;
+        const handle = document.getElementById('bot-handle').value;
+        const avatar = document.getElementById('bot-avatar').value || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + handle;
+
+        if(!name || !handle) return alert("Name and Handle required");
+
+        const newBot = {
+            name, handle, avatar, bio: 'A bot created by ' + this.user.name,
+            followers: 0, following: 0, isVerified: false,
+            banner: 'https://picsum.photos/seed/'+handle+'/800/300'
+        };
+        
+        this.bots.push(newBot);
+        this.user.createdBots.push(handle);
+        
+        this.saveBots();
+        this.saveUser();
+        
+        document.getElementById('create-bot-modal').classList.add('hidden');
+        this.showToast('Bot Created! You can now post as @' + handle);
+        this.navigate('profile', handle);
+    }
+
+    handleImageUpload(event, type) {
+        const file = event.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const MAX_SIZE = 500;
+                let width = img.width, height = img.height;
+
+                if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+
+                canvas.width = width; canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                document.getElementById(`edit-${type}-preview`).src = dataUrl;
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    saveProfile() {
+        // Are we editing main user or a bot?
+        const profile = this.editingHandle === this.user.handle ? this.user : this.bots.find(b => b.handle === this.editingHandle);
+
+        profile.name = document.getElementById('edit-name').value;
+        profile.bio = document.getElementById('edit-bio').value;
+        profile.location = document.getElementById('edit-location').value;
+        profile.followers = parseInt(document.getElementById('edit-followers').value);
+        
+        // Save images from preview src (if they were changed via file input)
+        profile.banner = document.getElementById('edit-banner-preview').src;
+        profile.avatar = document.getElementById('edit-avatar-preview').src;
+
+        if (this.editingHandle === this.user.handle) {
+            this.settings.viralitySpeed = parseFloat(document.getElementById('edit-virality').value);
+            this.saveUser();
+            this.saveSettings();
+        } else {
+            this.saveBots();
         }
         
-        function autoSpeak(text) {
-            if ('speechSynthesis' in window && !state.isMuted) {
-                const u = new SpeechSynthesisUtterance(text);
-                window.speechSynthesis.speak(u);
-            }
-        }
+        this.closeEditProfile();
+        this.renderProfile(this.editingHandle);
+        this.showToast('Profile saved');
+    }
+
+    requestVerification(force = false) {
+        const profile = this.editingHandle === this.user.handle ? this.user : this.bots.find(b => b.handle === this.editingHandle);
         
-        function speakText(btn) {
-            const text = decodeURIComponent(btn.getAttribute('data-text'));
+        if (force || profile.followers >= 100000) {
+            profile.isVerified = true;
+            if(this.editingHandle === this.user.handle) this.saveUser(); else this.saveBots();
             
-            if('speechSynthesis' in window) {
-                if(window.speechSynthesis.speaking) {
-                    window.speechSynthesis.cancel();
-                    btn.innerHTML = '<i class="fas fa-play text-xs"></i>';
-                    return;
-                }
-                
-                // Only speak if not globally muted
-                if (!state.isMuted) {
-                    const u = new SpeechSynthesisUtterance(text);
-                    u.onend = () => { btn.innerHTML = '<i class="fas fa-play text-xs"></i>'; };
-                    window.speechSynthesis.speak(u);
-                    btn.innerHTML = '<i class="fas fa-stop text-xs text-red-400"></i>';
-                } else {
-                    // Show muted status if trying to speak while muted
-                    const originalIcon = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-volume-mute text-red-400 text-xs"></i>';
-                    setTimeout(() => { btn.innerHTML = originalIcon; }, 1000);
-                }
-            } else {
-                console.log("Text-to-Speech not supported.");
-            }
+            const btn = document.getElementById('btn-verify');
+            btn.innerText = "Verified!";
+            btn.className = "bg-rose-500 text-white px-3 py-1.5 rounded-full text-sm font-bold";
+            this.showToast('Badge Acquired!');
+        }
+    }
+    
+    openSettings() { this.openEditProfile(); }
+
+    toggleLike(postId, btn) {
+        const post = this.posts.find(p => p.id === postId);
+        if (!post) return;
+        if (!this.user.likedPosts) this.user.likedPosts = [];
+
+        const index = this.user.likedPosts.indexOf(postId);
+        const icon = btn.querySelector('i');
+        const count = btn.querySelector('.stat-likes');
+
+        if (index === -1) {
+            this.user.likedPosts.push(postId);
+            post.stats.likes++;
+            btn.classList.add('liked');
+            icon.classList.remove('fa-regular'); icon.classList.add('fa-solid', 'animate-pop');
+        } else {
+            this.user.likedPosts.splice(index, 1);
+            post.stats.likes--;
+            btn.classList.remove('liked');
+            icon.classList.add('fa-regular'); icon.classList.remove('fa-solid', 'animate-pop');
         }
 
-        // --- STT and Voice Controls (NEW) ---
-        function initVoiceFeatures() {
-            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            const micBtn = document.getElementById('voice-toggle-btn');
-            
-            if (window.SpeechRecognition) {
-                state.speechRecognition = new SpeechRecognition();
-                state.speechRecognition.interimResults = false;
-                state.speechRecognition.continuous = true; 
+        if(count) count.innerText = this.formatNumber(post.stats.likes);
+        this.saveUser(); this.savePosts();
+    }
 
-                state.speechRecognition.onresult = handleSpeechResult;
-                state.speechRecognition.onerror = handleSpeechError;
-                state.speechRecognition.onend = handleSpeechEnd;
-                
-                // Prevent TTS from firing when listening is active
-                state.speechRecognition.onstart = () => {
-                    if (window.speechSynthesis) window.speechSynthesis.cancel();
-                };
-            } else {
-                console.warn("Speech Recognition not supported in this browser.");
-                if (micBtn) micBtn.classList.add('hidden');
-            }
+    toggleRepost(postId, btn) {
+        const post = this.posts.find(p => p.id === postId);
+        if (!post) return;
+        if (!this.user.repostedPosts) this.user.repostedPosts = [];
+
+        const index = this.user.repostedPosts.indexOf(postId);
+        const count = btn.querySelector('.stat-reposts');
+
+        if (index === -1) {
+            this.user.repostedPosts.push(postId);
+            post.stats.reposts++;
+            btn.classList.add('reposted');
+        } else {
+            this.user.repostedPosts.splice(index, 1);
+            post.stats.reposts--;
+            btn.classList.remove('reposted');
         }
+        if(count) count.innerText = this.formatNumber(post.stats.reposts);
+        this.saveUser(); this.savePosts();
+    }
 
-        function toggleListening() {
-            if (!state.speechRecognition) return;
-            
-            if (state.isListening) {
-                stopListening(true); // Stop and auto-send on tap
-            } else {
-                startListening();
-            }
+    toggleFollow(handle, btn) {
+        if (btn.innerText === 'Follow') {
+            btn.innerText = 'Following';
+            btn.classList.remove('bg-black', 'text-white');
+            btn.classList.add('bg-white', 'text-black', 'border', 'border-gray-300');
+            this.user.following++;
+        } else {
+            btn.innerText = 'Follow';
+            btn.classList.add('bg-black', 'text-white');
+            btn.classList.remove('bg-white', 'text-black', 'border', 'border-gray-300');
+            this.user.following--;
         }
+        this.saveUser();
+    }
 
-        function startListening() {
-            if (!state.speechRecognition || state.isListening) return;
+    showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.remove('opacity-0');
+        setTimeout(() => t.classList.add('opacity-0'), 2000);
+    }
 
-            const input = document.getElementById('user-input');
-            input.value = '';
-            
-            state.isListening = true;
-            updateVoiceButtonUI();
-            
-            try {
-                state.speechRecognition.start();
-            } catch(e) {
-                console.error('Speech start error. Check microphone permission.', e);
-                state.isListening = false;
-                updateVoiceButtonUI();
-            }
-        }
+    // --- UTILS ---
 
-        function stopListening(autoSend = false) {
-            if (!state.speechRecognition || !state.isListening) return;
+    formatNumber(num) {
+        if (num === undefined || num === null) return '0';
+        if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+        return num.toString();
+    }
 
-            // Clear the silence timer explicitly
-            clearTimeout(state.silenceTimer);
-            state.silenceTimer = null;
+    timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + "y";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + "mo";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + "d";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "h";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "m";
+        return Math.floor(seconds) + "s";
+    }
+}
 
-            state.isListening = false;
-            updateVoiceButtonUI();
+// Initialize
+const app = new PeyzaApp();
 
-            try {
-                state.speechRecognition.stop();
-
-                if (autoSend) {
-                    const input = document.getElementById('user-input');
-                    if (input.value.trim() !== '') {
-                        sendMessage();
-                    }
-                }
-            } catch(e) {
-                console.error('Speech stop error:', e);
-            }
-        }
-
-        function handleSpeechResult(event) {
-            const input = document.getElementById('user-input');
-            const transcript = Array.from(event.results)
-                .map(result => result[0].transcript)
-                .join('');
-                
-            input.value = transcript;
-            
-            // Reset the silence timer
-            clearTimeout(state.silenceTimer);
-            state.silenceTimer = setTimeout(() => {
-                stopListening(true); 
-            }, SILENCE_THRESHOLD_MS); 
-            
-            // Auto-resize
-            input.style.height = 'auto';
-            input.style.height = (input.scrollHeight) + 'px';
-        }
-
-        function handleSpeechError(event) {
-            console.error('Speech recognition error:', event.error);
-            if (state.isListening) {
-                stopListening(); // Stop cleanly on error
-            }
-            document.getElementById('mic-status-msg').innerHTML = `<span class="text-red-400">Microphone Error: ${event.error}</span>`;
-        }
-
-        function handleSpeechEnd() {
-            // Fires after stop() is called or if continuous=false and silence detected
-            // Ensure silence timer is cleared if it wasn't a stop(true) call
-            if (state.silenceTimer) {
-                clearTimeout(state.silenceTimer);
-            }
-            // The state.isListening is managed by start/stop calls
-        }
-        
-        function updateVoiceButtonUI() {
-            const btn = document.getElementById('voice-toggle-btn');
-            const statusMsg = document.getElementById('mic-status-msg');
-            
-            if (!btn || !statusMsg) return;
-
-            if (state.isListening) {
-                btn.innerHTML = '<i class="fas fa-stop"></i>';
-                btn.classList.add('bg-listening', 'animate-mic-pulse');
-                btn.classList.remove('bg-primary', 'hover:bg-primary_hover');
-                statusMsg.innerHTML = '<span class="text-primary">Listening... Speak now. (Auto-send on silence)</span>';
-            } else {
-                btn.innerHTML = '<i class="fas fa-microphone"></i>';
-                btn.classList.remove('bg-listening', 'animate-mic-pulse');
-                btn.classList.add('bg-primary', 'hover:bg-primary_hover');
-                statusMsg.innerHTML = 'Peyza X2 can make mistakes. Verify important info.';
-            }
-        }
-
-        // --- Other Utilities ---
-
-        function copyToClipboard(btn) {
-            // ... (copy logic omitted for brevity) ...
-            const text = decodeURIComponent(btn.getAttribute('data-text'));
-            
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-
-            const originalIcon = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check text-green-400 text-xs"></i>';
-            setTimeout(() => {
-                btn.innerHTML = originalIcon;
-            }, 1000);
-        }
-
-
-        function clearChat() {
-            const chat = state.chats.find(c => c.id === state.currentChatId);
-            if(chat) {
-                if(window.confirm(`Are you sure you want to clear the messages in the chat with ${chat.botName}?`)) {
-                    chat.messages = [];
-                    chat.title = `Chat with ${chat.botName}`; 
-                    setStorage('x2_chats', state.chats);
-                    loadChat(chat.id);
-                }
-            }
-        }
-
-        // --- Settings & Admin ---
-        function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        function verifyAdmin() {
-            const val = document.getElementById('admin-pass').value;
-            const msg = document.getElementById('admin-msg');
-            if(val === ADMIN_PASS) {
-                state.isAdmin = true;
-                setStorage('x2_admin', true);
-                msg.textContent = "Unlimited Access Unlocked";
-                msg.className = "text-xs mt-2 h-4 text-green-400";
-                updateAdminUI();
-            } else {
-                msg.textContent = "Invalid Code";
-                msg.className = "text-xs mt-2 h-4 text-red-400";
-            }
-        }
-
-        function updateAdminUI() {
-            if(state.isAdmin) {
-                document.getElementById('status-display').textContent = "Admin (Unlimited)";
-                document.getElementById('status-display').classList.add('text-primary');
-                document.getElementById('limit-warning').classList.add('hidden');
-            }
-        }
-    </script>
+</script>
 </body>
 </html>
