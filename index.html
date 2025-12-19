@@ -87,17 +87,15 @@
         }
         
         /* Interaction States */
-        .liked {
-            color: #e11d48 !important;
-        }
-        .reposted {
-            color: #22c55e !important;
-        }
-        .bookmarked {
-            color: #3b82f6 !important;
-        }
-        .bookmarked i {
-            font-weight: 900 !important;
+        .liked { color: #e11d48 !important; }
+        .reposted { color: #22c55e !important; }
+        .bookmarked { color: #3b82f6 !important; }
+        .bookmarked i { font-weight: 900 !important; }
+        
+        /* Post Themes */
+        .post-highlight {
+            border: 2px solid #fbbf24 !important; /* Amber-400 */
+            background-color: rgba(251, 191, 36, 0.05);
         }
     </style>
 </head>
@@ -121,7 +119,7 @@
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <span class="hidden xl:block font-medium">Explore</span>
                 </a>
-                <a onclick="app.showToast('No notifications yet')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item">
+                <a onclick="app.navigate('notifications')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-notifications">
                     <i class="fa-regular fa-bell"></i>
                     <span class="hidden xl:block font-medium">Notifications</span>
                 </a>
@@ -213,20 +211,21 @@
             <div class="flex gap-3">
                 <img id="compose-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-darkBorder">
                 <div class="w-full">
-                    <!-- Author Selector for Bots -->
+                    <!-- Contexts -->
                     <div id="author-selector" class="hidden mb-2">
                         <select id="post-as-select" class="text-sm font-bold bg-transparent outline-none text-rose-500 cursor-pointer">
                             <!-- Options injected -->
                         </select>
                     </div>
-                    
                     <div id="replying-to-indicator" class="hidden text-sm text-gray-500 mb-1">Replying to <span class="text-rose-500">@post</span></div>
+                    <div id="community-indicator" class="hidden text-sm text-gray-500 mb-1">Posting to <span class="text-rose-500 font-bold" id="community-name-target">Community</span></div>
 
                     <textarea id="compose-input" class="w-full h-24 resize-none outline-none text-xl placeholder-gray-500 bg-transparent dark:text-white mt-2" placeholder="What is happening?!"></textarea>
                     
                     <!-- Preview Area -->
                     <div id="media-preview" class="hidden relative mb-2">
-                        <img id="media-preview-img" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder">
+                        <img id="media-preview-img" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden">
+                        <video id="media-preview-video" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden" controls></video>
                         <button onclick="app.clearMedia()" class="absolute top-1 left-1 bg-black/50 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
                     </div>
 
@@ -242,12 +241,13 @@
                     <div class="border-t border-gray-100 dark:border-darkBorder pt-3 flex justify-between items-center text-rose-500 text-lg">
                         <div class="flex gap-4">
                             <i class="fa-regular fa-image cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-image-upload').click()"></i>
+                            <i class="fa-solid fa-video cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-video-upload').click()"></i>
                             <i class="fa-solid fa-square-poll-horizontal cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('poll-creator').classList.remove('hidden')"></i>
                             <i class="fa-regular fa-face-smile cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
-                            <i class="fa-solid fa-calendar-days cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
                         </div>
                     </div>
-                    <input type="file" id="post-image-upload" hidden accept="image/*" onchange="app.handlePostImage(event)">
+                    <input type="file" id="post-image-upload" hidden accept="image/*" onchange="app.handlePostMedia(event, 'image')">
+                    <input type="file" id="post-video-upload" hidden accept="video/*" onchange="app.handlePostMedia(event, 'video')">
                 </div>
             </div>
         </div>
@@ -301,6 +301,15 @@
                 <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition">
                     <label class="block text-xs text-gray-500">Location</label>
                     <input type="text" id="edit-location" class="w-full outline-none text-sm bg-transparent dark:text-white">
+                </div>
+                
+                <!-- Bot Control: Auto-Post -->
+                <div id="bot-control-panel" class="hidden flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md">
+                    <span class="font-bold text-sm">Auto-Posting</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="bot-auto-post" class="sr-only peer">
+                      <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+                    </label>
                 </div>
                 
                 <hr class="border-gray-100 dark:border-darkBorder my-4">
@@ -370,7 +379,7 @@
 
 <script>
 /**
- * Peyza App Logic v3.0
+ * Peyza App Logic v4.0
  */
 
 // --- ICONS ---
@@ -379,16 +388,15 @@ const ANALYTICS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" class="w-[18
 
 // Default Bots
 const DEFAULT_BOTS = [
-    { handle: 'tech_guru', name: 'Tech Insider', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix', bio: 'Latest tech news.', followers: 450200, following: 152, isVerified: true },
-    { handle: 'JuiceWorlddd', name: 'Juice WRLD', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juice', bio: '999 Forever 🕊️', followers: 12500000, following: 1, isVerified: true },
-    { handle: 'elonmusk', name: 'Elon Musk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elon', bio: 'Mars & Cars.', followers: 150000000, following: 140, isVerified: true },
-    { handle: 'taylorswift13', name: 'Taylor Swift', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor', bio: 'I’m the problem, it’s me.', followers: 95000000, following: 0, isVerified: true },
-    { handle: 'meme_lord', name: 'Daily Memes', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Meme', bio: 'I post memes.', followers: 12000, following: 50, isVerified: false },
-    { handle: 'crypto_king', name: 'Crypto Chad', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chad', bio: 'HODL.', followers: 8900, following: 1200, isVerified: false },
-    { handle: 'news_bot', name: 'Peyza News', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=News', bio: 'Breaking news.', followers: 1500000, following: 10, isVerified: true }
+    { handle: 'tech_guru', name: 'Tech Insider', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix', bio: 'Latest tech news.', followers: 450200, following: 152, isVerified: true, autoPost: true },
+    { handle: 'JuiceWorlddd', name: 'Juice WRLD', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juice', bio: '999 Forever 🕊️', followers: 12500000, following: 1, isVerified: true, autoPost: true },
+    { handle: 'elonmusk', name: 'Elon Musk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elon', bio: 'Mars & Cars.', followers: 150000000, following: 140, isVerified: true, autoPost: true },
+    { handle: 'taylorswift13', name: 'Taylor Swift', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor', bio: 'I’m the problem, it’s me.', followers: 95000000, following: 0, isVerified: true, autoPost: true },
+    { handle: 'meme_lord', name: 'Daily Memes', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Meme', bio: 'I post memes.', followers: 12000, following: 50, isVerified: false, autoPost: true },
+    { handle: 'crypto_king', name: 'Crypto Chad', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chad', bio: 'HODL.', followers: 8900, following: 1200, isVerified: false, autoPost: true },
+    { handle: 'news_bot', name: 'Peyza News', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=News', bio: 'Breaking news.', followers: 1500000, following: 10, isVerified: true, autoPost: true }
 ];
 
-// Specific content for famous profiles to make them realistic
 const FAMOUS_CONTENT = {
     'JuiceWorlddd': ["Lucid Dreams still hits differently 💔", "999 till the world ends", "Making music in heaven 🕊️", "Legends never die."],
     'elonmusk': ["Sending a rocket to Mars next week.", "Peyza is actually pretty cool.", "Thinking about buying an island.", "AI is the future."],
@@ -417,6 +425,8 @@ class PeyzaApp {
         this.editingHandle = null; 
         this.replyingTo = null;
         this.tempMedia = null;
+        this.tempMediaType = 'image'; // image or video
+        this.postingToCommunity = null;
 
         this.init();
     }
@@ -428,7 +438,6 @@ class PeyzaApp {
         this.renderSidebarTrends();
         this.renderView();
         
-        // Force UI update
         setTimeout(() => { if(this.currentView === 'home') this.setFeedFilter('foryou'); }, 100);
 
         setInterval(() => this.simulateStats(), 1000);
@@ -437,7 +446,7 @@ class PeyzaApp {
 
     // --- DATA ---
     loadUser() {
-        const saved = localStorage.getItem('peyza_user_v5'); 
+        const saved = localStorage.getItem('peyza_user_v6'); 
         if (saved) return JSON.parse(saved);
         return {
             handle: 'guest_user', name: 'Guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Guest',
@@ -450,18 +459,17 @@ class PeyzaApp {
         };
     }
     loadBots() {
-        const saved = localStorage.getItem('peyza_bots');
+        const saved = localStorage.getItem('peyza_bots_v6');
         if(saved) return JSON.parse(saved);
         return [...DEFAULT_BOTS];
     }
     loadPosts() {
-        const saved = localStorage.getItem('peyza_posts_v5');
+        const saved = localStorage.getItem('peyza_posts_v6');
         if (saved) {
             let posts = JSON.parse(saved);
             if(posts.length > 200) posts = posts.slice(0, 100);
             return posts;
         }
-        // Init with mock data
         const posts = [];
         for (let i = 0; i < 20; i++) {
             posts.push(this.createMockPost(i * 1000 * 60 * 20));
@@ -473,9 +481,9 @@ class PeyzaApp {
         if (saved) return JSON.parse(saved);
         return { viralitySpeed: 1.0, theme: 'light' };
     }
-    saveUser() { localStorage.setItem('peyza_user_v5', JSON.stringify(this.user)); this.renderSidebarUser(); }
-    saveBots() { localStorage.setItem('peyza_bots', JSON.stringify(this.bots)); }
-    savePosts() { localStorage.setItem('peyza_posts_v5', JSON.stringify(this.posts)); }
+    saveUser() { localStorage.setItem('peyza_user_v6', JSON.stringify(this.user)); this.renderSidebarUser(); }
+    saveBots() { localStorage.setItem('peyza_bots_v6', JSON.stringify(this.bots)); }
+    savePosts() { localStorage.setItem('peyza_posts_v6', JSON.stringify(this.posts)); }
     saveSettings() { localStorage.setItem('peyza_settings', JSON.stringify(this.settings)); }
 
     getProfile(handle) {
@@ -486,21 +494,20 @@ class PeyzaApp {
     createMockPost(timeOffset = 0) {
         const bot = this.bots[Math.floor(Math.random() * this.bots.length)];
         let content = MOCK_POSTS_CONTENT[Math.floor(Math.random() * MOCK_POSTS_CONTENT.length)];
-        
-        // Custom content for famous people
         if (FAMOUS_CONTENT[bot.handle]) {
             const opts = FAMOUS_CONTENT[bot.handle];
             content = opts[Math.floor(Math.random() * opts.length)];
         }
-
         const hasImage = Math.random() > 0.8;
-        
         return {
             id: 'post_' + Math.random().toString(36).substr(2, 9),
             authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified,
             content: content,
             image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null,
+            video: null,
             poll: null,
+            communityHandle: null, // If posting to a community
+            theme: 'default',
             createdAt: Date.now() - timeOffset,
             stats: { likes: Math.floor(Math.random()*50), reposts: Math.floor(Math.random()*10), replies: Math.floor(Math.random()*5), views: Math.floor(Math.random()*500) },
             baseVelocity: Math.random()
@@ -515,26 +522,23 @@ class PeyzaApp {
             author = this.bots.find(b => b.handle === asHandle) || this.user;
         }
 
-        // Check for Poll
+        // Poll logic
         let poll = null;
         const opt1 = document.getElementById('poll-opt-1').value;
         const opt2 = document.getElementById('poll-opt-2').value;
         if(opt1 && opt2 && !document.getElementById('poll-creator').classList.contains('hidden')) {
-            poll = {
-                options: [
-                    { text: opt1, votes: 0 },
-                    { text: opt2, votes: 0 }
-                ],
-                totalVotes: 0
-            };
+            poll = { options: [{ text: opt1, votes: 0 }, { text: opt2, votes: 0 }], totalVotes: 0 };
         }
 
         const newPost = {
             id: 'post_' + Math.random().toString(36).substr(2, 9),
             authorHandle: author.handle, authorName: author.name, authorAvatar: author.avatar, isVerified: author.isVerified,
             content: content,
-            image: this.tempMedia,
+            image: this.tempMediaType === 'image' ? this.tempMedia : null,
+            video: this.tempMediaType === 'video' ? this.tempMedia : null,
             poll: poll,
+            communityHandle: this.postingToCommunity, // Set if user was on a community page
+            theme: 'default',
             createdAt: Date.now(),
             stats: { likes: 0, reposts: 0, replies: 0, views: 0 },
             baseVelocity: Math.random()
@@ -548,43 +552,42 @@ class PeyzaApp {
             this.replyingTo = null;
         }
 
-        this.tempMedia = null; // Reset media
+        this.clearMedia(); 
+        this.postingToCommunity = null;
         this.renderView();
     }
 
     generateRandomBotPost() {
-        // Enforce 2 posts per hour rule: roughly 1 post every 30 minutes (1800 seconds) per bot.
-        // The loop runs every 15 seconds.
-        // We can just use probability: 15s / 1800s = 0.0083 chance per bot per tick.
+        const botPostCount = this.posts.filter(p => this.bots.some(b => b.handle === p.authorHandle)).length;
+        if (botPostCount > 25) return;
         
         this.bots.forEach(bot => {
-            // Very low chance per tick to approximate 2 posts/hour
-            if (Math.random() < 0.0083) { 
-                // Create a post for this specific bot
+            // Check autoPost flag (defaults true)
+            if (bot.autoPost !== false && Math.random() < 0.0083) { 
                 let content = MOCK_POSTS_CONTENT[Math.floor(Math.random() * MOCK_POSTS_CONTENT.length)];
-                if (FAMOUS_CONTENT[bot.handle]) {
-                    const opts = FAMOUS_CONTENT[bot.handle];
-                    content = opts[Math.floor(Math.random() * opts.length)];
-                }
+                if (FAMOUS_CONTENT[bot.handle]) content = FAMOUS_CONTENT[bot.handle][Math.floor(Math.random() * FAMOUS_CONTENT[bot.handle].length)];
                 
-                const hasImage = Math.random() > 0.8;
+                // Random community posting?
+                let commHandle = null;
+                if(Math.random() < 0.1) commHandle = this.user.handle; // 10% chance to post in user's community
+
                 const newPost = {
                     id: 'post_' + Math.random().toString(36).substr(2, 9),
                     authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified,
                     content: content,
-                    image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null,
-                    poll: null,
+                    image: Math.random() > 0.8 ? `https://picsum.photos/seed/${Math.random()}/600/350` : null,
+                    video: null, poll: null, theme: 'default', communityHandle: commHandle,
                     createdAt: Date.now(),
                     stats: { likes: Math.floor(Math.random()*50), reposts: Math.floor(Math.random()*10), replies: Math.floor(Math.random()*5), views: Math.floor(Math.random()*500) },
                     baseVelocity: Math.random()
                 };
-                
                 this.posts.unshift(newPost);
             }
         });
         
         this.savePosts();
         if (this.currentView === 'home') this.renderFeed();
+        if (this.currentView === 'profile' && this.profileFilter === 'community') this.renderProfile(this.viewParam);
     }
 
     simulateStats() {
@@ -592,62 +595,32 @@ class PeyzaApp {
         let changed = false;
         const fourHours = 4 * 60 * 60 * 1000;
 
-        // Cleanup: Force removal of bot posts older than 4 hours
         const initialLength = this.posts.length;
         this.posts = this.posts.filter(p => {
             const isBot = this.bots.some(b => b.handle === p.authorHandle);
-            // If it's a bot and older than 4 hours, remove it
-            if (isBot && (now - p.createdAt > fourHours)) {
-                return false; 
-            }
-            return true;
+            return !(isBot && (now - p.createdAt > fourHours));
         });
-        
         if (this.posts.length !== initialLength) changed = true;
 
         this.posts.forEach(post => {
             const ageInSeconds = (now - post.createdAt) / 1000;
             if (ageInSeconds < 86400) {
-                // Determine Author followers for scale
                 let followers = 100;
                 if (post.authorHandle === this.user.handle) followers = this.user.followers;
-                else {
-                    const b = this.bots.find(x => x.handle === post.authorHandle);
-                    if(b) followers = b.followers;
-                }
+                else { const b = this.bots.find(x => x.handle === post.authorHandle); if(b) followers = b.followers; }
 
-                // Follower Scale Multiplier
                 const followerScale = Math.max(1, Math.log10(followers));
-                
-                // Repost Multiplier: Reposts now strongly drive views
-                const repostBoost = 1 + (post.stats.reposts * 0.1); // 10% boost per repost
-
+                const repostBoost = 1 + (post.stats.reposts * 0.1);
                 const growthFactor = this.settings.viralitySpeed * post.baseVelocity * followerScale * repostBoost;
                 
-                // Views Growth
                 const newViews = Math.floor(post.stats.views + (growthFactor * 5 * Math.random()));
-                if (newViews > post.stats.views) {
-                    post.stats.views = newViews;
-                    changed = true;
-                }
-
-                // Reply Growth: Correlated to views (Target: 1 reply per ~200 views)
-                const targetReplies = Math.floor(post.stats.views / 200);
-                // Catch up if lagging, with random noise
-                if (post.stats.replies < targetReplies && Math.random() < 0.2) { 
-                     post.stats.replies++;
-                     changed = true;
-                }
-
-                // Likes Growth
-                if (Math.random() < 0.3) {
-                    post.stats.likes += Math.floor(growthFactor * Math.random() * 2);
-                    changed = true;
-                }
-                
-                // Repost Growth
-                if (Math.random() < 0.05) {
-                    post.stats.reposts += 1;
+                if (newViews > post.stats.views) { post.stats.views = newViews; changed = true; }
+                if (Math.random() < 0.3) { post.stats.likes += Math.floor(growthFactor * Math.random() * 2); changed = true; }
+                if (Math.random() < 0.05) { post.stats.reposts += 1; changed = true; }
+                if (post.poll && Math.random() < 0.2 * growthFactor) {
+                    const randomOpt = Math.floor(Math.random() * post.poll.options.length);
+                    post.poll.options[randomOpt].votes++;
+                    post.poll.totalVotes++;
                     changed = true;
                 }
             }
@@ -661,14 +634,12 @@ class PeyzaApp {
 
     updateVisibleStats() {
         this.posts.forEach(post => {
-            // Standard stats
             const el = document.getElementById(`stats-${post.id}`);
             if (el) {
                 el.querySelector('.stat-views').innerText = this.formatNumber(post.stats.views);
                 el.querySelector('.stat-likes').innerText = this.formatNumber(post.stats.likes);
                 el.querySelector('.stat-reposts').innerText = this.formatNumber(post.stats.reposts);
             }
-            // Poll bars
             if (post.poll) {
                 post.poll.options.forEach((opt, idx) => {
                     const bar = document.getElementById(`poll-bar-${post.id}-${idx}`);
@@ -685,89 +656,54 @@ class PeyzaApp {
         });
     }
 
-    // --- NAVIGATION ---
+    // --- VIEW ---
 
     navigate(view, param = null) {
         this.currentView = view;
         this.viewParam = param;
-        
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
-        if (view === 'home') {
-            document.getElementById('nav-home').classList.add('active');
-        } else if (view === 'explore') {
-            document.getElementById('nav-explore').classList.add('active');
-        } else if (view === 'profile' && param === this.user.handle) {
-            document.getElementById('nav-profile').classList.add('active');
-        }
-
+        if (view === 'home') document.getElementById('nav-home').classList.add('active');
+        if (view === 'explore') document.getElementById('nav-explore').classList.add('active');
+        if (view === 'notifications') document.getElementById('nav-notifications').classList.add('active');
+        if (view === 'profile' && param === this.user.handle) document.getElementById('nav-profile').classList.add('active');
         window.scrollTo(0,0);
         this.renderView();
     }
 
-    setFeedFilter(filter) {
-        this.feedFilter = filter;
-        this.renderView(); // Re-render header to update classes
-    }
-    
-    setProfileFilter(filter) {
-        this.profileFilter = filter;
-        this.renderProfile(this.viewParam);
-    }
-
-    // --- RENDERERS ---
+    setFeedFilter(filter) { this.feedFilter = filter; this.renderView(); }
+    setProfileFilter(filter) { this.profileFilter = filter; this.renderProfile(this.viewParam); }
 
     renderView() {
         const main = document.getElementById('main-view');
         const header = document.getElementById('sticky-header');
-        
         main.innerHTML = '';
         
-        // Update Mobile Nav styling based on view
-        const mobileNav = document.getElementById('mobile-nav-bar');
-        if(mobileNav) {
-            mobileNav.innerHTML = `
-                <div onclick="app.navigate('home')" class="nav-icon cursor-pointer text-2xl ${this.currentView === 'home' ? 'active text-black dark:text-white' : 'text-gray-400'}"><i class="fa-solid fa-house"></i></div>
-                <div onclick="app.navigate('explore')" class="nav-icon cursor-pointer text-2xl ${this.currentView === 'explore' ? 'active text-black dark:text-white' : 'text-gray-400'}"><i class="fa-solid fa-magnifying-glass"></i></div>
-                <div onclick="app.showToast('Notifications empty')" class="nav-icon cursor-pointer text-2xl text-gray-400"><i class="fa-regular fa-bell"></i></div>
-                <div onclick="app.navigate('profile', app.user.handle)" class="nav-icon cursor-pointer text-2xl ${this.currentView === 'profile' && this.viewParam === this.user.handle ? 'active text-black dark:text-white' : 'text-gray-400'}"><i class="fa-regular fa-user"></i></div>
-            `;
+        // Mobile Nav update
+        const mNav = document.getElementById('mobile-nav-bar');
+        if(mNav) {
+            mNav.innerHTML = `
+                <div onclick="app.navigate('home')" class="nav-icon cursor-pointer text-2xl ${this.currentView==='home'?'active text-black dark:text-white':'text-gray-400'}"><i class="fa-solid fa-house"></i></div>
+                <div onclick="app.navigate('explore')" class="nav-icon cursor-pointer text-2xl ${this.currentView==='explore'?'active text-black dark:text-white':'text-gray-400'}"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div onclick="app.navigate('notifications')" class="nav-icon cursor-pointer text-2xl ${this.currentView==='notifications'?'active text-black dark:text-white':'text-gray-400'}"><i class="fa-regular fa-bell"></i></div>
+                <div onclick="app.navigate('profile', app.user.handle)" class="nav-icon cursor-pointer text-2xl ${this.currentView==='profile'&&this.viewParam===this.user.handle?'active text-black dark:text-white':'text-gray-400'}"><i class="fa-regular fa-user"></i></div>`;
         }
-        
-        if (this.currentView === 'home') {
-            const isForYou = this.feedFilter === 'foryou';
-            const isFollowing = this.feedFilter === 'following';
-            const isMedia = this.feedFilter === 'media';
 
+        if (this.currentView === 'home') {
+            const isForYou=this.feedFilter==='foryou', isFol=this.feedFilter==='following', isMed=this.feedFilter==='media';
             header.innerHTML = `
-                <div id="header-content" class="px-4 h-[53px] flex items-center justify-between cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
-                    <h2 class="text-lg font-bold">Home</h2>
-                    <i class="fa-solid fa-wand-magic-sparkles text-rose-500 hover:rotate-12 transition"></i>
-                </div>
+                <div id="header-content" class="px-4 h-[53px] flex items-center justify-between cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})"><h2 class="text-lg font-bold">Home</h2><i class="fa-solid fa-wand-magic-sparkles text-rose-500 hover:rotate-12 transition"></i></div>
                 <div id="feed-filters" class="flex border-b border-gray-100 dark:border-darkBorder">
-                    <div onclick="app.setFeedFilter('foryou')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isForYou ? 'active' : ''}" data-filter="foryou">
-                        <span class="font-medium text-sm ${isForYou ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}">For You</span>
-                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isForYou ? '' : 'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div>
-                    </div>
-                    <div onclick="app.setFeedFilter('following')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isFollowing ? 'active' : ''}" data-filter="following">
-                        <span class="font-medium text-sm ${isFollowing ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}">Following</span>
-                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isFollowing ? '' : 'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div>
-                    </div>
-                    <div onclick="app.setFeedFilter('media')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isMedia ? 'active' : ''}" data-filter="media">
-                        <span class="font-medium text-sm ${isMedia ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}">Media</span>
-                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isMedia ? '' : 'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div>
-                    </div>
+                    <div onclick="app.setFeedFilter('foryou')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isForYou?'active':''}" data-filter="foryou"><span class="font-medium text-sm ${isForYou?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">For You</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isForYou?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div>
+                    <div onclick="app.setFeedFilter('following')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isFol?'active':''}" data-filter="following"><span class="font-medium text-sm ${isFol?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">Following</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isFol?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div>
+                    <div onclick="app.setFeedFilter('media')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isMed?'active':''}" data-filter="media"><span class="font-medium text-sm ${isMed?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">Media</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isMed?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div>
                 </div>`;
             this.renderFeed();
         } else if (this.currentView === 'explore') {
-            header.innerHTML = `
-                <div class="px-4 py-2">
-                    <div class="relative group">
-                        <div class="absolute left-4 top-3 text-gray-500"><i class="fa-solid fa-magnifying-glass"></i></div>
-                        <input type="text" id="explore-search" placeholder="Search Peyza" oninput="app.handleSearch(this.value)" value="${this.viewParam || ''}" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-3 pl-12 pr-4 outline-none focus:bg-white dark:focus:bg-black focus:ring-1 focus:ring-rose-500 transition border border-transparent dark:border-darkBorder">
-                    </div>
-                </div>`;
+            header.innerHTML = `<div class="px-4 py-2"><div class="relative group"><div class="absolute left-4 top-3 text-gray-500"><i class="fa-solid fa-magnifying-glass"></i></div><input type="text" id="explore-search" placeholder="Search Peyza" oninput="app.handleSearch(this.value)" value="${this.viewParam || ''}" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-3 pl-12 pr-4 outline-none focus:bg-white dark:focus:bg-black focus:ring-1 focus:ring-rose-500 transition border border-transparent dark:border-darkBorder"></div></div>`;
             this.renderExplore(this.viewParam);
+        } else if (this.currentView === 'notifications') {
+            header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white">Notifications</div>`;
+            this.renderNotifications();
         } else if (this.currentView === 'profile') {
             header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-6 cursor-pointer" onclick="app.navigate('home')"></i> ${this.viewParam}</div>`;
             this.renderProfile(this.viewParam);
@@ -780,18 +716,23 @@ class PeyzaApp {
     renderFeed() {
         const container = document.getElementById('main-view');
         let filteredPosts = [...this.posts];
-        if (this.feedFilter === 'media') filteredPosts = filteredPosts.filter(p => p.image);
+        if (this.feedFilter === 'media') filteredPosts = filteredPosts.filter(p => p.image || p.video);
         else if (this.feedFilter === 'following') filteredPosts = filteredPosts.filter(p => p.authorHandle !== 'guest_user');
+        
+        // Filter out community posts from main feed unless 'following'
+        if(this.feedFilter === 'foryou') {
+            filteredPosts = filteredPosts.filter(p => !p.communityHandle); 
+        }
+
         filteredPosts.sort((a, b) => b.createdAt - a.createdAt);
         let html = '';
         filteredPosts.forEach(post => html += this.buildPostHTML(post));
-        container.innerHTML = html;
+        container.innerHTML = html || '<div class="p-10 text-center text-gray-500">No posts found</div>';
     }
 
     renderExplore(query) {
         const container = document.getElementById('main-view');
         if (!query) {
-            // Show Trends (Use same data as sidebar for now + Famous people)
             let html = `<div class="p-4"><h2 class="font-extrabold text-xl mb-4 dark:text-white">Trends for you</h2>`;
             ['#PeyzaGodMode', 'Juice WRLD', 'Artificial Intelligence', 'SpaceX', 'Taylor Swift'].forEach(topic => {
                 html += `
@@ -808,7 +749,6 @@ class PeyzaApp {
             html += `</div>`;
             container.innerHTML = html;
         } else {
-            // Search Results
             const q = query.toLowerCase();
             const matchedUsers = this.bots.filter(b => b.name.toLowerCase().includes(q) || b.handle.toLowerCase().includes(q));
             const matchedPosts = this.posts.filter(p => p.content.toLowerCase().includes(q));
@@ -823,6 +763,26 @@ class PeyzaApp {
             
             container.innerHTML = html;
         }
+    }
+
+    renderNotifications() {
+        const container = document.getElementById('main-view');
+        const myPosts = this.posts.filter(p => p.authorHandle === this.user.handle);
+        let html = '';
+        myPosts.forEach(p => {
+            if(p.stats.likes > 0) {
+                html += `
+                <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec cursor-pointer">
+                    <div class="text-3xl text-rose-500 w-10 text-right"><i class="fa-solid fa-heart"></i></div>
+                    <div>
+                        <div class="w-8 h-8 rounded-full bg-gray-200 mb-2"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}" class="w-full h-full object-cover"></div>
+                        <p class="text-sm dark:text-white"><span class="font-bold">Someone</span> liked your post</p>
+                        <p class="text-gray-500 text-sm mt-1 line-clamp-1">${p.content}</p>
+                    </div>
+                </div>`;
+            }
+        });
+        container.innerHTML = html || '<div class="p-10 text-center text-gray-500">No notifications yet</div>';
     }
 
     buildUserListHTML(user) {
@@ -840,86 +800,102 @@ class PeyzaApp {
     }
 
     renderProfile(handle) {
-        // ... (Existing Profile Render Logic) ...
-        // Re-using previous logic but injecting into container
         const container = document.getElementById('main-view');
-        const profileData = this.getProfile(handle) || { name: 'Unknown', handle: handle, bio: 'User not found', followers: 0, following: 0, avatar: 'https://placehold.co/400', isVerified: false };
+        const pData = this.getProfile(handle) || { name: 'Unknown', handle: handle, followers:0, following:0, bio:'', avatar:'', isVerified:false };
         const isMe = handle === this.user.handle;
         const isMyBot = this.user.createdBots.includes(handle);
         const canEdit = isMe || (this.user.isPremium && isMyBot) || (this.user.isPremium && this.settings.godModeEnabled);
-        const banner = profileData.banner || `https://picsum.photos/seed/${handle}/800/300`;
+        
+        // Community Calc
+        const memberCount = Math.floor(pData.followers * 0.15) + (isMe?1:0);
 
         const html = `
             <div>
-                <div class="h-32 sm:h-48 bg-gray-200 dark:bg-darkSec overflow-hidden cursor-pointer"><img src="${banner}" class="w-full h-full object-cover"></div>
+                <div class="h-32 sm:h-48 bg-gray-200 dark:bg-darkSec overflow-hidden"><img src="${pData.banner||''}" class="w-full h-full object-cover"></div>
                 <div class="px-4 relative mb-4">
                     <div class="flex justify-between items-start">
-                        <div class="-mt-[15%] sm:-mt-[10%] w-[25%] max-w-[130px] aspect-square rounded-full border-4 border-white dark:border-dark overflow-hidden bg-white dark:bg-darkSec"><img src="${profileData.avatar}" class="w-full h-full object-cover"></div>
+                        <div class="-mt-[15%] sm:-mt-[10%] w-[25%] max-w-[130px] aspect-square rounded-full border-4 border-white dark:border-dark overflow-hidden bg-white dark:bg-darkSec"><img src="${pData.avatar}" class="w-full h-full object-cover"></div>
                         <div class="mt-3">${canEdit ? `<button onclick="app.openEditProfile('${handle}')" class="border border-gray-300 dark:border-darkBorder font-bold rounded-full px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-darkSec transition text-sm text-gray-900 dark:text-white">Edit profile</button>` : `<button class="bg-black dark:bg-white dark:text-black text-white font-bold rounded-full px-5 py-1.5 hover:bg-gray-800 transition text-sm" onclick="app.toggleFollow('${handle}', this)">Follow</button>`}</div>
                     </div>
-                    <div class="mt-3"><h1 class="font-extrabold text-xl leading-tight flex items-center dark:text-white">${profileData.name} ${profileData.isVerified ? VERIFIED_ICON : ''}</h1><p class="text-gray-500 text-sm">@${profileData.handle}</p></div>
-                    <p class="mt-3 text-[15px] text-gray-900 dark:text-white whitespace-pre-wrap">${profileData.bio}</p>
-                    <div class="flex gap-4 mt-3 text-sm text-gray-500"><span class="flex items-center gap-1"><i class="fa-solid fa-location-dot"></i> ${profileData.location || 'Internet'}</span><span class="flex items-center gap-1"><i class="fa-solid fa-calendar-days"></i> Joined ${profileData.joined || 'May 2023'}</span></div>
-                    <div class="flex gap-5 mt-3 text-sm dark:text-gray-400"><div class="hover:underline cursor-pointer"><span class="font-bold text-gray-900 dark:text-white">${this.formatNumber(profileData.following)}</span> Following</div><div class="hover:underline cursor-pointer"><span class="font-bold text-gray-900 dark:text-white">${this.formatNumber(profileData.followers)}</span> Followers</div></div>
+                    <div class="mt-3"><h1 class="font-extrabold text-xl leading-tight flex items-center dark:text-white">${pData.name} ${pData.isVerified ? VERIFIED_ICON : ''}</h1><p class="text-gray-500 text-sm">@${pData.handle}</p></div>
+                    <p class="mt-3 text-[15px] text-gray-900 dark:text-white whitespace-pre-wrap">${pData.bio}</p>
+                    <div class="flex gap-4 mt-3 text-sm text-gray-500"><span class="flex items-center gap-1"><i class="fa-solid fa-location-dot"></i> ${pData.location||'Internet'}</span><span class="flex items-center gap-1"><i class="fa-solid fa-calendar-days"></i> Joined ${pData.joined||'May 2023'}</span></div>
+                    <div class="flex gap-5 mt-3 text-sm dark:text-gray-400"><div><span class="font-bold text-gray-900 dark:text-white">${this.formatNumber(pData.following)}</span> Following</div><div><span class="font-bold text-gray-900 dark:text-white">${this.formatNumber(pData.followers)}</span> Followers</div></div>
                 </div>
                 <div class="flex border-b border-gray-100 dark:border-darkBorder mt-2">
-                    <div onclick="app.setProfileFilter('posts')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter === 'posts' ? 'text-black dark:text-white' : 'text-gray-500'}">Posts<div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter === 'posts' ? '' : 'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div></div>
-                    <div onclick="app.setProfileFilter('media')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter === 'media' ? 'text-black dark:text-white' : 'text-gray-500'}">Media<div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter === 'media' ? '' : 'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div></div>
-                    <div onclick="app.setProfileFilter('likes')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter === 'likes' ? 'text-black dark:text-white' : 'text-gray-500'}">Likes<div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter === 'likes' ? '' : 'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div></div>
+                    <div onclick="app.setProfileFilter('posts')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter==='posts'?'text-black dark:text-white':'text-gray-500'}">Posts<div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter==='posts'?'':'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div></div>
+                    <div onclick="app.setProfileFilter('community')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter==='community'?'text-black dark:text-white':'text-gray-500'}">Community<div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter==='community'?'':'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div></div>
+                    <div onclick="app.setProfileFilter('likes')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter==='likes'?'text-black dark:text-white':'text-gray-500'}">Likes<div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter==='likes'?'':'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div></div>
                 </div>
-                <div id="profile-feed">${this.getPostsByHandle(handle)}</div>
+                <div id="profile-feed">
+                    ${this.profileFilter === 'community' ? 
+                        `<div class="p-4 bg-gray-50 dark:bg-darkSec border-b border-gray-100 dark:border-darkBorder mb-2 flex justify-between items-center">
+                            <div><h3 class="font-bold text-lg dark:text-white">${pData.name}'s Community</h3><p class="text-sm text-gray-500">${this.formatNumber(memberCount)} Members</p></div>
+                            <button onclick="app.openComposeModalForCommunity('${handle}')" class="bg-rose-500 text-white text-sm font-bold px-4 py-2 rounded-full">Post Here</button>
+                        </div>` 
+                    : ''}
+                    ${this.getPostsByHandle(handle)}
+                </div>
             </div>`;
         container.innerHTML = html;
     }
 
-    renderPostDetail(postId) {
-        const post = this.posts.find(p => p.id === postId);
-        if (!post) return;
-        let avatar = post.authorAvatar, name = post.authorName, isVerified = post.isVerified;
-        if (post.authorHandle === this.user.handle) { avatar = this.user.avatar; name = this.user.name; isVerified = this.user.isVerified; }
-        else { const bot = this.bots.find(b => b.handle === post.authorHandle); if(bot) { avatar = bot.avatar; name = bot.name; isVerified = bot.isVerified; } }
-        
-        const isLiked = this.user.likedPosts.includes(postId), isReposted = this.user.repostedPosts.includes(postId), isBookmarked = this.user.bookmarks.includes(postId);
-        const container = document.getElementById('main-view');
-        let html = `
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-darkBorder animate-fade-in">
-                <div class="flex gap-3 items-center mb-3">
-                     <div class="w-10 h-10 rounded-full overflow-hidden cursor-pointer" onclick="app.navigate('profile', '${post.authorHandle}')"><img src="${avatar}" class="w-full h-full object-cover"></div>
-                    <div><div class="font-bold flex items-center cursor-pointer hover:underline dark:text-white" onclick="app.navigate('profile', '${post.authorHandle}')">${name} ${isVerified ? VERIFIED_ICON : ''}</div><div class="text-gray-500 text-sm">@${post.authorHandle}</div></div>
-                </div>
-                <div class="text-xl mb-3 whitespace-pre-wrap leading-normal dark:text-white">${post.content}</div>
-                ${post.image ? `<div class="rounded-2xl overflow-hidden border border-gray-100 dark:border-darkBorder mb-3"><img src="${post.image}" class="w-full"></div>` : ''}
-                ${this.buildPollHTML(post, true)}
-                <div class="text-gray-500 text-sm py-4 border-b border-gray-100 dark:border-darkBorder">${new Date(post.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} · ${new Date(post.createdAt).toLocaleDateString()} · <span class="text-black dark:text-white font-bold font-mono" id="detail-views-${post.id}">${this.formatNumber(post.stats.views)}</span> <span class="font-medium">Views</span></div>
-                <div class="flex justify-between py-1 border-b border-gray-100 dark:border-darkBorder text-gray-500 px-2" id="stats-${post.id}">
-                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full" onclick="app.openReplyModal('${post.id}')"><i class="fa-regular fa-comment text-xl"></i></div>
-                    <div class="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-500 flex items-center justify-center w-full py-3 transition group rounded-full ${isReposted ? 'reposted' : ''}" onclick="app.toggleRepost('${post.id}', this)"><i class="fa-solid fa-retweet text-xl transition-transform active:scale-125"></i></div>
-                    <div class="cursor-pointer hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 flex items-center justify-center w-full py-3 transition group rounded-full ${isLiked ? 'liked' : ''}" onclick="app.toggleLike('${post.id}', this)"><i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-xl transition-transform active:scale-125"></i></div>
-                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full ${isBookmarked ? 'bookmarked' : ''}" onclick="app.toggleBookmark('${post.id}', this)"><i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl transition-transform active:scale-125"></i></div>
-                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full" onclick="app.shareApp()"><i class="fa-solid fa-arrow-up-from-bracket text-xl"></i></div>
-                </div>
-            </div>
-            <div class="bg-gray-50/50 dark:bg-darkSec min-h-screen pb-10"></div>`; // Add Replies logic later if needed
-        container.innerHTML = html;
+    getPostsByHandle(handle) {
+        let userPosts;
+        if(this.profileFilter === 'likes') {
+            if(handle === this.user.handle) userPosts = this.posts.filter(p => this.user.likedPosts.includes(p.id));
+            else return '<div class="p-8 text-center text-gray-500">Likes are private</div>';
+        } else if (this.profileFilter === 'community') {
+            userPosts = this.posts.filter(p => p.communityHandle === handle);
+        } else {
+            // Main posts tab (exclude community posts unless filtering specifically?)
+            // Twitter usually shows replies too, but let's just show main posts + media
+            userPosts = this.posts.filter(p => p.authorHandle === handle && !p.communityHandle);
+            if(this.profileFilter === 'media') userPosts = userPosts.filter(p => p.image || p.video);
+        }
+        userPosts.sort((a,b) => b.createdAt - a.createdAt);
+        if(userPosts.length === 0) return '<div class="p-8 text-center text-gray-500">No posts yet</div>';
+        let html = '';
+        userPosts.forEach(post => html += this.buildPostHTML(post));
+        return html;
     }
 
     buildPostHTML(post) {
-        const isLiked = this.user.likedPosts && this.user.likedPosts.includes(post.id);
-        const isReposted = this.user.repostedPosts && this.user.repostedPosts.includes(post.id);
+        const isLiked = this.user.likedPosts.includes(post.id);
+        const isReposted = this.user.repostedPosts.includes(post.id);
+        
         let avatar = post.authorAvatar, name = post.authorName, isVerified = post.isVerified;
         if (post.authorHandle === this.user.handle) { avatar = this.user.avatar; name = this.user.name; isVerified = this.user.isVerified; }
         else { const bot = this.bots.find(b => b.handle === post.authorHandle); if(bot) { avatar = bot.avatar; name = bot.name; isVerified = bot.isVerified; } }
 
+        const canManage = post.authorHandle === this.user.handle || this.user.createdBots.includes(post.authorHandle);
+        const highlightClass = post.theme === 'highlight' ? 'post-highlight' : '';
+
         return `
-            <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec/50 cursor-pointer transition duration-200" onclick="app.navigate('post', '${post.id}')">
+            <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec/50 cursor-pointer transition duration-200 ${highlightClass}" onclick="app.navigate('post', '${post.id}')">
                 <div class="shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-200" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')"><img src="${avatar}" class="w-full h-full object-cover"></div>
                 <div class="w-full">
                     <div class="flex justify-between items-start">
-                        <div class="flex items-center gap-1 text-[15px]"><span class="font-bold hover:underline truncate max-w-[150px] dark:text-white" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">${name}</span>${isVerified ? VERIFIED_ICON : ''}<span class="text-gray-500 truncate" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">@${post.authorHandle}</span><span class="text-gray-500">·</span><span class="text-gray-500 hover:underline">${this.timeAgo(post.createdAt)}</span></div>
-                        <div class="text-gray-400 hover:bg-rose-50 hover:text-rose-500 p-2 rounded-full -m-2 transition"><i class="fa-solid fa-ellipsis"></i></div>
+                        <div class="flex items-center gap-1 text-[15px]">
+                            <span class="font-bold hover:underline truncate max-w-[150px] dark:text-white" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">${name}</span>
+                            ${isVerified ? VERIFIED_ICON : ''}
+                            <span class="text-gray-500 truncate" onclick="event.stopPropagation(); app.navigate('profile', '${post.authorHandle}')">@${post.authorHandle}</span>
+                            <span class="text-gray-500">·</span>
+                            <span class="text-gray-500 hover:underline">${this.timeAgo(post.createdAt)}</span>
+                            ${post.communityHandle ? `<span class="text-gray-500 ml-1"><i class="fa-solid fa-users text-xs"></i></span>` : ''}
+                        </div>
+                        <div class="relative group" onclick="event.stopPropagation()">
+                            <div class="text-gray-400 hover:bg-rose-50 hover:text-rose-500 p-2 rounded-full -m-2 transition"><i class="fa-solid fa-ellipsis"></i></div>
+                            ${canManage ? `
+                            <div class="absolute right-0 top-6 bg-white dark:bg-black border dark:border-darkBorder shadow-lg rounded-md z-10 hidden group-hover:block w-32 overflow-hidden">
+                                <button onclick="app.deletePost('${post.id}')" class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800">Delete</button>
+                                <button onclick="app.togglePostTheme('${post.id}')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">Highlight</button>
+                            </div>` : ''}
+                        </div>
                     </div>
                     <div class="text-[15px] text-gray-900 dark:text-gray-100 mt-0.5 whitespace-pre-wrap leading-normal">${post.content}</div>
                     ${post.image ? `<div class="mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-darkBorder max-h-[350px]"><img src="${post.image}" class="w-full h-full object-cover"></div>` : ''}
+                    ${post.video ? `<div class="mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-darkBorder max-h-[350px]"><video src="${post.video}" class="w-full h-full object-cover" controls autoplay muted loop></video></div>` : ''}
                     ${this.buildPollHTML(post)}
                     <div class="flex justify-between mt-3 text-gray-500 max-w-[425px]" id="stats-${post.id}">
                         <div class="flex items-center gap-2 group hover:text-blue-500 transition" onclick="event.stopPropagation(); app.openReplyModal('${post.id}')"><div class="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 p-2 rounded-full -m-2 transition"><i class="fa-regular fa-comment"></i></div><span class="text-xs">${post.stats.replies}</span></div>
@@ -950,435 +926,90 @@ class PeyzaApp {
         return html;
     }
 
-    renderSidebarTrends() {
-        const el = document.getElementById('sidebar-trends');
-        if(!el) return;
-        // Inject trending profiles instead of just static text
-        const trendingBots = [...this.bots].sort((a,b) => b.followers - a.followers).slice(0, 3);
-        let html = '';
-        trendingBots.forEach(bot => {
-             html += `
-                <div class="cursor-pointer hover:bg-gray-200/50 dark:hover:bg-gray-800 -mx-4 px-4 py-2 transition" onclick="app.navigate('profile', '${bot.handle}')">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-gray-500">Trending in Profiles</p>
-                            <p class="font-bold text-sm dark:text-white">${bot.name}</p>
-                            <p class="text-xs text-gray-500">${this.formatNumber(bot.followers)} followers</p>
-                        </div>
-                        <img src="${bot.avatar}" class="w-8 h-8 rounded-full bg-gray-200">
-                    </div>
-                </div>`;
-        });
-        el.innerHTML = html;
-    }
-
-    // --- HANDLERS ---
-    handleSearch(query) {
-        if(this.currentView === 'explore') this.renderExplore(query);
-    }
-
-    handlePostImage(event) {
+    // --- ACTIONS ---
+    handlePostMedia(event, type) {
         const file = event.target.files[0];
-        if (!file || !file.type.startsWith('image/')) return;
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
             this.tempMedia = e.target.result;
+            this.tempMediaType = type;
             const preview = document.getElementById('media-preview');
             const img = document.getElementById('media-preview-img');
-            img.src = this.tempMedia;
+            const vid = document.getElementById('media-preview-video');
+            
             preview.classList.remove('hidden');
+            if(type === 'image') {
+                img.src = this.tempMedia; img.classList.remove('hidden'); vid.classList.add('hidden');
+            } else {
+                vid.src = this.tempMedia; vid.classList.remove('hidden'); img.classList.add('hidden');
+            }
         };
         reader.readAsDataURL(file);
     }
-    
-    clearMedia() {
-        this.tempMedia = null;
-        document.getElementById('media-preview').classList.add('hidden');
-        document.getElementById('post-image-upload').value = '';
+
+    openComposeModalForCommunity(handle) {
+        this.postingToCommunity = handle;
+        this.openComposeModal();
+        document.getElementById('community-indicator').classList.remove('hidden');
+        document.getElementById('community-name-target').innerText = '@' + handle;
     }
 
-    // --- ACTIONS ---
-    openComposeModal() {
-        document.getElementById('compose-modal').classList.remove('hidden');
-        document.getElementById('compose-avatar').src = this.user.avatar;
-        
-        if(!this.replyingTo) document.getElementById('replying-to-indicator').classList.add('hidden');
-        
-        const selector = document.getElementById('author-selector');
-        const select = document.getElementById('post-as-select');
-        
-        if (this.user.createdBots && this.user.createdBots.length > 0) {
-            selector.classList.remove('hidden');
-            select.innerHTML = `<option value="${this.user.handle}">@${this.user.handle}</option>`;
-            this.user.createdBots.forEach(botHandle => {
-                const b = this.bots.find(x => x.handle === botHandle);
-                if(b) select.innerHTML += `<option value="${b.handle}">@${b.handle}</option>`;
-            });
-            select.onchange = (e) => {
-                 const h = e.target.value;
-                 if(h === this.user.handle) document.getElementById('compose-avatar').src = this.user.avatar;
-                 else {
-                     const b = this.bots.find(x => x.handle === h);
-                     if(b) document.getElementById('compose-avatar').src = b.avatar;
-                 }
-            };
-        } else {
-            selector.classList.add('hidden');
-        }
-    }
-    
     closeComposeModal() {
         document.getElementById('compose-modal').classList.add('hidden');
         document.getElementById('compose-input').value = '';
         this.replyingTo = null;
         this.clearMedia();
         document.getElementById('poll-creator').classList.add('hidden');
-        document.getElementById('poll-opt-1').value = '';
-        document.getElementById('poll-opt-2').value = '';
+        document.getElementById('community-indicator').classList.add('hidden');
+        this.postingToCommunity = null;
     }
 
-    publishPost() {
-        const content = document.getElementById('compose-input').value;
-        const author = document.getElementById('post-as-select').value;
-        if (!content.trim() && !this.tempMedia) return;
-        
-        this.createPost(content, author);
-        this.closeComposeModal();
-        this.showToast('Post sent');
-        window.scrollTo(0,0);
-    }
-
-    openEditProfile(handleToEdit = null) {
-        this.editingHandle = handleToEdit || this.user.handle;
-        const profile = this.getProfile(this.editingHandle);
-
-        document.getElementById('edit-profile-modal').classList.remove('hidden');
-        document.getElementById('edit-modal-title').innerText = `Edit ${profile.name}`;
-        
-        document.getElementById('edit-name').value = profile.name;
-        document.getElementById('edit-bio').value = profile.bio;
-        document.getElementById('edit-location').value = profile.location || '';
-        document.getElementById('edit-followers').value = profile.followers;
-        document.getElementById('edit-banner-preview').src = profile.banner || '';
-        document.getElementById('edit-avatar-preview').src = profile.avatar || '';
-        
-        if (this.editingHandle === this.user.handle) {
-            document.getElementById('edit-virality').value = this.settings.viralitySpeed;
-            document.getElementById('secret-pin').parentElement.classList.remove('hidden');
-            document.getElementById('theme-btn').parentElement.classList.remove('hidden');
-        } else {
-            document.getElementById('secret-pin').parentElement.classList.add('hidden');
-            document.getElementById('theme-btn').parentElement.classList.add('hidden');
-        }
-
-        if (this.user.isPremium && this.editingHandle === this.user.handle) {
-            document.getElementById('god-mode-panel').classList.remove('hidden');
-        } else {
-            document.getElementById('god-mode-panel').classList.add('hidden');
-        }
-
-        const btnVerify = document.getElementById('btn-verify');
-        if (profile.isVerified) {
-            btnVerify.innerText = "Verified";
-            btnVerify.disabled = true;
-            btnVerify.className = "bg-rose-500 text-white px-3 py-1.5 rounded-full text-sm font-bold";
-        } else if (profile.followers >= 100000 || this.user.isPremium) {
-            btnVerify.disabled = false;
-            btnVerify.innerText = this.user.isPremium ? "Force Verify" : "Request";
-            btnVerify.className = "bg-black dark:bg-white dark:text-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition";
-        } else {
-            btnVerify.disabled = true;
-            btnVerify.className = "bg-gray-200 text-gray-500 px-3 py-1.5 rounded-full text-sm font-bold cursor-not-allowed";
+    deletePost(id) {
+        if(confirm("Delete this post?")) {
+            this.posts = this.posts.filter(p => p.id !== id);
+            this.savePosts();
+            this.renderView();
+            this.showToast('Post deleted');
         }
     }
 
-    closeEditProfile() {
-        document.getElementById('edit-profile-modal').classList.add('hidden');
-        this.editingHandle = null;
-    }
-
-    checkPin() {
-        const val = document.getElementById('secret-pin').value;
-        if (val === '568300') {
-            this.user.isPremium = true;
-            this.saveUser();
-            document.getElementById('god-mode-panel').classList.remove('hidden');
-            this.showToast("⚡ God Mode Unlocked");
-            
-            const btnVerify = document.getElementById('btn-verify');
-            btnVerify.disabled = false;
-            btnVerify.innerText = "Force Verify";
-            btnVerify.className = "bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition";
+    togglePostTheme(id) {
+        const post = this.posts.find(p => p.id === id);
+        if(post) {
+            post.theme = post.theme === 'default' ? 'highlight' : 'default';
+            this.savePosts();
+            this.renderView();
         }
     }
 
-    openCreateBotModal() {
-        document.getElementById('edit-profile-modal').classList.add('hidden');
-        document.getElementById('create-bot-modal').classList.remove('hidden');
-    }
-
-    createBot() {
-        const name = document.getElementById('bot-name').value;
-        const handle = document.getElementById('bot-handle').value;
-        const avatar = document.getElementById('bot-avatar').value || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + handle;
-
-        if(!name || !handle) return alert("Name and Handle required");
-
-        const newBot = {
-            name, handle, avatar, bio: 'A bot created by ' + this.user.name,
-            followers: 0, following: 0, isVerified: false,
-            banner: 'https://picsum.photos/seed/'+handle+'/800/300'
-        };
-        
-        this.bots.push(newBot);
-        this.user.createdBots.push(handle);
-        
-        this.saveBots();
-        this.saveUser();
-        
-        document.getElementById('create-bot-modal').classList.add('hidden');
-        this.showToast('Bot Created! You can now post as @' + handle);
-        this.navigate('profile', handle);
-    }
-
-    handleImageUpload(event, type) {
-        const file = event.target.files[0];
-        if (!file || !file.type.startsWith('image/')) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const MAX_SIZE = 500;
-                let width = img.width, height = img.height;
-
-                if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
-                else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-
-                canvas.width = width; canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                document.getElementById(`edit-${type}-preview`).src = dataUrl;
-            };
-        };
-        reader.readAsDataURL(file);
-    }
-
-    saveProfile() {
-        const profile = this.editingHandle === this.user.handle ? this.user : this.bots.find(b => b.handle === this.editingHandle);
-
-        profile.name = document.getElementById('edit-name').value;
-        profile.bio = document.getElementById('edit-bio').value;
-        profile.location = document.getElementById('edit-location').value;
-        profile.followers = parseInt(document.getElementById('edit-followers').value);
-        
-        profile.banner = document.getElementById('edit-banner-preview').src;
-        profile.avatar = document.getElementById('edit-avatar-preview').src;
-
-        if (this.editingHandle === this.user.handle) {
-            this.settings.viralitySpeed = parseFloat(document.getElementById('edit-virality').value);
-            this.saveUser();
-            this.saveSettings();
-        } else {
-            this.saveBots();
-        }
-        
-        this.closeEditProfile();
-        this.renderProfile(this.editingHandle);
-        this.showToast('Profile saved');
-    }
-
-    requestVerification(force = false) {
-        const profile = this.editingHandle === this.user.handle ? this.user : this.bots.find(b => b.handle === this.editingHandle);
-        
-        if (force || profile.followers >= 100000) {
-            profile.isVerified = true;
-            if(this.editingHandle === this.user.handle) this.saveUser(); else this.saveBots();
-            
-            const btn = document.getElementById('btn-verify');
-            btn.innerText = "Verified!";
-            btn.className = "bg-rose-500 text-white px-3 py-1.5 rounded-full text-sm font-bold";
-            this.showToast('Badge Acquired!');
-        }
-    }
-    
-    openSettings() { this.openEditProfile(); }
-
-    toggleLike(postId, btn) {
-        const post = this.posts.find(p => p.id === postId);
-        if (!post) return;
-        if (!this.user.likedPosts) this.user.likedPosts = [];
-
-        const index = this.user.likedPosts.indexOf(postId);
-        const icon = btn.querySelector('i') || btn; 
-        const count = btn.parentElement ? btn.parentElement.querySelector('.stat-likes') : null;
-
-        if (index === -1) {
-            this.user.likedPosts.push(postId);
-            post.stats.likes++;
-            btn.classList.add('liked');
-            
-            const iElement = btn.querySelector('i');
-            if(iElement) {
-                iElement.classList.remove('fa-regular'); 
-                iElement.classList.add('fa-solid', 'animate-pop');
-            }
-        } else {
-            this.user.likedPosts.splice(index, 1);
-            post.stats.likes--;
-            btn.classList.remove('liked');
-            const iElement = btn.querySelector('i');
-            if(iElement) {
-                iElement.classList.add('fa-regular');
-                iElement.classList.remove('fa-solid', 'animate-pop');
-            }
-        }
-
-        if(count) count.innerText = this.formatNumber(post.stats.likes);
-        this.saveUser(); this.savePosts();
-    }
-
-    toggleRepost(postId, btn) {
-        const post = this.posts.find(p => p.id === postId);
-        if (!post) return;
-        if (!this.user.repostedPosts) this.user.repostedPosts = [];
-
-        const index = this.user.repostedPosts.indexOf(postId);
-        const count = btn.querySelector('.stat-reposts');
-
-        if (index === -1) {
-            this.user.repostedPosts.push(postId);
-            post.stats.reposts++;
-            btn.classList.add('reposted');
-        } else {
-            this.user.repostedPosts.splice(index, 1);
-            post.stats.reposts--;
-            btn.classList.remove('reposted');
-        }
-        if(count) count.innerText = this.formatNumber(post.stats.reposts);
-        this.saveUser(); this.savePosts();
-    }
-    
-    toggleBookmark(postId, btn) {
-        if(!this.user.bookmarks) this.user.bookmarks = [];
-        const index = this.user.bookmarks.indexOf(postId);
-        const icon = btn.querySelector('i');
-        
-        if(index === -1) {
-            this.user.bookmarks.push(postId);
-            btn.classList.add('bookmarked');
-            if(icon) {
-                icon.classList.remove('fa-regular');
-                icon.classList.add('fa-solid', 'animate-pop');
-            }
-            this.showToast('Post bookmarked');
-        } else {
-            this.user.bookmarks.splice(index, 1);
-            btn.classList.remove('bookmarked');
-            if(icon) {
-                icon.classList.add('fa-regular');
-                icon.classList.remove('fa-solid', 'animate-pop');
-            }
-            this.showToast('Removed from bookmarks');
-        }
-        this.saveUser();
-    }
-    
-    shareApp() {
-        navigator.clipboard.writeText("Join Peyza! #Peyza").then(()=>this.showToast('Copied link!')).catch(()=>this.showToast('Failed copy'));
-    }
-
-    toggleFollow(handle, btn) {
-        if (btn.innerText === 'Follow') {
-            btn.innerText = 'Following';
-            btn.classList.remove('bg-black', 'text-white');
-            btn.classList.add('bg-white', 'text-black', 'border', 'border-gray-300');
-            this.user.following++;
-        } else {
-            btn.innerText = 'Follow';
-            btn.classList.add('bg-black', 'text-white');
-            btn.classList.remove('bg-white', 'text-black', 'border', 'border-gray-300');
-            this.user.following--;
-        }
-        this.saveUser();
-    }
-
-    showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.classList.remove('opacity-0');
-        setTimeout(() => t.classList.add('opacity-0'), 2000);
-    }
-    
-    openReplyModal(postId) {
-        this.replyingTo = postId;
-        this.openComposeModal();
-        const post = this.posts.find(p => p.id === postId);
-        const indicator = document.getElementById('replying-to-indicator');
-        indicator.classList.remove('hidden');
-        indicator.innerHTML = `Replying to <span class="text-rose-500">@${post ? post.authorHandle : 'unknown'}</span>`;
-    }
-    
-    toggleTheme() {
-        this.settings.theme = this.settings.theme === 'light' ? 'dark' : 'light';
-        this.applyTheme();
-        this.saveSettings();
-    }
-    
-    applyTheme() {
-        const html = document.querySelector('html');
-        if (this.settings.theme === 'dark') {
-            html.classList.add('dark');
-        } else {
-            html.classList.remove('dark');
-        }
-    }
-    
-    getPostsByHandle(handle) { /* Same as v2.0 but with dark mode text color fix */ let userPosts; if(this.profileFilter==='likes'){ if(handle===this.user.handle) userPosts=this.posts.filter(p=>this.user.likedPosts.includes(p.id)); else return '<div class="p-8 text-center text-gray-500 dark:text-gray-400">Likes are private</div>'; } else { userPosts=this.posts.filter(p=>p.authorHandle===handle); if(this.profileFilter==='media') userPosts=userPosts.filter(p=>p.image); } userPosts.sort((a,b)=>b.createdAt-a.createdAt); if(userPosts.length===0) return '<div class="p-8 text-center text-gray-500 dark:text-gray-400">No posts yet</div>'; let html=''; userPosts.forEach(post=>html+=this.buildPostHTML(post)); return html; }
-    
-    renderSidebarUser() {
-        const el = document.getElementById('sidebar-user');
-        if (el) {
-            el.innerHTML = `
-                <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200"><img src="${this.user.avatar}" class="w-full h-full object-cover"></div>
-                <div class="hidden xl:block">
-                    <p class="font-bold text-sm truncate w-[140px] flex items-center dark:text-white">${this.user.name} ${this.user.isVerified ? VERIFIED_ICON : ''}</p>
-                    <p class="text-gray-500 text-sm truncate w-[140px]">@${this.user.handle}</p>
-                </div>
-                <i class="hidden xl:block fa-solid fa-ellipsis ml-auto text-gray-900 dark:text-white"></i>
-            `;
-        }
-    }
-    
-    renderWhoToFollow() {
-        const container = document.getElementById('who-to-follow');
-        if (container) {
-            let html = '';
-            this.bots.slice(0, 3).forEach(bot => {
-                html += `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <img src="${bot.avatar}" class="w-10 h-10 rounded-full bg-gray-200">
-                            <div>
-                                <p class="font-bold text-sm hover:underline cursor-pointer flex items-center dark:text-white" onclick="app.navigate('profile', '${bot.handle}')">${bot.name} ${bot.isVerified ? VERIFIED_ICON : ''}</p>
-                                <p class="text-gray-500 text-sm">@${bot.handle}</p>
-                            </div>
-                        </div>
-                        <button class="bg-black dark:bg-white dark:text-black text-white text-sm font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition transform active:scale-95" onclick="app.toggleFollow('${bot.handle}', this)">Follow</button>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-    }
-    
-    // --- UTILS ---
-    formatNumber(num) { if (num === undefined || num === null) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'; if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K'; return num.toString(); }
-    timeAgo(date) { const seconds = Math.floor((new Date() - date) / 1000); let interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + "y"; interval = seconds / 2592000; if (interval > 1) return Math.floor(interval) + "mo"; interval = seconds / 86400; if (interval > 1) return Math.floor(interval) + "d"; interval = seconds / 3600; if (interval > 1) return Math.floor(interval) + "h"; interval = seconds / 60; if (interval > 1) return Math.floor(interval) + "m"; return Math.floor(seconds) + "s"; }
+    // --- Standard Functions (Restored) ---
+    openComposeModal() { document.getElementById('compose-modal').classList.remove('hidden'); document.getElementById('compose-avatar').src = this.user.avatar; if(!this.replyingTo) document.getElementById('replying-to-indicator').classList.add('hidden'); /* ... (selector logic) ... */ const sel=document.getElementById('author-selector'), s=document.getElementById('post-as-select'); if(this.user.createdBots.length>0){ sel.classList.remove('hidden'); s.innerHTML=`<option value="${this.user.handle}">@${this.user.handle}</option>`; this.user.createdBots.forEach(h=>{const b=this.bots.find(x=>x.handle===h);if(b)s.innerHTML+=`<option value="${b.handle}">@${b.handle}</option>`}); s.onchange=(e)=>{const h=e.target.value;if(h===this.user.handle)document.getElementById('compose-avatar').src=this.user.avatar;else{const b=this.bots.find(x=>x.handle===h);if(b)document.getElementById('compose-avatar').src=b.avatar}};}else{sel.classList.add('hidden');} }
+    openReplyModal(id) { this.replyingTo=id; this.openComposeModal(); const p=this.posts.find(x=>x.id===id); document.getElementById('replying-to-indicator').classList.remove('hidden'); document.getElementById('replying-to-indicator').innerHTML=`Replying to <span class="text-rose-500">@${p?p.authorHandle:'user'}</span>`; }
+    toggleTheme() { this.settings.theme = this.settings.theme === 'light' ? 'dark' : 'light'; this.applyTheme(); this.saveSettings(); }
+    applyTheme() { const h=document.querySelector('html'); if(this.settings.theme==='dark')h.classList.add('dark');else h.classList.remove('dark'); }
+    handleSearch(q) { if(this.currentView==='explore')this.renderExplore(q); }
+    clearMedia() { this.tempMedia=null; document.getElementById('media-preview').classList.add('hidden'); document.getElementById('post-image-upload').value=''; document.getElementById('post-video-upload').value=''; }
+    publishPost() { const c=document.getElementById('compose-input').value, a=document.getElementById('post-as-select').value; if(!c.trim()&&!this.tempMedia)return; this.createPost(c,a); this.closeComposeModal(); this.showToast('Post sent'); window.scrollTo(0,0); }
+    openEditProfile(h) { this.editingHandle=h||this.user.handle; const p=this.getProfile(this.editingHandle); document.getElementById('edit-profile-modal').classList.remove('hidden'); document.getElementById('edit-modal-title').innerText=`Edit ${p.name}`; document.getElementById('edit-name').value=p.name; document.getElementById('edit-bio').value=p.bio; document.getElementById('edit-location').value=p.location||''; document.getElementById('edit-followers').value=p.followers; document.getElementById('edit-banner-preview').src=p.banner||''; document.getElementById('edit-avatar-preview').src=p.avatar||''; if(this.editingHandle===this.user.handle){ document.getElementById('edit-virality').value=this.settings.viralitySpeed; document.getElementById('secret-pin').parentNode.classList.remove('hidden'); document.getElementById('theme-btn').parentNode.classList.remove('hidden'); document.getElementById('bot-control-panel').classList.add('hidden'); } else { document.getElementById('secret-pin').parentNode.classList.add('hidden'); document.getElementById('theme-btn').parentNode.classList.add('hidden'); if(this.user.createdBots.includes(this.editingHandle)) { const bc = document.getElementById('bot-control-panel'); bc.classList.remove('hidden'); document.getElementById('bot-auto-post').checked = p.autoPost !== false; } } if(this.user.isPremium && this.editingHandle===this.user.handle) document.getElementById('god-mode-panel').classList.remove('hidden'); else document.getElementById('god-mode-panel').classList.add('hidden'); const btn=document.getElementById('btn-verify'); if(p.isVerified){btn.innerText="Verified";btn.disabled=true;btn.className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-sm font-bold";}else if(p.followers>=100000||this.user.isPremium){btn.disabled=false;btn.innerText=this.user.isPremium?"Force Verify":"Request";btn.className="bg-black dark:bg-white dark:text-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition";}else{btn.disabled=true;btn.className="bg-gray-200 text-gray-500 px-3 py-1.5 rounded-full text-sm font-bold cursor-not-allowed";} }
+    closeEditProfile() { document.getElementById('edit-profile-modal').classList.add('hidden'); this.editingHandle=null; }
+    checkPin() { if(document.getElementById('secret-pin').value==='568300'){ this.user.isPremium=true; this.saveUser(); document.getElementById('god-mode-panel').classList.remove('hidden'); this.showToast("⚡ God Mode Unlocked"); document.getElementById('btn-verify').disabled=false; document.getElementById('btn-verify').innerText="Force Verify"; document.getElementById('btn-verify').className="bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition"; } }
+    openCreateBotModal() { document.getElementById('edit-profile-modal').classList.add('hidden'); document.getElementById('create-bot-modal').classList.remove('hidden'); }
+    createBot() { const n=document.getElementById('bot-name').value, h=document.getElementById('bot-handle').value, a=document.getElementById('bot-avatar').value||'https://api.dicebear.com/7.x/avataaars/svg?seed='+h; if(!n||!h)return alert("Req"); const nb={name:n,handle:h,avatar:a,bio:'Bot by '+this.user.name,followers:0,following:0,isVerified:false,autoPost:true,banner:'https://picsum.photos/seed/'+h+'/800/300'}; this.bots.push(nb); this.user.createdBots.push(h); this.saveBots(); this.saveUser(); document.getElementById('create-bot-modal').classList.add('hidden'); this.showToast('Bot Created!'); this.navigate('profile',h); }
+    handleImageUpload(e,t) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=(ev)=>{ const i=new Image(); i.src=ev.target.result; i.onload=()=>{ const c=document.createElement('canvas'), x=c.getContext('2d'), M=500; let w=i.width, h=i.height; if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}} c.width=w;c.height=h; x.drawImage(i,0,0,w,h); const d=c.toDataURL('image/jpeg',0.8); document.getElementById(`edit-${t}-preview`).src=d; }; }; r.readAsDataURL(f); }
+    saveProfile() { const p=this.editingHandle===this.user.handle?this.user:this.bots.find(b=>b.handle===this.editingHandle); p.name=document.getElementById('edit-name').value; p.bio=document.getElementById('edit-bio').value; p.location=document.getElementById('edit-location').value; p.followers=parseInt(document.getElementById('edit-followers').value); p.banner=document.getElementById('edit-banner-preview').src; p.avatar=document.getElementById('edit-avatar-preview').src; if(this.editingHandle===this.user.handle){ this.settings.viralitySpeed=parseFloat(document.getElementById('edit-virality').value); this.saveUser(); this.saveSettings(); } else { if(this.user.createdBots.includes(this.editingHandle)) p.autoPost = document.getElementById('bot-auto-post').checked; this.saveBots(); } this.closeEditProfile(); this.renderProfile(this.editingHandle); this.showToast('Saved'); }
+    requestVerification(f=false) { const p=this.editingHandle===this.user.handle?this.user:this.bots.find(b=>b.handle===this.editingHandle); if(f||p.followers>=100000){ p.isVerified=true; if(this.editingHandle===this.user.handle)this.saveUser(); else this.saveBots(); document.getElementById('btn-verify').innerText="Verified!"; this.showToast('Badge Acquired!'); } }
+    toggleLike(id,b){const p=this.posts.find(x=>x.id===id);if(!p)return;if(!this.user.likedPosts)this.user.likedPosts=[];const i=this.user.likedPosts.indexOf(id);if(i===-1){this.user.likedPosts.push(id);p.stats.likes++;b.classList.add('liked');const z=b.querySelector('i');if(z){z.classList.remove('fa-regular');z.classList.add('fa-solid','animate-pop');}}else{this.user.likedPosts.splice(i,1);p.stats.likes--;b.classList.remove('liked');const z=b.querySelector('i');if(z){z.classList.add('fa-regular');z.classList.remove('fa-solid','animate-pop');}}if(b.parentElement.querySelector('.stat-likes'))b.parentElement.querySelector('.stat-likes').innerText=this.formatNumber(p.stats.likes);this.saveUser();this.savePosts();}
+    toggleRepost(id,b){const p=this.posts.find(x=>x.id===id);if(!p)return;if(!this.user.repostedPosts)this.user.repostedPosts=[];const i=this.user.repostedPosts.indexOf(id);if(i===-1){this.user.repostedPosts.push(id);p.stats.reposts++;b.classList.add('reposted');}else{this.user.repostedPosts.splice(i,1);p.stats.reposts--;b.classList.remove('reposted');}if(b.parentElement.querySelector('.stat-reposts'))b.parentElement.querySelector('.stat-reposts').innerText=this.formatNumber(p.stats.reposts);this.saveUser();this.savePosts();}
+    toggleBookmark(id,b){if(!this.user.bookmarks)this.user.bookmarks=[];const i=this.user.bookmarks.indexOf(id);if(i===-1){this.user.bookmarks.push(id);b.classList.add('bookmarked');b.querySelector('i').classList.replace('fa-regular','fa-solid');this.showToast('Saved');}else{this.user.bookmarks.splice(i,1);b.classList.remove('bookmarked');b.querySelector('i').classList.replace('fa-solid','fa-regular');this.showToast('Removed');}this.saveUser();}
+    shareApp(){navigator.clipboard.writeText("Check out Peyza!").then(()=>this.showToast('Link Copied'));}
+    toggleFollow(h,b){if(b.innerText==='Follow'){b.innerText='Following';b.classList.replace('bg-black','bg-white');b.classList.replace('text-white','text-black');b.classList.add('border','border-gray-300');this.user.following++;}else{b.innerText='Follow';b.classList.replace('bg-white','bg-black');b.classList.replace('text-black','text-white');b.classList.remove('border','border-gray-300');this.user.following--;}this.saveUser();}
+    showToast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.remove('opacity-0');setTimeout(()=>t.classList.add('opacity-0'),2000);}
+    formatNumber(n){if(n==null)return'0';if(n>=1000000)return(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1000)return(n/1000).toFixed(1).replace(/\.0$/,'')+'K';return n.toString();}
+    timeAgo(d){const s=Math.floor((new Date()-d)/1000);if(s>31536000)return Math.floor(s/31536000)+'y';if(s>2592000)return Math.floor(s/2592000)+'mo';if(s>86400)return Math.floor(s/86400)+'d';if(s>3600)return Math.floor(s/3600)+'h';if(s>60)return Math.floor(s/60)+'m';return s+'s';}
+    renderSidebarUser(){const e=document.getElementById('sidebar-user');if(e)e.innerHTML=`<div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200"><img src="${this.user.avatar}" class="w-full h-full object-cover"></div><div class="hidden xl:block"><p class="font-bold text-sm truncate w-[140px] flex items-center dark:text-white">${this.user.name} ${this.user.isVerified?VERIFIED_ICON:''}</p><p class="text-gray-500 text-sm truncate w-[140px]">@${this.user.handle}</p></div><i class="hidden xl:block fa-solid fa-ellipsis ml-auto text-gray-900 dark:text-white"></i>`;}
+    renderWhoToFollow(){const c=document.getElementById('who-to-follow');if(c){let h='';this.bots.slice(0,3).forEach(b=>{h+=`<div class="flex items-center justify-between"><div class="flex items-center gap-3"><img src="${b.avatar}" class="w-10 h-10 rounded-full bg-gray-200"><div><p class="font-bold text-sm hover:underline cursor-pointer flex items-center dark:text-white" onclick="app.navigate('profile','${b.handle}')">${b.name} ${b.isVerified?VERIFIED_ICON:''}</p><p class="text-gray-500 text-sm">@${b.handle}</p></div></div><button class="bg-black dark:bg-white dark:text-black text-white text-sm font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition" onclick="app.toggleFollow('${b.handle}',this)">Follow</button></div>`});c.innerHTML=h;}}
+    renderSidebarTrends(){const e=document.getElementById('sidebar-trends');if(!e)return;const t=[...this.bots].sort((a,b)=>b.followers-a.followers).slice(0,3);let h='';t.forEach(b=>{h+=`<div class="cursor-pointer hover:bg-gray-200/50 dark:hover:bg-gray-800 -mx-4 px-4 py-2 transition" onclick="app.navigate('profile','${b.handle}')"><div class="flex items-center justify-between"><div><p class="text-xs text-gray-500">Trending in Profiles</p><p class="font-bold text-sm dark:text-white">${b.name}</p><p class="text-xs text-gray-500">${this.formatNumber(b.followers)} followers</p></div><img src="${b.avatar}" class="w-8 h-8 rounded-full bg-gray-200"></div></div>`;});e.innerHTML=h;}
 }
 
 const app = new PeyzaApp();
