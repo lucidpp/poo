@@ -3,7 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Peyza</title>
+    
+    <!-- Site Metadata -->
+    <title>Peyza - The Red Social Network</title>
+    <meta name="description" content="Join Peyza, the hottest new social media platform. Experience real-time virality, bot interactions, and community building in a sleek red theme.">
+    <meta name="keywords" content="social media, twitter alternative, simulation, bot social network, peyza">
+    <meta name="author" content="Peyza Inc.">
+    <meta name="theme-color" content="#e11d48">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://peyza.app/">
+    <meta property="og:title" content="Peyza - The Red Social Network">
+    <meta property="og:description" content="Join Peyza, the hottest new social media platform. Experience real-time virality and community building.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://peyza.app/">
+    <meta property="twitter:title" content="Peyza - The Red Social Network">
+    <meta property="twitter:description" content="Join Peyza, the hottest new social media platform. Experience real-time virality and community building.">
+
+    <!-- PWA / Mobile Web App Capable -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="application-name" content="Peyza">
+
+    <!-- Favicon (Data URI) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23e11d48'/%3E%3Ctext x='50' y='75' font-family='Arial, sans-serif' font-weight='900' font-size='70' text-anchor='middle' fill='white'%3EP%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23e11d48'/%3E%3Ctext x='50' y='75' font-family='Arial, sans-serif' font-weight='900' font-size='70' text-anchor='middle' fill='white'%3EP%3C/text%3E%3C/svg%3E">
+
+    <!-- PWA Manifest (Data URI) -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGV5emEiLCJzaG9ydF9uYW1lIjoiUGV5emEiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiI2UxMWQ0OCIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDcmVjdCB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgcng9JzIwJyBmaWxsPSclMjNlMTFkNDgnLyUzRSUzQ3RleHQgeD0nNTAnIHk9Jzc1JyBmb250LWZhbWlseT0nQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtd2VpZ2h0PSc5MDAnIGZvbnQtc2l6ZT0nNzAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJyUzRVAlM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -474,9 +506,14 @@ class PeyzaApp {
         this.posts.forEach(post => {
             const el = document.getElementById(`stats-${post.id}`);
             if (el) {
-                el.querySelector('.stat-views').innerText = this.formatNumber(post.stats.views);
-                el.querySelector('.stat-likes').innerText = this.formatNumber(post.stats.likes);
-                el.querySelector('.stat-reposts').innerText = this.formatNumber(post.stats.reposts);
+                const views = el.querySelector('.stat-views');
+                if(views) views.innerText = this.formatNumber(post.stats.views);
+                
+                const likes = el.querySelector('.stat-likes');
+                if(likes) likes.innerText = this.formatNumber(post.stats.likes);
+                
+                const reposts = el.querySelector('.stat-reposts');
+                if(reposts) reposts.innerText = this.formatNumber(post.stats.reposts);
             }
             const dv = document.getElementById(`detail-views-${post.id}`);
             if(dv) dv.innerText = this.formatNumber(post.stats.views);
@@ -740,13 +777,64 @@ class PeyzaApp {
         return html;
     }
 
-    handlePostMedia(event, type) { const f=event.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=(e)=>{ this.tempMedia=e.target.result; this.tempMediaType=type; const p=document.getElementById('media-preview'), i=document.getElementById('media-preview-img'), v=document.getElementById('media-preview-video'); p.classList.remove('hidden'); if(type==='image'){i.src=this.tempMedia;i.classList.remove('hidden');v.classList.add('hidden');}else{v.src=this.tempMedia;v.classList.remove('hidden');i.classList.add('hidden');} }; r.readAsDataURL(f); }
-    openComposeModalForCommunity(h) { this.postingToCommunity=h; this.openComposeModal(); document.getElementById('community-indicator').classList.remove('hidden'); document.getElementById('community-name-target').innerText='@'+h; }
-    closeComposeModal() { document.getElementById('compose-modal').classList.add('hidden'); document.getElementById('compose-input').value=''; this.replyingTo=null; this.clearMedia(); document.getElementById('poll-creator').classList.add('hidden'); document.getElementById('community-indicator').classList.add('hidden'); this.postingToCommunity=null; }
-    deletePost(id) { if(confirm("Delete?")){ this.posts=this.posts.filter(p=>p.id!==id); this.savePosts(); this.renderView(); this.showToast('Deleted'); } }
-    togglePostTheme(id) { const p=this.posts.find(x=>x.id===id); if(p){ p.theme=p.theme==='default'?'highlight':'default'; this.savePosts(); this.renderView(); } }
-    
-    // --- Restored Functions ---
+    // --- ACTIONS ---
+    handlePostMedia(event, type) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.tempMedia = e.target.result;
+            this.tempMediaType = type;
+            const preview = document.getElementById('media-preview');
+            const img = document.getElementById('media-preview-img');
+            const vid = document.getElementById('media-preview-video');
+            
+            preview.classList.remove('hidden');
+            if(type === 'image') {
+                img.src = this.tempMedia; img.classList.remove('hidden'); vid.classList.add('hidden');
+            } else {
+                vid.src = this.tempMedia; vid.classList.remove('hidden'); img.classList.add('hidden');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    openComposeModalForCommunity(handle) {
+        this.postingToCommunity = handle;
+        this.openComposeModal();
+        document.getElementById('community-indicator').classList.remove('hidden');
+        document.getElementById('community-name-target').innerText = '@' + handle;
+    }
+
+    closeComposeModal() {
+        document.getElementById('compose-modal').classList.add('hidden');
+        document.getElementById('compose-input').value = '';
+        this.replyingTo = null;
+        this.clearMedia();
+        document.getElementById('poll-creator').classList.add('hidden');
+        document.getElementById('community-indicator').classList.add('hidden');
+        this.postingToCommunity = null;
+    }
+
+    deletePost(id) {
+        if(confirm("Delete this post?")) {
+            this.posts = this.posts.filter(p => p.id !== id);
+            this.savePosts();
+            this.renderView();
+            this.showToast('Post deleted');
+        }
+    }
+
+    togglePostTheme(id) {
+        const post = this.posts.find(p => p.id === id);
+        if(post) {
+            post.theme = post.theme === 'default' ? 'highlight' : 'default';
+            this.savePosts();
+            this.renderView();
+        }
+    }
+
+    // --- Standard Functions (Restored) ---
     openComposeModal() { document.getElementById('compose-modal').classList.remove('hidden'); document.getElementById('compose-avatar').src = this.user.avatar; if(!this.replyingTo) document.getElementById('replying-to-indicator').classList.add('hidden'); const sel=document.getElementById('author-selector'), s=document.getElementById('post-as-select'); if(this.user.createdBots.length>0){ sel.classList.remove('hidden'); s.innerHTML=`<option value="${this.user.handle}">@${this.user.handle}</option>`; this.user.createdBots.forEach(h=>{const b=this.bots.find(x=>x.handle===h);if(b)s.innerHTML+=`<option value="${b.handle}">@${b.handle}</option>`}); s.onchange=(e)=>{const h=e.target.value;if(h===this.user.handle)document.getElementById('compose-avatar').src=this.user.avatar;else{const b=this.bots.find(x=>x.handle===h);if(b)document.getElementById('compose-avatar').src=b.avatar}};}else{sel.classList.add('hidden');} }
     openReplyModal(id) { this.replyingTo=id; this.openComposeModal(); const p=this.posts.find(x=>x.id===id); document.getElementById('replying-to-indicator').classList.remove('hidden'); document.getElementById('replying-to-indicator').innerHTML=`Replying to <span class="text-rose-500">@${p?p.authorHandle:'user'}</span>`; }
     toggleTheme() { this.settings.theme = this.settings.theme === 'light' ? 'dark' : 'light'; this.applyTheme(); this.saveSettings(); }
