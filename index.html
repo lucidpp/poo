@@ -66,6 +66,14 @@
             font-weight: 900;
         }
         
+        /* Mobile Nav Animations */
+        .nav-icon {
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s;
+        }
+        .nav-icon.active {
+            transform: scale(1.25);
+        }
+        
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -183,11 +191,8 @@
     </aside>
 
     <!-- Mobile Navigation Bottom -->
-    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30">
-        <div onclick="app.navigate('home')" class="nav-icon cursor-pointer text-2xl text-gray-900 dark:text-white active:scale-90 transition"><i class="fa-solid fa-house"></i></div>
-        <div onclick="app.navigate('explore')" class="nav-icon cursor-pointer text-2xl text-gray-400 active:scale-90 transition"><i class="fa-solid fa-magnifying-glass"></i></div>
-        <div onclick="app.showToast('Notifications empty')" class="nav-icon cursor-pointer text-2xl text-gray-400 active:scale-90 transition"><i class="fa-regular fa-bell"></i></div>
-        <div onclick="app.navigate('profile', app.user.handle)" class="nav-icon cursor-pointer text-2xl text-gray-400 active:scale-90 transition"><i class="fa-regular fa-user"></i></div>
+    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30" id="mobile-nav-bar">
+        <!-- Injected via JS -->
     </div>
 
     <!-- Floating Action Button (Mobile) -->
@@ -548,14 +553,38 @@ class PeyzaApp {
     }
 
     generateRandomBotPost() {
-        const botPostCount = this.posts.filter(p => this.bots.some(b => b.handle === p.authorHandle)).length;
-        if (botPostCount > 25) return;
-        if (Math.random() > 0.5) {
-            const post = this.createMockPost();
-            this.posts.unshift(post);
-            this.savePosts();
-            if (this.currentView === 'home') this.renderFeed();
-        }
+        // Enforce 2 posts per hour rule: roughly 1 post every 30 minutes (1800 seconds) per bot.
+        // The loop runs every 15 seconds.
+        // We can just use probability: 15s / 1800s = 0.0083 chance per bot per tick.
+        
+        this.bots.forEach(bot => {
+            // Very low chance per tick to approximate 2 posts/hour
+            if (Math.random() < 0.0083) { 
+                // Create a post for this specific bot
+                let content = MOCK_POSTS_CONTENT[Math.floor(Math.random() * MOCK_POSTS_CONTENT.length)];
+                if (FAMOUS_CONTENT[bot.handle]) {
+                    const opts = FAMOUS_CONTENT[bot.handle];
+                    content = opts[Math.floor(Math.random() * opts.length)];
+                }
+                
+                const hasImage = Math.random() > 0.8;
+                const newPost = {
+                    id: 'post_' + Math.random().toString(36).substr(2, 9),
+                    authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified,
+                    content: content,
+                    image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null,
+                    poll: null,
+                    createdAt: Date.now(),
+                    stats: { likes: Math.floor(Math.random()*50), reposts: Math.floor(Math.random()*10), replies: Math.floor(Math.random()*5), views: Math.floor(Math.random()*500) },
+                    baseVelocity: Math.random()
+                };
+                
+                this.posts.unshift(newPost);
+            }
+        });
+        
+        this.savePosts();
+        if (this.currentView === 'home') this.renderFeed();
     }
 
     simulateStats() {
@@ -563,18 +592,23 @@ class PeyzaApp {
         let changed = false;
         const fourHours = 4 * 60 * 60 * 1000;
 
-        // Cleanup old bot posts
+        // Cleanup: Force removal of bot posts older than 4 hours
         const initialLength = this.posts.length;
         this.posts = this.posts.filter(p => {
             const isBot = this.bots.some(b => b.handle === p.authorHandle);
-            // Bots posts expire in 4 hours
-            return !(isBot && (now - p.createdAt > fourHours));
+            // If it's a bot and older than 4 hours, remove it
+            if (isBot && (now - p.createdAt > fourHours)) {
+                return false; 
+            }
+            return true;
         });
+        
         if (this.posts.length !== initialLength) changed = true;
 
         this.posts.forEach(post => {
             const ageInSeconds = (now - post.createdAt) / 1000;
             if (ageInSeconds < 86400) {
+                // Determine Author followers for scale
                 let followers = 100;
                 if (post.authorHandle === this.user.handle) followers = this.user.followers;
                 else {
@@ -582,21 +616,38 @@ class PeyzaApp {
                     if(b) followers = b.followers;
                 }
 
+                // Follower Scale Multiplier
                 const followerScale = Math.max(1, Math.log10(followers));
-                const repostBoost = 1 + (post.stats.reposts * 0.1);
+                
+                // Repost Multiplier: Reposts now strongly drive views
+                const repostBoost = 1 + (post.stats.reposts * 0.1); // 10% boost per repost
+
                 const growthFactor = this.settings.viralitySpeed * post.baseVelocity * followerScale * repostBoost;
                 
+                // Views Growth
                 const newViews = Math.floor(post.stats.views + (growthFactor * 5 * Math.random()));
-                if (newViews > post.stats.views) { post.stats.views = newViews; changed = true; }
+                if (newViews > post.stats.views) {
+                    post.stats.views = newViews;
+                    changed = true;
+                }
 
-                if (Math.random() < 0.3) { post.stats.likes += Math.floor(growthFactor * Math.random() * 2); changed = true; }
-                if (Math.random() < 0.05) { post.stats.reposts += 1; changed = true; }
+                // Reply Growth: Correlated to views (Target: 1 reply per ~200 views)
+                const targetReplies = Math.floor(post.stats.views / 200);
+                // Catch up if lagging, with random noise
+                if (post.stats.replies < targetReplies && Math.random() < 0.2) { 
+                     post.stats.replies++;
+                     changed = true;
+                }
 
-                // Simulate Poll Voting
-                if (post.poll && Math.random() < 0.2 * growthFactor) {
-                    const randomOpt = Math.floor(Math.random() * post.poll.options.length);
-                    post.poll.options[randomOpt].votes++;
-                    post.poll.totalVotes++;
+                // Likes Growth
+                if (Math.random() < 0.3) {
+                    post.stats.likes += Math.floor(growthFactor * Math.random() * 2);
+                    changed = true;
+                }
+                
+                // Repost Growth
+                if (Math.random() < 0.05) {
+                    post.stats.reposts += 1;
                     changed = true;
                 }
             }
@@ -639,22 +690,24 @@ class PeyzaApp {
     navigate(view, param = null) {
         this.currentView = view;
         this.viewParam = param;
+        
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        if (view === 'home') document.getElementById('nav-home').classList.add('active');
-        if (view === 'explore') document.getElementById('nav-explore').classList.add('active');
-        if (view === 'profile' && param === this.user.handle) document.getElementById('nav-profile').classList.add('active');
+
+        if (view === 'home') {
+            document.getElementById('nav-home').classList.add('active');
+        } else if (view === 'explore') {
+            document.getElementById('nav-explore').classList.add('active');
+        } else if (view === 'profile' && param === this.user.handle) {
+            document.getElementById('nav-profile').classList.add('active');
+        }
+
         window.scrollTo(0,0);
         this.renderView();
     }
 
     setFeedFilter(filter) {
         this.feedFilter = filter;
-        document.querySelectorAll('.feed-filter').forEach(el => {
-            const isActive = el.dataset.filter === filter;
-            if (isActive) el.classList.add('active'); else el.classList.remove('active');
-            el.querySelector('.indicator').classList.toggle('hidden', !isActive);
-        });
-        this.renderView();
+        this.renderView(); // Re-render header to update classes
     }
     
     setProfileFilter(filter) {
@@ -670,16 +723,40 @@ class PeyzaApp {
         
         main.innerHTML = '';
         
+        // Update Mobile Nav styling based on view
+        const mobileNav = document.getElementById('mobile-nav-bar');
+        if(mobileNav) {
+            mobileNav.innerHTML = `
+                <div onclick="app.navigate('home')" class="nav-icon cursor-pointer text-2xl ${this.currentView === 'home' ? 'active text-black dark:text-white' : 'text-gray-400'}"><i class="fa-solid fa-house"></i></div>
+                <div onclick="app.navigate('explore')" class="nav-icon cursor-pointer text-2xl ${this.currentView === 'explore' ? 'active text-black dark:text-white' : 'text-gray-400'}"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div onclick="app.showToast('Notifications empty')" class="nav-icon cursor-pointer text-2xl text-gray-400"><i class="fa-regular fa-bell"></i></div>
+                <div onclick="app.navigate('profile', app.user.handle)" class="nav-icon cursor-pointer text-2xl ${this.currentView === 'profile' && this.viewParam === this.user.handle ? 'active text-black dark:text-white' : 'text-gray-400'}"><i class="fa-regular fa-user"></i></div>
+            `;
+        }
+        
         if (this.currentView === 'home') {
+            const isForYou = this.feedFilter === 'foryou';
+            const isFollowing = this.feedFilter === 'following';
+            const isMedia = this.feedFilter === 'media';
+
             header.innerHTML = `
                 <div id="header-content" class="px-4 h-[53px] flex items-center justify-between cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
                     <h2 class="text-lg font-bold">Home</h2>
                     <i class="fa-solid fa-wand-magic-sparkles text-rose-500 hover:rotate-12 transition"></i>
                 </div>
                 <div id="feed-filters" class="flex border-b border-gray-100 dark:border-darkBorder">
-                    <div onclick="app.setFeedFilter('foryou')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter active" data-filter="foryou"><span class="font-bold text-sm text-gray-900 dark:text-white">For You</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px]"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div>
-                    <div onclick="app.setFeedFilter('following')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter" data-filter="following"><span class="font-medium text-sm text-gray-500 dark:text-gray-400">Following</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px]"><div class="bg-rose-500 w-14 rounded-full indicator hidden"></div></div></div>
-                    <div onclick="app.setFeedFilter('media')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter" data-filter="media"><span class="font-medium text-sm text-gray-500 dark:text-gray-400">Media</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px]"><div class="bg-rose-500 w-14 rounded-full indicator hidden"></div></div></div>
+                    <div onclick="app.setFeedFilter('foryou')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isForYou ? 'active' : ''}" data-filter="foryou">
+                        <span class="font-medium text-sm ${isForYou ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}">For You</span>
+                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isForYou ? '' : 'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div>
+                    </div>
+                    <div onclick="app.setFeedFilter('following')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isFollowing ? 'active' : ''}" data-filter="following">
+                        <span class="font-medium text-sm ${isFollowing ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}">Following</span>
+                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isFollowing ? '' : 'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div>
+                    </div>
+                    <div onclick="app.setFeedFilter('media')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${isMedia ? 'active' : ''}" data-filter="media">
+                        <span class="font-medium text-sm ${isMedia ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}">Media</span>
+                        <div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${isMedia ? '' : 'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div>
+                    </div>
                 </div>`;
             this.renderFeed();
         } else if (this.currentView === 'explore') {
