@@ -30,19 +30,10 @@
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #e11d48; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #be123c; 
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #be123c; }
 
         /* Animations */
         @keyframes pop {
@@ -50,41 +41,24 @@
             50% { transform: scale(1.4); }
             100% { transform: scale(1); }
         }
-        .animate-pop {
-            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
         @keyframes fade-in {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in {
-            animation: fade-in 0.3s ease-out forwards;
-        }
+        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
         
-        .nav-item.active i {
-            font-weight: 900;
-        }
+        .nav-item.active i { font-weight: 900; }
         
         /* Mobile Nav Animations */
-        .nav-icon {
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s;
-        }
-        .nav-icon.active {
-            transform: scale(1.25);
-        }
+        .nav-icon { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s; }
+        .nav-icon.active { transform: scale(1.25); }
         
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .mobile-nav {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
+        .mobile-nav { padding-bottom: env(safe-area-inset-bottom); }
         
         /* Interaction States */
         .liked { color: #e11d48 !important; }
@@ -94,7 +68,7 @@
         
         /* Post Themes */
         .post-highlight {
-            border: 2px solid #fbbf24 !important; /* Amber-400 */
+            border: 2px solid #fbbf24 !important; 
             background-color: rgba(251, 191, 36, 0.05);
         }
     </style>
@@ -104,12 +78,9 @@
     <!-- Left Sidebar (Desktop) -->
     <header class="hidden sm:flex flex-col w-[80px] xl:w-[275px] h-screen fixed left-0 top-0 border-r border-gray-100 dark:border-darkBorder px-2 xl:px-8 py-4 z-20 bg-white dark:bg-dark justify-between">
         <div class="space-y-4">
-            <!-- Logo -->
             <div class="p-3 w-min hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full cursor-pointer transition transform active:scale-90" onclick="app.navigate('home')">
                 <i class="fa-solid fa-p text-3xl text-rose-600"></i>
             </div>
-
-            <!-- Nav Items -->
             <nav class="space-y-2 text-xl">
                 <a onclick="app.navigate('home')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item active" id="nav-home">
                     <i class="fa-solid fa-house"></i>
@@ -132,15 +103,11 @@
                     <span class="hidden xl:block font-medium">Settings</span>
                 </a>
             </nav>
-
-            <!-- Post Button -->
             <button onclick="app.openComposeModal()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-full p-4 xl:py-3 xl:px-8 w-full shadow-lg transition transform active:scale-95 mt-4">
                 <i class="fa-solid fa-feather sm:hidden"></i>
                 <span class="hidden xl:block font-bold text-lg">Post</span>
             </button>
         </div>
-
-        <!-- User Mini Profile -->
         <div onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-3 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer mb-4 transition" id="sidebar-user">
             <!-- Injected by JS -->
         </div>
@@ -148,50 +115,28 @@
 
     <!-- Main Content Feed -->
     <main class="w-full sm:ml-[80px] xl:ml-[275px] max-w-[600px] border-r border-gray-100 dark:border-darkBorder min-h-screen pb-20 sm:pb-0 relative">
-        
-        <!-- Dynamic Header Area -->
-        <div id="sticky-header" class="sticky top-0 bg-white/80 dark:bg-dark/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-darkBorder">
-            <!-- Content injected via JS -->
-        </div>
-
-        <!-- Dynamic Content Area -->
-        <div id="main-view" class="animate-fade-in">
-            <!-- Content injected via JS -->
-        </div>
-
+        <div id="sticky-header" class="sticky top-0 bg-white/80 dark:bg-dark/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-darkBorder"></div>
+        <div id="main-view" class="animate-fade-in"></div>
     </main>
 
     <!-- Right Sidebar (Desktop) -->
     <aside class="hidden lg:block w-[350px] pl-8 py-4 h-screen sticky top-0">
-        <!-- Search -->
         <div class="relative group mb-6">
-            <div class="absolute left-4 top-3 text-gray-500 group-focus-within:text-rose-500">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </div>
+            <div class="absolute left-4 top-3 text-gray-500 group-focus-within:text-rose-500"><i class="fa-solid fa-magnifying-glass"></i></div>
             <input type="text" placeholder="Search Peyza" onkeyup="if(event.key === 'Enter') { app.navigate('explore', this.value); }" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-3 pl-12 pr-4 outline-none focus:bg-white dark:focus:bg-black focus:ring-1 focus:ring-rose-500 transition border border-transparent dark:border-darkBorder">
         </div>
-
-        <!-- Trends -->
         <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4 mb-4">
             <h3 class="font-extrabold text-xl mb-4">Trends for you</h3>
-            <div class="space-y-4" id="sidebar-trends">
-                <!-- Injected -->
-            </div>
+            <div class="space-y-4" id="sidebar-trends"></div>
         </div>
-
-        <!-- Who to follow -->
         <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4">
             <h3 class="font-extrabold text-xl mb-4">Who to follow</h3>
-            <div id="who-to-follow" class="space-y-4">
-                <!-- Injected via JS -->
-            </div>
+            <div id="who-to-follow" class="space-y-4"></div>
         </div>
     </aside>
 
     <!-- Mobile Navigation Bottom -->
-    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30" id="mobile-nav-bar">
-        <!-- Injected via JS -->
-    </div>
+    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30" id="mobile-nav-bar"></div>
 
     <!-- Floating Action Button (Mobile) -->
     <button onclick="app.openComposeModal()" class="fixed bottom-20 right-4 bg-rose-500 text-white rounded-full p-4 shadow-lg sm:hidden z-20 hover:bg-rose-600 active:scale-90 transition animate-pop">
@@ -211,25 +156,20 @@
             <div class="flex gap-3">
                 <img id="compose-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-darkBorder">
                 <div class="w-full">
-                    <!-- Contexts -->
                     <div id="author-selector" class="hidden mb-2">
-                        <select id="post-as-select" class="text-sm font-bold bg-transparent outline-none text-rose-500 cursor-pointer">
-                            <!-- Options injected -->
-                        </select>
+                        <select id="post-as-select" class="text-sm font-bold bg-transparent outline-none text-rose-500 cursor-pointer"></select>
                     </div>
                     <div id="replying-to-indicator" class="hidden text-sm text-gray-500 mb-1">Replying to <span class="text-rose-500">@post</span></div>
                     <div id="community-indicator" class="hidden text-sm text-gray-500 mb-1">Posting to <span class="text-rose-500 font-bold" id="community-name-target">Community</span></div>
 
                     <textarea id="compose-input" class="w-full h-24 resize-none outline-none text-xl placeholder-gray-500 bg-transparent dark:text-white mt-2" placeholder="What is happening?!"></textarea>
                     
-                    <!-- Preview Area -->
                     <div id="media-preview" class="hidden relative mb-2">
                         <img id="media-preview-img" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden">
                         <video id="media-preview-video" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden" controls></video>
                         <button onclick="app.clearMedia()" class="absolute top-1 left-1 bg-black/50 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
                     </div>
 
-                    <!-- Poll Creation UI -->
                     <div id="poll-creator" class="hidden border border-gray-200 dark:border-darkBorder rounded-xl p-3 mb-2">
                         <div class="space-y-2">
                             <input type="text" id="poll-opt-1" placeholder="Choice 1" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white">
@@ -264,32 +204,23 @@
                 <button onclick="app.saveProfile()" class="bg-black dark:bg-white dark:text-black text-white px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-800 transition">Save</button>
             </div>
             
-            <!-- Hidden File Inputs -->
             <input type="file" id="banner-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'banner')">
             <input type="file" id="avatar-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'avatar')">
 
-            <!-- Cover Photo Edit -->
             <div class="h-32 bg-gray-200 dark:bg-darkSec relative mb-12 rounded-md group cursor-pointer overflow-hidden border dark:border-darkBorder" onclick="document.getElementById('banner-upload').click()">
                 <img id="edit-banner-preview" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                    <i class="fa-solid fa-camera text-white text-2xl drop-shadow-md"></i>
-                </div>
-                <!-- Avatar Overlap -->
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-camera text-white text-2xl drop-shadow-md"></i></div>
                 <div class="absolute -bottom-10 left-4 w-24 h-24 rounded-full border-4 border-white dark:border-dark bg-gray-300 dark:bg-darkSec overflow-hidden cursor-pointer group hover:opacity-90" onclick="event.stopPropagation(); document.getElementById('avatar-upload').click()">
                     <img id="edit-avatar-preview" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                        <i class="fa-solid fa-camera text-white drop-shadow-md"></i>
-                    </div>
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-camera text-white drop-shadow-md"></i></div>
                 </div>
             </div>
 
             <form class="space-y-4 mt-8">
-                <!-- Theme Toggle -->
                 <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md">
                     <span class="font-bold text-sm">Dark Mode</span>
                     <button type="button" onclick="app.toggleTheme()" id="theme-btn" class="text-gray-500 hover:text-rose-500 font-bold text-sm transition">Switch</button>
                 </div>
-
                 <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition">
                     <label class="block text-xs text-gray-500">Name</label>
                     <input type="text" id="edit-name" class="w-full outline-none text-sm bg-transparent dark:text-white">
@@ -303,7 +234,6 @@
                     <input type="text" id="edit-location" class="w-full outline-none text-sm bg-transparent dark:text-white">
                 </div>
                 
-                <!-- Bot Control: Auto-Post -->
                 <div id="bot-control-panel" class="hidden flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md">
                     <span class="font-bold text-sm">Auto-Posting</span>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -314,33 +244,22 @@
                 
                 <hr class="border-gray-100 dark:border-darkBorder my-4">
                 
-                <!-- Secret PIN Input -->
                 <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500">
                     <label class="block text-xs text-gray-500">Secret PIN</label>
                     <input type="password" id="secret-pin" oninput="app.checkPin()" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent" placeholder="Enter code">
                 </div>
 
-                <!-- GOD MODE SECTION (Hidden by default) -->
                 <div id="god-mode-panel" class="hidden space-y-4 bg-rose-50 dark:bg-rose-900/10 p-4 rounded-lg border border-rose-100 dark:border-rose-900/30">
                     <h3 class="font-bold text-rose-600 mb-2">⚡ God Mode Active</h3>
-
                     <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 bg-white dark:bg-dark">
                         <label class="block text-xs text-gray-500">Follower Count (Cheat)</label>
                         <input type="number" id="edit-followers" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent">
                     </div>
-
                     <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md bg-white dark:bg-dark">
-                        <div class="flex flex-col">
-                            <span class="font-bold text-sm">Force Verify</span>
-                            <span class="text-xs text-gray-500">Bypass requirements</span>
-                        </div>
+                        <div class="flex flex-col"><span class="font-bold text-sm">Force Verify</span><span class="text-xs text-gray-500">Bypass requirements</span></div>
                         <button type="button" id="btn-verify" onclick="app.requestVerification(true)" class="bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition">Get Badge</button>
                     </div>
-                    
-                    <button type="button" onclick="app.openCreateBotModal()" class="w-full bg-rose-500 text-white font-bold py-2 rounded-md hover:bg-rose-600 transition">
-                        <i class="fa-solid fa-robot mr-2"></i> Create New Bot
-                    </button>
-
+                    <button type="button" onclick="app.openCreateBotModal()" class="w-full bg-rose-500 text-white font-bold py-2 rounded-md hover:bg-rose-600 transition"><i class="fa-solid fa-robot mr-2"></i> Create New Bot</button>
                     <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-2 bg-white dark:bg-dark">
                         <label class="block text-xs text-gray-500 mb-2">Virality Speed</label>
                         <select id="edit-virality" class="w-full outline-none text-sm bg-transparent dark:text-white">
@@ -372,21 +291,17 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-2 rounded-full shadow-lg z-[70] transition-opacity duration-300 opacity-0 pointer-events-none font-bold text-sm">
-        Action Successful
-    </div>
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-2 rounded-full shadow-lg z-[70] transition-opacity duration-300 opacity-0 pointer-events-none font-bold text-sm">Action Successful</div>
 
 <script>
 /**
- * Peyza App Logic v4.0
+ * Peyza App Logic v4.1
+ * Fixed Navigation, Post Pages, and Stats
  */
 
-// --- ICONS ---
 const VERIFIED_ICON = `<svg viewBox="0 0 24 24" aria-label="Verified Account" class="w-5 h-5 ml-1 inline-block text-rose-500 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`;
 const ANALYTICS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" class="w-[18px] h-[18px] fill-current"><g><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></g></svg>`;
 
-// Default Bots
 const DEFAULT_BOTS = [
     { handle: 'tech_guru', name: 'Tech Insider', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix', bio: 'Latest tech news.', followers: 450200, following: 152, isVerified: true, autoPost: true },
     { handle: 'JuiceWorlddd', name: 'Juice WRLD', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juice', bio: '999 Forever 🕊️', followers: 12500000, following: 1, isVerified: true, autoPost: true },
@@ -420,14 +335,11 @@ class PeyzaApp {
         this.feedFilter = 'foryou';
         this.profileFilter = 'posts';
         this.settings = this.loadSettings();
-        
-        // Session state
         this.editingHandle = null; 
         this.replyingTo = null;
         this.tempMedia = null;
-        this.tempMediaType = 'image'; // image or video
+        this.tempMediaType = 'image';
         this.postingToCommunity = null;
-
         this.init();
     }
 
@@ -437,16 +349,14 @@ class PeyzaApp {
         this.renderWhoToFollow();
         this.renderSidebarTrends();
         this.renderView();
-        
         setTimeout(() => { if(this.currentView === 'home') this.setFeedFilter('foryou'); }, 100);
-
         setInterval(() => this.simulateStats(), 1000);
         setInterval(() => this.generateRandomBotPost(), 15000);
     }
 
     // --- DATA ---
     loadUser() {
-        const saved = localStorage.getItem('peyza_user_v6'); 
+        const saved = localStorage.getItem('peyza_user_v7'); 
         if (saved) return JSON.parse(saved);
         return {
             handle: 'guest_user', name: 'Guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Guest',
@@ -458,32 +368,12 @@ class PeyzaApp {
             isPremium: false, createdBots: []
         };
     }
-    loadBots() {
-        const saved = localStorage.getItem('peyza_bots_v6');
-        if(saved) return JSON.parse(saved);
-        return [...DEFAULT_BOTS];
-    }
-    loadPosts() {
-        const saved = localStorage.getItem('peyza_posts_v6');
-        if (saved) {
-            let posts = JSON.parse(saved);
-            if(posts.length > 200) posts = posts.slice(0, 100);
-            return posts;
-        }
-        const posts = [];
-        for (let i = 0; i < 20; i++) {
-            posts.push(this.createMockPost(i * 1000 * 60 * 20));
-        }
-        return posts;
-    }
-    loadSettings() {
-        const saved = localStorage.getItem('peyza_settings');
-        if (saved) return JSON.parse(saved);
-        return { viralitySpeed: 1.0, theme: 'light' };
-    }
-    saveUser() { localStorage.setItem('peyza_user_v6', JSON.stringify(this.user)); this.renderSidebarUser(); }
-    saveBots() { localStorage.setItem('peyza_bots_v6', JSON.stringify(this.bots)); }
-    savePosts() { localStorage.setItem('peyza_posts_v6', JSON.stringify(this.posts)); }
+    loadBots() { const s=localStorage.getItem('peyza_bots_v7'); if(s)return JSON.parse(s); return [...DEFAULT_BOTS]; }
+    loadPosts() { const s=localStorage.getItem('peyza_posts_v7'); if(s){let p=JSON.parse(s); if(p.length>200)p=p.slice(0,100); return p;} const p=[]; for(let i=0;i<20;i++)p.push(this.createMockPost(i*1000*60*20)); return p; }
+    loadSettings() { const s=localStorage.getItem('peyza_settings'); if(s)return JSON.parse(s); return { viralitySpeed: 1.0, theme: 'light' }; }
+    saveUser() { localStorage.setItem('peyza_user_v7', JSON.stringify(this.user)); this.renderSidebarUser(); }
+    saveBots() { localStorage.setItem('peyza_bots_v7', JSON.stringify(this.bots)); }
+    savePosts() { localStorage.setItem('peyza_posts_v7', JSON.stringify(this.posts)); }
     saveSettings() { localStorage.setItem('peyza_settings', JSON.stringify(this.settings)); }
 
     getProfile(handle) {
@@ -494,97 +384,60 @@ class PeyzaApp {
     createMockPost(timeOffset = 0) {
         const bot = this.bots[Math.floor(Math.random() * this.bots.length)];
         let content = MOCK_POSTS_CONTENT[Math.floor(Math.random() * MOCK_POSTS_CONTENT.length)];
-        if (FAMOUS_CONTENT[bot.handle]) {
-            const opts = FAMOUS_CONTENT[bot.handle];
-            content = opts[Math.floor(Math.random() * opts.length)];
-        }
+        if (FAMOUS_CONTENT[bot.handle]) content = FAMOUS_CONTENT[bot.handle][Math.floor(Math.random() * FAMOUS_CONTENT[bot.handle].length)];
         const hasImage = Math.random() > 0.8;
         return {
             id: 'post_' + Math.random().toString(36).substr(2, 9),
             authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified,
-            content: content,
-            image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null,
-            video: null,
-            poll: null,
-            communityHandle: null, // If posting to a community
-            theme: 'default',
+            content: content, image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null, video: null, poll: null, communityHandle: null, theme: 'default',
             createdAt: Date.now() - timeOffset,
             stats: { likes: Math.floor(Math.random()*50), reposts: Math.floor(Math.random()*10), replies: Math.floor(Math.random()*5), views: Math.floor(Math.random()*500) },
             baseVelocity: Math.random()
         };
     }
 
-    // --- LOGIC ---
-
     createPost(content, asHandle = null) {
         let author = this.user;
-        if (asHandle && asHandle !== this.user.handle) {
-            author = this.bots.find(b => b.handle === asHandle) || this.user;
-        }
-
-        // Poll logic
+        if (asHandle && asHandle !== this.user.handle) author = this.bots.find(b => b.handle === asHandle) || this.user;
         let poll = null;
-        const opt1 = document.getElementById('poll-opt-1').value;
-        const opt2 = document.getElementById('poll-opt-2').value;
-        if(opt1 && opt2 && !document.getElementById('poll-creator').classList.contains('hidden')) {
-            poll = { options: [{ text: opt1, votes: 0 }, { text: opt2, votes: 0 }], totalVotes: 0 };
+        const o1 = document.getElementById('poll-opt-1').value;
+        const o2 = document.getElementById('poll-opt-2').value;
+        if(o1 && o2 && !document.getElementById('poll-creator').classList.contains('hidden')) {
+            poll = { options: [{ text: o1, votes: 0 }, { text: o2, votes: 0 }], totalVotes: 0 };
         }
-
         const newPost = {
             id: 'post_' + Math.random().toString(36).substr(2, 9),
             authorHandle: author.handle, authorName: author.name, authorAvatar: author.avatar, isVerified: author.isVerified,
-            content: content,
-            image: this.tempMediaType === 'image' ? this.tempMedia : null,
-            video: this.tempMediaType === 'video' ? this.tempMedia : null,
-            poll: poll,
-            communityHandle: this.postingToCommunity, // Set if user was on a community page
-            theme: 'default',
-            createdAt: Date.now(),
-            stats: { likes: 0, reposts: 0, replies: 0, views: 0 },
-            baseVelocity: Math.random()
+            content: content, image: this.tempMediaType === 'image' ? this.tempMedia : null, video: this.tempMediaType === 'video' ? this.tempMedia : null, poll: poll,
+            communityHandle: this.postingToCommunity, theme: 'default', createdAt: Date.now(),
+            stats: { likes: 0, reposts: 0, replies: 0, views: 0 }, baseVelocity: Math.random()
         };
         this.posts.unshift(newPost);
         this.savePosts();
+        if (this.replyingTo) { const op = this.posts.find(p => p.id === this.replyingTo); if(op) { op.stats.replies++; this.savePosts(); } this.replyingTo = null; }
+        this.clearMedia(); this.postingToCommunity = null;
         
-        if (this.replyingTo) {
-            const originalPost = this.posts.find(p => p.id === this.replyingTo);
-            if(originalPost) { originalPost.stats.replies++; this.savePosts(); }
-            this.replyingTo = null;
-        }
-
-        this.clearMedia(); 
-        this.postingToCommunity = null;
-        this.renderView();
+        // Fix: Go home after posting if not replying
+        if (!this.replyingTo) this.navigate('home'); else this.renderView();
     }
 
     generateRandomBotPost() {
-        const botPostCount = this.posts.filter(p => this.bots.some(b => b.handle === p.authorHandle)).length;
-        if (botPostCount > 25) return;
-        
+        const c = this.posts.filter(p => this.bots.some(b => b.handle === p.authorHandle)).length;
+        if (c > 25) return;
         this.bots.forEach(bot => {
-            // Check autoPost flag (defaults true)
             if (bot.autoPost !== false && Math.random() < 0.0083) { 
                 let content = MOCK_POSTS_CONTENT[Math.floor(Math.random() * MOCK_POSTS_CONTENT.length)];
                 if (FAMOUS_CONTENT[bot.handle]) content = FAMOUS_CONTENT[bot.handle][Math.floor(Math.random() * FAMOUS_CONTENT[bot.handle].length)];
-                
-                // Random community posting?
-                let commHandle = null;
-                if(Math.random() < 0.1) commHandle = this.user.handle; // 10% chance to post in user's community
-
-                const newPost = {
+                let commHandle = null; if(Math.random() < 0.1) commHandle = this.user.handle;
+                const np = {
                     id: 'post_' + Math.random().toString(36).substr(2, 9),
                     authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified,
-                    content: content,
-                    image: Math.random() > 0.8 ? `https://picsum.photos/seed/${Math.random()}/600/350` : null,
-                    video: null, poll: null, theme: 'default', communityHandle: commHandle,
-                    createdAt: Date.now(),
-                    stats: { likes: Math.floor(Math.random()*50), reposts: Math.floor(Math.random()*10), replies: Math.floor(Math.random()*5), views: Math.floor(Math.random()*500) },
-                    baseVelocity: Math.random()
+                    content: content, image: Math.random() > 0.8 ? `https://picsum.photos/seed/${Math.random()}/600/350` : null, video: null, poll: null, theme: 'default', communityHandle: commHandle,
+                    createdAt: Date.now(), stats: { likes: Math.floor(Math.random()*50), reposts: Math.floor(Math.random()*10), replies: Math.floor(Math.random()*5), views: Math.floor(Math.random()*500) }, baseVelocity: Math.random()
                 };
-                this.posts.unshift(newPost);
+                this.posts.unshift(np);
             }
         });
-        
         this.savePosts();
         if (this.currentView === 'home') this.renderFeed();
         if (this.currentView === 'profile' && this.profileFilter === 'community') this.renderProfile(this.viewParam);
@@ -594,42 +447,27 @@ class PeyzaApp {
         const now = Date.now();
         let changed = false;
         const fourHours = 4 * 60 * 60 * 1000;
-
-        const initialLength = this.posts.length;
-        this.posts = this.posts.filter(p => {
-            const isBot = this.bots.some(b => b.handle === p.authorHandle);
-            return !(isBot && (now - p.createdAt > fourHours));
-        });
-        if (this.posts.length !== initialLength) changed = true;
+        const initLen = this.posts.length;
+        this.posts = this.posts.filter(p => { const isBot = this.bots.some(b => b.handle === p.authorHandle); return !(isBot && (now - p.createdAt > fourHours)); });
+        if (this.posts.length !== initLen) changed = true;
 
         this.posts.forEach(post => {
-            const ageInSeconds = (now - post.createdAt) / 1000;
-            if (ageInSeconds < 86400) {
-                let followers = 100;
-                if (post.authorHandle === this.user.handle) followers = this.user.followers;
-                else { const b = this.bots.find(x => x.handle === post.authorHandle); if(b) followers = b.followers; }
-
-                const followerScale = Math.max(1, Math.log10(followers));
-                const repostBoost = 1 + (post.stats.reposts * 0.1);
-                const growthFactor = this.settings.viralitySpeed * post.baseVelocity * followerScale * repostBoost;
-                
-                const newViews = Math.floor(post.stats.views + (growthFactor * 5 * Math.random()));
-                if (newViews > post.stats.views) { post.stats.views = newViews; changed = true; }
-                if (Math.random() < 0.3) { post.stats.likes += Math.floor(growthFactor * Math.random() * 2); changed = true; }
+            const age = (now - post.createdAt) / 1000;
+            if (age < 86400) {
+                let f = 100;
+                if (post.authorHandle === this.user.handle) f = this.user.followers;
+                else { const b = this.bots.find(x => x.handle === post.authorHandle); if(b) f = b.followers; }
+                const scale = Math.max(1, Math.log10(f));
+                const boost = 1 + (post.stats.reposts * 0.1);
+                const growth = this.settings.viralitySpeed * post.baseVelocity * scale * boost;
+                const nv = Math.floor(post.stats.views + (growth * 5 * Math.random()));
+                if (nv > post.stats.views) { post.stats.views = nv; changed = true; }
+                if (Math.random() < 0.3) { post.stats.likes += Math.floor(growth * Math.random() * 2); changed = true; }
                 if (Math.random() < 0.05) { post.stats.reposts += 1; changed = true; }
-                if (post.poll && Math.random() < 0.2 * growthFactor) {
-                    const randomOpt = Math.floor(Math.random() * post.poll.options.length);
-                    post.poll.options[randomOpt].votes++;
-                    post.poll.totalVotes++;
-                    changed = true;
-                }
+                if (post.poll && Math.random() < 0.2 * growth) { const r = Math.floor(Math.random() * post.poll.options.length); post.poll.options[r].votes++; post.poll.totalVotes++; changed = true; }
             }
         });
-
-        if (changed) {
-            this.savePosts();
-            this.updateVisibleStats();
-        }
+        if (changed) { this.savePosts(); this.updateVisibleStats(); }
     }
 
     updateVisibleStats() {
@@ -640,23 +478,18 @@ class PeyzaApp {
                 el.querySelector('.stat-likes').innerText = this.formatNumber(post.stats.likes);
                 el.querySelector('.stat-reposts').innerText = this.formatNumber(post.stats.reposts);
             }
+            const dv = document.getElementById(`detail-views-${post.id}`);
+            if(dv) dv.innerText = this.formatNumber(post.stats.views);
             if (post.poll) {
                 post.poll.options.forEach((opt, idx) => {
                     const bar = document.getElementById(`poll-bar-${post.id}-${idx}`);
                     const text = document.getElementById(`poll-text-${post.id}-${idx}`);
-                    if(bar && text) {
-                        const pct = post.poll.totalVotes === 0 ? 0 : Math.round((opt.votes / post.poll.totalVotes) * 100);
-                        bar.style.width = pct + '%';
-                        text.innerText = `${pct}%`;
-                    }
+                    if(bar && text) { const pct = post.poll.totalVotes === 0 ? 0 : Math.round((opt.votes / post.poll.totalVotes) * 100); bar.style.width = pct + '%'; text.innerText = `${pct}%`; }
                 });
-                const total = document.getElementById(`poll-total-${post.id}`);
-                if(total) total.innerText = `${this.formatNumber(post.poll.totalVotes)} votes`;
+                const t = document.getElementById(`poll-total-${post.id}`); if(t) t.innerText = `${this.formatNumber(post.poll.totalVotes)} votes`;
             }
         });
     }
-
-    // --- VIEW ---
 
     navigate(view, param = null) {
         this.currentView = view;
@@ -677,8 +510,6 @@ class PeyzaApp {
         const main = document.getElementById('main-view');
         const header = document.getElementById('sticky-header');
         main.innerHTML = '';
-        
-        // Mobile Nav update
         const mNav = document.getElementById('mobile-nav-bar');
         if(mNav) {
             mNav.innerHTML = `
@@ -718,12 +549,7 @@ class PeyzaApp {
         let filteredPosts = [...this.posts];
         if (this.feedFilter === 'media') filteredPosts = filteredPosts.filter(p => p.image || p.video);
         else if (this.feedFilter === 'following') filteredPosts = filteredPosts.filter(p => p.authorHandle !== 'guest_user');
-        
-        // Filter out community posts from main feed unless 'following'
-        if(this.feedFilter === 'foryou') {
-            filteredPosts = filteredPosts.filter(p => !p.communityHandle); 
-        }
-
+        if(this.feedFilter === 'foryou') filteredPosts = filteredPosts.filter(p => !p.communityHandle); 
         filteredPosts.sort((a, b) => b.createdAt - a.createdAt);
         let html = '';
         filteredPosts.forEach(post => html += this.buildPostHTML(post));
@@ -735,32 +561,22 @@ class PeyzaApp {
         if (!query) {
             let html = `<div class="p-4"><h2 class="font-extrabold text-xl mb-4 dark:text-white">Trends for you</h2>`;
             ['#PeyzaGodMode', 'Juice WRLD', 'Artificial Intelligence', 'SpaceX', 'Taylor Swift'].forEach(topic => {
-                html += `
-                    <div class="py-3 hover:bg-gray-50 dark:hover:bg-darkSec cursor-pointer -mx-4 px-4 transition">
-                        <div class="text-xs text-gray-500">Trending</div>
-                        <div class="font-bold text-sm dark:text-white">${topic}</div>
-                        <div class="text-xs text-gray-500">${Math.floor(Math.random()*500)+1}K posts</div>
-                    </div>`;
+                html += `<div class="py-3 hover:bg-gray-50 dark:hover:bg-darkSec cursor-pointer -mx-4 px-4 transition"><div class="text-xs text-gray-500">Trending</div><div class="font-bold text-sm dark:text-white">${topic}</div><div class="text-xs text-gray-500">${Math.floor(Math.random()*500)+1}K posts</div></div>`;
             });
             html += `</div><div class="border-t border-gray-100 dark:border-darkBorder p-4"><h2 class="font-extrabold text-xl mb-4 dark:text-white">Who to follow</h2>`;
-            this.bots.forEach(bot => {
-                html += this.buildUserListHTML(bot);
-            });
+            this.bots.forEach(bot => { html += this.buildUserListHTML(bot); });
             html += `</div>`;
             container.innerHTML = html;
         } else {
             const q = query.toLowerCase();
             const matchedUsers = this.bots.filter(b => b.name.toLowerCase().includes(q) || b.handle.toLowerCase().includes(q));
             const matchedPosts = this.posts.filter(p => p.content.toLowerCase().includes(q));
-            
             let html = `<div class="p-4 border-b border-gray-100 dark:border-darkBorder font-bold text-xl dark:text-white">People</div>`;
             if (matchedUsers.length === 0) html += `<div class="p-4 text-gray-500">No people found</div>`;
             matchedUsers.forEach(u => html += this.buildUserListHTML(u));
-            
             html += `<div class="p-4 border-b border-gray-100 dark:border-darkBorder font-bold text-xl dark:text-white mt-2">Posts</div>`;
             if (matchedPosts.length === 0) html += `<div class="p-4 text-gray-500">No posts found</div>`;
             matchedPosts.forEach(p => html += this.buildPostHTML(p));
-            
             container.innerHTML = html;
         }
     }
@@ -771,32 +587,14 @@ class PeyzaApp {
         let html = '';
         myPosts.forEach(p => {
             if(p.stats.likes > 0) {
-                html += `
-                <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec cursor-pointer">
-                    <div class="text-3xl text-rose-500 w-10 text-right"><i class="fa-solid fa-heart"></i></div>
-                    <div>
-                        <div class="w-8 h-8 rounded-full bg-gray-200 mb-2"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}" class="w-full h-full object-cover"></div>
-                        <p class="text-sm dark:text-white"><span class="font-bold">Someone</span> liked your post</p>
-                        <p class="text-gray-500 text-sm mt-1 line-clamp-1">${p.content}</p>
-                    </div>
-                </div>`;
+                html += `<div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec cursor-pointer"><div class="text-3xl text-rose-500 w-10 text-right"><i class="fa-solid fa-heart"></i></div><div><div class="w-8 h-8 rounded-full bg-gray-200 mb-2"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}" class="w-full h-full object-cover"></div><p class="text-sm dark:text-white"><span class="font-bold">Someone</span> liked your post</p><p class="text-gray-500 text-sm mt-1 line-clamp-1">${p.content}</p></div></div>`;
             }
         });
         container.innerHTML = html || '<div class="p-10 text-center text-gray-500">No notifications yet</div>';
     }
 
     buildUserListHTML(user) {
-        return `
-            <div class="flex items-center justify-between py-3 hover:bg-gray-50 dark:hover:bg-darkSec px-4 -mx-4 transition cursor-pointer" onclick="app.navigate('profile', '${user.handle}')">
-                <div class="flex items-center gap-3">
-                    <img src="${user.avatar}" class="w-10 h-10 rounded-full bg-gray-200 object-cover">
-                    <div>
-                        <p class="font-bold text-sm dark:text-white">${user.name} ${user.isVerified ? VERIFIED_ICON : ''}</p>
-                        <p class="text-gray-500 text-sm">@${user.handle}</p>
-                    </div>
-                </div>
-            </div>
-        `;
+        return `<div class="flex items-center justify-between py-3 hover:bg-gray-50 dark:hover:bg-darkSec px-4 -mx-4 transition cursor-pointer" onclick="app.navigate('profile', '${user.handle}')"><div class="flex items-center gap-3"><img src="${user.avatar}" class="w-10 h-10 rounded-full bg-gray-200 object-cover"><div><p class="font-bold text-sm dark:text-white">${user.name} ${user.isVerified ? VERIFIED_ICON : ''}</p><p class="text-gray-500 text-sm">@${user.handle}</p></div></div></div>`;
     }
 
     renderProfile(handle) {
@@ -805,13 +603,12 @@ class PeyzaApp {
         const isMe = handle === this.user.handle;
         const isMyBot = this.user.createdBots.includes(handle);
         const canEdit = isMe || (this.user.isPremium && isMyBot) || (this.user.isPremium && this.settings.godModeEnabled);
-        
-        // Community Calc
         const memberCount = Math.floor(pData.followers * 0.15) + (isMe?1:0);
+        const banner = pData.banner || `https://picsum.photos/seed/${handle}/800/300`;
 
         const html = `
             <div>
-                <div class="h-32 sm:h-48 bg-gray-200 dark:bg-darkSec overflow-hidden"><img src="${pData.banner||''}" class="w-full h-full object-cover"></div>
+                <div class="h-32 sm:h-48 bg-gray-200 dark:bg-darkSec overflow-hidden"><img src="${banner}" class="w-full h-full object-cover"></div>
                 <div class="px-4 relative mb-4">
                     <div class="flex justify-between items-start">
                         <div class="-mt-[15%] sm:-mt-[10%] w-[25%] max-w-[130px] aspect-square rounded-full border-4 border-white dark:border-dark overflow-hidden bg-white dark:bg-darkSec"><img src="${pData.avatar}" class="w-full h-full object-cover"></div>
@@ -828,12 +625,7 @@ class PeyzaApp {
                     <div onclick="app.setProfileFilter('likes')" class="flex-1 text-center py-3 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer relative font-bold text-sm dark:text-white ${this.profileFilter==='likes'?'text-black dark:text-white':'text-gray-500'}">Likes<div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.profileFilter==='likes'?'':'hidden'}"><div class="bg-rose-500 w-12 rounded-full"></div></div></div>
                 </div>
                 <div id="profile-feed">
-                    ${this.profileFilter === 'community' ? 
-                        `<div class="p-4 bg-gray-50 dark:bg-darkSec border-b border-gray-100 dark:border-darkBorder mb-2 flex justify-between items-center">
-                            <div><h3 class="font-bold text-lg dark:text-white">${pData.name}'s Community</h3><p class="text-sm text-gray-500">${this.formatNumber(memberCount)} Members</p></div>
-                            <button onclick="app.openComposeModalForCommunity('${handle}')" class="bg-rose-500 text-white text-sm font-bold px-4 py-2 rounded-full">Post Here</button>
-                        </div>` 
-                    : ''}
+                    ${this.profileFilter === 'community' ? `<div class="p-4 bg-gray-50 dark:bg-darkSec border-b border-gray-100 dark:border-darkBorder mb-2 flex justify-between items-center"><div><h3 class="font-bold text-lg dark:text-white">${pData.name}'s Community</h3><p class="text-sm text-gray-500">${this.formatNumber(memberCount)} Members</p></div><button onclick="app.openComposeModalForCommunity('${handle}')" class="bg-rose-500 text-white text-sm font-bold px-4 py-2 rounded-full">Post Here</button></div>` : ''}
                     ${this.getPostsByHandle(handle)}
                 </div>
             </div>`;
@@ -848,8 +640,6 @@ class PeyzaApp {
         } else if (this.profileFilter === 'community') {
             userPosts = this.posts.filter(p => p.communityHandle === handle);
         } else {
-            // Main posts tab (exclude community posts unless filtering specifically?)
-            // Twitter usually shows replies too, but let's just show main posts + media
             userPosts = this.posts.filter(p => p.authorHandle === handle && !p.communityHandle);
             if(this.profileFilter === 'media') userPosts = userPosts.filter(p => p.image || p.video);
         }
@@ -858,6 +648,38 @@ class PeyzaApp {
         let html = '';
         userPosts.forEach(post => html += this.buildPostHTML(post));
         return html;
+    }
+
+    renderPostDetail(postId) {
+        const post = this.posts.find(p => p.id === postId);
+        if (!post) return;
+        let avatar = post.authorAvatar, name = post.authorName, isVerified = post.isVerified;
+        if (post.authorHandle === this.user.handle) { avatar = this.user.avatar; name = this.user.name; isVerified = this.user.isVerified; }
+        else { const bot = this.bots.find(b => b.handle === post.authorHandle); if(bot) { avatar = bot.avatar; name = bot.name; isVerified = bot.isVerified; } }
+        
+        const isLiked = this.user.likedPosts.includes(postId), isReposted = this.user.repostedPosts.includes(postId), isBookmarked = this.user.bookmarks.includes(postId);
+        const container = document.getElementById('main-view');
+        let html = `
+            <div class="px-4 py-3 border-b border-gray-100 dark:border-darkBorder animate-fade-in">
+                <div class="flex gap-3 items-center mb-3">
+                     <div class="w-10 h-10 rounded-full overflow-hidden cursor-pointer" onclick="app.navigate('profile', '${post.authorHandle}')"><img src="${avatar}" class="w-full h-full object-cover"></div>
+                    <div><div class="font-bold flex items-center cursor-pointer hover:underline dark:text-white" onclick="app.navigate('profile', '${post.authorHandle}')">${name} ${isVerified ? VERIFIED_ICON : ''}</div><div class="text-gray-500 text-sm">@${post.authorHandle}</div></div>
+                </div>
+                <div class="text-xl mb-3 whitespace-pre-wrap leading-normal dark:text-white">${post.content}</div>
+                ${post.image ? `<div class="rounded-2xl overflow-hidden border border-gray-100 dark:border-darkBorder mb-3"><img src="${post.image}" class="w-full"></div>` : ''}
+                ${post.video ? `<div class="mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-darkBorder max-h-[350px]"><video src="${post.video}" class="w-full h-full object-cover" controls autoplay muted loop></video></div>` : ''}
+                ${this.buildPollHTML(post, true)}
+                <div class="text-gray-500 text-sm py-4 border-b border-gray-100 dark:border-darkBorder">${new Date(post.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} · ${new Date(post.createdAt).toLocaleDateString()} · <span class="text-black dark:text-white font-bold font-mono" id="detail-views-${post.id}">${this.formatNumber(post.stats.views)}</span> <span class="font-medium">Views</span></div>
+                <div class="flex justify-between py-1 border-b border-gray-100 dark:border-darkBorder text-gray-500 px-2" id="stats-${post.id}">
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full" onclick="app.openReplyModal('${post.id}')"><i class="fa-regular fa-comment text-xl"></i></div>
+                    <div class="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-500 flex items-center justify-center w-full py-3 transition group rounded-full ${isReposted ? 'reposted' : ''}" onclick="app.toggleRepost('${post.id}', this)"><i class="fa-solid fa-retweet text-xl transition-transform active:scale-125"></i></div>
+                    <div class="cursor-pointer hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 flex items-center justify-center w-full py-3 transition group rounded-full ${isLiked ? 'liked' : ''}" onclick="app.toggleLike('${post.id}', this)"><i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-xl transition-transform active:scale-125"></i></div>
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full ${isBookmarked ? 'bookmarked' : ''}" onclick="app.toggleBookmark('${post.id}', this)"><i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl transition-transform active:scale-125"></i></div>
+                    <div class="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 flex items-center justify-center w-full py-3 transition group rounded-full" onclick="app.shareApp()"><i class="fa-solid fa-arrow-up-from-bracket text-xl"></i></div>
+                </div>
+            </div>
+            <div class="bg-gray-50/50 dark:bg-darkSec min-h-screen pb-10"></div>`;
+        container.innerHTML = html;
     }
 
     buildPostHTML(post) {
@@ -912,79 +734,20 @@ class PeyzaApp {
         let html = `<div class="mt-3 space-y-2 max-w-[400px]" onclick="event.stopPropagation()">`;
         post.poll.options.forEach((opt, idx) => {
             const pct = post.poll.totalVotes === 0 ? 0 : Math.round((opt.votes / post.poll.totalVotes) * 100);
-            html += `
-                <div class="relative h-8 rounded-md overflow-hidden bg-gray-100 dark:bg-darkSec cursor-pointer hover:opacity-90 transition">
-                    <div id="poll-bar-${post.id}-${idx}" class="absolute top-0 left-0 h-full bg-rose-200 dark:bg-rose-900/40 transition-all duration-500" style="width: ${pct}%"></div>
-                    <div class="absolute inset-0 flex items-center justify-between px-3 text-sm font-bold dark:text-white">
-                        <span>${opt.text}</span>
-                        <span id="poll-text-${post.id}-${idx}">${pct}%</span>
-                    </div>
-                </div>
-            `;
+            html += `<div class="relative h-8 rounded-md overflow-hidden bg-gray-100 dark:bg-darkSec cursor-pointer hover:opacity-90 transition"><div id="poll-bar-${post.id}-${idx}" class="absolute top-0 left-0 h-full bg-rose-200 dark:bg-rose-900/40 transition-all duration-500" style="width: ${pct}%"></div><div class="absolute inset-0 flex items-center justify-between px-3 text-sm font-bold dark:text-white"><span>${opt.text}</span><span id="poll-text-${post.id}-${idx}">${pct}%</span></div></div>`;
         });
         html += `<div class="text-gray-500 text-xs mt-1"><span id="poll-total-${post.id}">${this.formatNumber(post.poll.totalVotes)} votes</span> · 1 day left</div></div>`;
         return html;
     }
 
-    // --- ACTIONS ---
-    handlePostMedia(event, type) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            this.tempMedia = e.target.result;
-            this.tempMediaType = type;
-            const preview = document.getElementById('media-preview');
-            const img = document.getElementById('media-preview-img');
-            const vid = document.getElementById('media-preview-video');
-            
-            preview.classList.remove('hidden');
-            if(type === 'image') {
-                img.src = this.tempMedia; img.classList.remove('hidden'); vid.classList.add('hidden');
-            } else {
-                vid.src = this.tempMedia; vid.classList.remove('hidden'); img.classList.add('hidden');
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-
-    openComposeModalForCommunity(handle) {
-        this.postingToCommunity = handle;
-        this.openComposeModal();
-        document.getElementById('community-indicator').classList.remove('hidden');
-        document.getElementById('community-name-target').innerText = '@' + handle;
-    }
-
-    closeComposeModal() {
-        document.getElementById('compose-modal').classList.add('hidden');
-        document.getElementById('compose-input').value = '';
-        this.replyingTo = null;
-        this.clearMedia();
-        document.getElementById('poll-creator').classList.add('hidden');
-        document.getElementById('community-indicator').classList.add('hidden');
-        this.postingToCommunity = null;
-    }
-
-    deletePost(id) {
-        if(confirm("Delete this post?")) {
-            this.posts = this.posts.filter(p => p.id !== id);
-            this.savePosts();
-            this.renderView();
-            this.showToast('Post deleted');
-        }
-    }
-
-    togglePostTheme(id) {
-        const post = this.posts.find(p => p.id === id);
-        if(post) {
-            post.theme = post.theme === 'default' ? 'highlight' : 'default';
-            this.savePosts();
-            this.renderView();
-        }
-    }
-
-    // --- Standard Functions (Restored) ---
-    openComposeModal() { document.getElementById('compose-modal').classList.remove('hidden'); document.getElementById('compose-avatar').src = this.user.avatar; if(!this.replyingTo) document.getElementById('replying-to-indicator').classList.add('hidden'); /* ... (selector logic) ... */ const sel=document.getElementById('author-selector'), s=document.getElementById('post-as-select'); if(this.user.createdBots.length>0){ sel.classList.remove('hidden'); s.innerHTML=`<option value="${this.user.handle}">@${this.user.handle}</option>`; this.user.createdBots.forEach(h=>{const b=this.bots.find(x=>x.handle===h);if(b)s.innerHTML+=`<option value="${b.handle}">@${b.handle}</option>`}); s.onchange=(e)=>{const h=e.target.value;if(h===this.user.handle)document.getElementById('compose-avatar').src=this.user.avatar;else{const b=this.bots.find(x=>x.handle===h);if(b)document.getElementById('compose-avatar').src=b.avatar}};}else{sel.classList.add('hidden');} }
+    handlePostMedia(event, type) { const f=event.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=(e)=>{ this.tempMedia=e.target.result; this.tempMediaType=type; const p=document.getElementById('media-preview'), i=document.getElementById('media-preview-img'), v=document.getElementById('media-preview-video'); p.classList.remove('hidden'); if(type==='image'){i.src=this.tempMedia;i.classList.remove('hidden');v.classList.add('hidden');}else{v.src=this.tempMedia;v.classList.remove('hidden');i.classList.add('hidden');} }; r.readAsDataURL(f); }
+    openComposeModalForCommunity(h) { this.postingToCommunity=h; this.openComposeModal(); document.getElementById('community-indicator').classList.remove('hidden'); document.getElementById('community-name-target').innerText='@'+h; }
+    closeComposeModal() { document.getElementById('compose-modal').classList.add('hidden'); document.getElementById('compose-input').value=''; this.replyingTo=null; this.clearMedia(); document.getElementById('poll-creator').classList.add('hidden'); document.getElementById('community-indicator').classList.add('hidden'); this.postingToCommunity=null; }
+    deletePost(id) { if(confirm("Delete?")){ this.posts=this.posts.filter(p=>p.id!==id); this.savePosts(); this.renderView(); this.showToast('Deleted'); } }
+    togglePostTheme(id) { const p=this.posts.find(x=>x.id===id); if(p){ p.theme=p.theme==='default'?'highlight':'default'; this.savePosts(); this.renderView(); } }
+    
+    // --- Restored Functions ---
+    openComposeModal() { document.getElementById('compose-modal').classList.remove('hidden'); document.getElementById('compose-avatar').src = this.user.avatar; if(!this.replyingTo) document.getElementById('replying-to-indicator').classList.add('hidden'); const sel=document.getElementById('author-selector'), s=document.getElementById('post-as-select'); if(this.user.createdBots.length>0){ sel.classList.remove('hidden'); s.innerHTML=`<option value="${this.user.handle}">@${this.user.handle}</option>`; this.user.createdBots.forEach(h=>{const b=this.bots.find(x=>x.handle===h);if(b)s.innerHTML+=`<option value="${b.handle}">@${b.handle}</option>`}); s.onchange=(e)=>{const h=e.target.value;if(h===this.user.handle)document.getElementById('compose-avatar').src=this.user.avatar;else{const b=this.bots.find(x=>x.handle===h);if(b)document.getElementById('compose-avatar').src=b.avatar}};}else{sel.classList.add('hidden');} }
     openReplyModal(id) { this.replyingTo=id; this.openComposeModal(); const p=this.posts.find(x=>x.id===id); document.getElementById('replying-to-indicator').classList.remove('hidden'); document.getElementById('replying-to-indicator').innerHTML=`Replying to <span class="text-rose-500">@${p?p.authorHandle:'user'}</span>`; }
     toggleTheme() { this.settings.theme = this.settings.theme === 'light' ? 'dark' : 'light'; this.applyTheme(); this.saveSettings(); }
     applyTheme() { const h=document.querySelector('html'); if(this.settings.theme==='dark')h.classList.add('dark');else h.classList.remove('dark'); }
