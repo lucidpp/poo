@@ -1,808 +1,296 @@
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <title>Peyza - The Red Social Network</title>
-    <meta name="theme-color" content="#e11d48">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peyza.org | Daily News Blog</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        dark: '#000000',
-                        darkSec: '#16181c',
-                        darkText: '#e7e9ea',
-                        darkBorder: '#2f3336'
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            300: '#d6d3d1',
+                            400: '#a8a29e',
+                            500: '#78716c',
+                            600: '#57534e',
+                            700: '#44403c',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        earth: {
+                            accent: '#c2410c', // Muted rust for urgency
+                        }
                     }
                 }
             }
         }
     </script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300&family=Inter:wght@300;400;600;800&display=swap');
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #be123c; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafaf9; /* Stone-50 */
+            color: #44403c; /* Stone-700 */
+        }
+
+        h1, h2, h3, .serif {
+            font-family: 'Merriweather', serif;
+        }
+
+        .hero-bg {
+            background-color: #f5f5f4; /* Stone-100 */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Minimalist grain texture */
+        .hero-pattern {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            background-color: #44403c; /* Stone-700 */
+            color: #e7e5e4; /* Stone-200 */
+            white-space: nowrap;
+        }
+
+        .ticker {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker 35s linear infinite;
+        }
+
+        .ticker__item {
+            display: inline-block;
+            padding: 0 2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
 
         /* Animations */
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.4); }
-            100% { transform: scale(1); }
-        }
-        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
-        
-        .nav-item.active i { font-weight: 900; }
-        
-        /* Mobile Nav Animations */
-        .nav-icon { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s; }
-        .nav-icon.active { transform: scale(1.25); }
-        
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .mobile-nav { padding-bottom: env(safe-area-inset-bottom); }
-        
-        /* Interaction States */
-        .liked { color: #e11d48 !important; }
-        .reposted { color: #22c55e !important; }
-        .bookmarked { color: #3b82f6 !important; }
-        .liked-fire { color: #f59e0b !important; }
-        
-        /* Post Themes */
-        .post-highlight {
-            border: 2px solid #fbbf24 !important; 
-            background-color: rgba(251, 191, 36, 0.05);
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* PeyVids Specific */
-        .peyvids-container {
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 60;
-            background: black;
+        .animate-fade-up {
+            opacity: 0; /* Start hidden */
+            animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        .peyvid-item {
-            scroll-snap-align: start;
-            height: 100vh;
-            width: 100%;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.3s; }
+        .delay-300 { animation-delay: 0.5s; }
+        .delay-400 { animation-delay: 0.7s; }
+        .delay-500 { animation-delay: 0.9s; }
+
+        .btn-primary {
+            background-color: #292524; /* Stone-800 */
+            color: #fafaf9;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #44403c; /* Stone-700 */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(41, 37, 36, 0.15);
+        }
+
+        .btn-secondary {
+            border: 1px solid #78716c; /* Stone-500 */
+            color: #44403c;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #e7e5e4; /* Stone-200 */
+            border-color: #44403c;
         }
     </style>
 </head>
-<body class="flex justify-center min-h-screen bg-white text-[#0f1419] dark:bg-dark dark:text-darkText transition-colors duration-200">
+<body class="bg-stone-50 flex flex-col min-h-screen selection:bg-stone-200 selection:text-stone-900">
 
-    <!-- Left Sidebar (Desktop) -->
-    <header class="hidden sm:flex flex-col w-[80px] xl:w-[275px] h-screen fixed left-0 top-0 border-r border-gray-100 dark:border-darkBorder px-2 xl:px-8 py-4 z-50 bg-white dark:bg-dark justify-between">
-        <div class="space-y-4">
-            <div class="p-3 w-min hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full cursor-pointer transition transform active:scale-90" onclick="app.navigate('home')">
-                <i class="fa-solid fa-p text-3xl text-rose-600"></i>
-            </div>
-            <nav class="space-y-2 text-xl">
-                <a onclick="app.navigate('home')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item active" id="nav-home">
-                    <i class="fa-solid fa-house"></i> <span class="hidden xl:block font-medium">Home</span>
-                </a>
-                <a onclick="app.navigate('explore')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-explore">
-                    <i class="fa-solid fa-magnifying-glass"></i> <span class="hidden xl:block font-medium">Explore</span>
-                </a>
-                <a onclick="app.navigate('peyvids')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-peyvids">
-                    <i class="fa-solid fa-play"></i> <span class="hidden xl:block font-medium">PeyVids</span>
-                </a>
-                <a onclick="app.navigate('notifications')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-notifications">
-                    <i class="fa-regular fa-bell"></i> <span class="hidden xl:block font-medium">Notifications</span>
-                </a>
-                <a onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-profile">
-                    <i class="fa-regular fa-user"></i> <span class="hidden xl:block font-medium">Profile</span>
-                </a>
-                <a onclick="app.openSettings()" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item">
-                    <i class="fa-solid fa-gear"></i> <span class="hidden xl:block font-medium">Settings</span>
-                </a>
-            </nav>
-            <button onclick="app.openComposeModal()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-full p-4 xl:py-3 xl:px-8 w-full shadow-lg transition transform active:scale-95 mt-4">
-                <i class="fa-solid fa-feather sm:hidden"></i> <span class="hidden xl:block font-bold text-lg">Post</span>
-            </button>
+    <!-- Breaking News Ticker -->
+    <div class="ticker-wrap py-3 border-b border-stone-600">
+        <div class="ticker">
+            <div class="ticker__item">Peyza.org Launches Global Platform</div>
+            <div class="ticker__item">Local Stories, Worldwide Impact</div>
+            <div class="ticker__item">Brazil, Indiana: The New Hub for Digital Journalism</div>
+            <div class="ticker__item">Breaking: Community Voices Amplified</div>
+            <div class="ticker__item">Read More at app.peyza.org</div>
         </div>
-        <div onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-3 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer mb-4 transition" id="sidebar-user">
-            <!-- Injected by JS -->
-        </div>
-    </header>
-
-    <!-- Main Content Feed -->
-    <main class="w-full sm:ml-[80px] xl:ml-[275px] max-w-[600px] border-r border-gray-100 dark:border-darkBorder min-h-screen pb-20 sm:pb-0 relative">
-        <div id="sticky-header" class="sticky top-0 bg-white/80 dark:bg-dark/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-darkBorder"></div>
-        <div id="main-view" class="animate-fade-in"></div>
-    </main>
-    
-    <!-- PeyVids Overlay -->
-    <div id="peyvids-overlay" class="peyvids-container hidden bg-black flex justify-center">
-        <div id="peyvids-feed" class="w-full max-w-[500px] bg-black h-full relative shadow-2xl border-x border-gray-800"></div>
-        <div class="absolute top-4 left-4 z-50 text-white text-3xl cursor-pointer hover:scale-110 transition drop-shadow-md" onclick="app.closePeyVids()"><i class="fa-solid fa-arrow-left"></i></div>
     </div>
 
-    <!-- Right Sidebar (Desktop) -->
-    <aside class="hidden lg:block w-[350px] pl-8 py-4 h-screen sticky top-0">
-        <div class="relative group mb-6">
-            <div class="absolute left-4 top-3 text-gray-500 group-focus-within:text-rose-500"><i class="fa-solid fa-magnifying-glass"></i></div>
-            <input type="text" placeholder="Search Peyza" onkeyup="if(event.key === 'Enter') { app.navigate('explore', this.value); }" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-3 pl-12 pr-4 outline-none focus:bg-white dark:focus:bg-black focus:ring-1 focus:ring-rose-500 transition border border-transparent dark:border-darkBorder">
-        </div>
-        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4 mb-4">
-            <h3 class="font-extrabold text-xl mb-4">Trends for you</h3>
-            <div class="space-y-4" id="sidebar-trends"></div>
-        </div>
-        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4">
-            <h3 class="font-extrabold text-xl mb-4">Who to follow</h3>
-            <div id="who-to-follow" class="space-y-4"></div>
-        </div>
-    </aside>
-
-    <!-- Mobile Navigation Bottom -->
-    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30" id="mobile-nav-bar"></div>
-
-    <!-- Floating Action Button (Mobile) -->
-    <button onclick="app.openComposeModal()" class="fixed bottom-20 right-4 bg-rose-500 text-white rounded-full p-4 shadow-lg sm:hidden z-20 hover:bg-rose-600 active:scale-90 transition animate-pop">
-        <i class="fa-solid fa-feather text-xl"></i>
-    </button>
-
-    <!-- Compose Modal -->
-    <div id="compose-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-[70] hidden flex items-start justify-center pt-16 sm:pt-24 p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-dark w-full max-w-[600px] rounded-2xl p-4 shadow-2xl relative animate-pop border dark:border-darkBorder">
-            <div class="flex justify-between items-center mb-4">
-                <button onclick="app.closeComposeModal()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button>
-                <div class="flex gap-4">
-                     <span class="text-rose-500 font-bold text-sm self-center">Drafts</span>
-                     <button onclick="app.publishPost()" class="bg-rose-500 text-white px-4 py-1.5 rounded-full font-bold text-sm hover:bg-rose-600 disabled:opacity-50 transition">Post</button>
+    <!-- Navigation -->
+    <nav class="bg-stone-50/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex-shrink-0 flex items-center gap-3">
+                    <div class="w-9 h-9 bg-stone-800 text-stone-100 flex items-center justify-center font-bold serif text-lg rounded-sm">P</div>
+                    <span class="font-bold text-xl tracking-tight text-stone-800 serif">Peyza.org</span>
+                </div>
+                <div class="hidden md:flex space-x-10">
+                    <a href="#" class="text-stone-500 hover:text-stone-900 transition-colors text-sm uppercase tracking-wide font-medium">Mission</a>
+                    <a href="#" class="text-stone-500 hover:text-stone-900 transition-colors text-sm uppercase tracking-wide font-medium">Local</a>
+                    <a href="#" class="text-stone-500 hover:text-stone-900 transition-colors text-sm uppercase tracking-wide font-medium">Global</a>
+                </div>
+                <div>
+                    <a href="https://app.peyza.org" class="btn-primary px-5 py-2.5 rounded text-sm font-medium">
+                        Access App
+                    </a>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <img id="compose-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-darkBorder">
-                <div class="w-full">
-                    <div id="author-selector" class="hidden mb-2"><select id="post-as-select" class="text-sm font-bold bg-transparent outline-none text-rose-500 cursor-pointer"></select></div>
-                    <div id="replying-to-indicator" class="hidden text-sm text-gray-500 mb-1">Replying to <span class="text-rose-500">@post</span></div>
-                    <div id="community-indicator" class="hidden text-sm text-gray-500 mb-1">Posting to <span class="text-rose-500 font-bold" id="community-name-target">Community</span></div>
-                    <textarea id="compose-input" class="w-full h-24 resize-none outline-none text-xl placeholder-gray-500 bg-transparent dark:text-white mt-2" placeholder="What is happening?!"></textarea>
-                    
-                    <div id="media-preview" class="hidden relative mb-2">
-                        <img id="media-preview-img" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden">
-                        <video id="media-preview-video" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden" controls></video>
-                        <button onclick="app.clearMedia()" class="absolute top-1 left-1 bg-black/50 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
+        </div>
+    </nav>
 
-                    <div id="poll-creator" class="hidden border border-gray-200 dark:border-darkBorder rounded-xl p-3 mb-2">
-                        <div class="space-y-2">
-                            <input type="text" id="poll-opt-1" placeholder="Choice 1" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white">
-                            <input type="text" id="poll-opt-2" placeholder="Choice 2" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white">
-                        </div>
-                        <div class="mt-2 text-rose-500 text-xs font-bold cursor-pointer" onclick="document.getElementById('poll-creator').classList.add('hidden')">Remove Poll</div>
-                    </div>
+    <!-- Hero Section -->
+    <div class="hero-bg flex-grow flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 relative">
+        <div class="hero-pattern"></div>
+        
+        <div class="max-w-4xl w-full text-center relative z-10">
+            <!-- Badge -->
+            <div class="animate-fade-up">
+                <span class="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-stone-200 text-stone-600 mb-8 border border-stone-300">
+                    <span class="w-1.5 h-1.5 bg-stone-500 rounded-full mr-2"></span>
+                    Est. December 2025
+                </span>
+            </div>
 
-                    <div class="border-t border-gray-100 dark:border-darkBorder pt-3 flex justify-between items-center text-rose-500 text-lg">
-                        <div class="flex gap-4">
-                            <i class="fa-regular fa-image cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-image-upload').click()"></i>
-                            <i class="fa-solid fa-video cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-video-upload').click()"></i>
-                            <i class="fa-solid fa-square-poll-horizontal cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('poll-creator').classList.remove('hidden')"></i>
-                            <i class="fa-regular fa-face-smile cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
-                        </div>
-                    </div>
-                    <input type="file" id="post-image-upload" hidden accept="image/*" onchange="app.handlePostMedia(event, 'image')">
-                    <input type="file" id="post-video-upload" hidden accept="video/*" onchange="app.handlePostMedia(event, 'video')">
+            <!-- Headline -->
+            <h1 class="animate-fade-up delay-100 text-6xl md:text-8xl font-black tracking-tighter mb-6 serif leading-[0.9] text-stone-900">
+                Local Heart.<br/>
+                <span class="text-stone-400">Global Pulse.</span>
+            </h1>
+
+            <!-- Subheadline -->
+            <p class="animate-fade-up delay-200 mt-8 text-xl text-stone-600 max-w-2xl mx-auto font-light leading-relaxed">
+                Connecting the community of Brazil, Indiana to the world stage. <br class="hidden md:block">Unbiased, real-time reporting for the modern era.
+            </p>
+
+            <!-- Buttons -->
+            <div class="animate-fade-up delay-300 flex flex-col sm:flex-row gap-5 justify-center mt-12">
+                <a href="https://app.peyza.org" class="btn-primary group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded shadow-lg">
+                    Enter Site
+                    <i class="fas fa-arrow-right ml-3 transition-transform group-hover:translate-x-1 text-sm"></i>
+                </a>
+                <button class="btn-secondary inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded">
+                    Subscribe
+                </button>
+            </div>
+
+            <!-- Footer Stats/Info -->
+            <div class="animate-fade-up delay-400 mt-16 pt-10 border-t border-stone-300 flex flex-col md:flex-row justify-center items-center gap-8 text-xs font-medium text-stone-500 uppercase tracking-widest">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-map-marker-alt text-stone-400"></i>
+                    <span>Brazil, Indiana HQ</span>
+                </div>
+                <div class="hidden md:block w-1 h-1 bg-stone-300 rounded-full"></div>
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-globe-americas text-stone-400"></i>
+                    <span>Global Coverage</span>
+                </div>
+                <div class="hidden md:block w-1 h-1 bg-stone-300 rounded-full"></div>
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-bolt text-stone-400"></i>
+                    <span>24/7 Updates</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Edit Profile / Settings Modal -->
-    <div id="edit-profile-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-dark w-full max-w-[500px] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-pop border dark:border-darkBorder">
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-4"><button onclick="app.closeEditProfile()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button><h2 class="font-bold text-xl" id="edit-modal-title">Edit Profile</h2></div>
-                <button onclick="app.saveProfile()" class="bg-black dark:bg-white dark:text-black text-white px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-800 transition">Save</button>
+    <!-- Features Section -->
+    <div class="bg-stone-50 py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-up delay-500">
+                <h2 class="text-3xl font-bold text-stone-900 serif sm:text-4xl tracking-tight">
+                    Reporting Today's Truth
+                </h2>
+                <div class="w-16 h-1 bg-stone-300 mx-auto mt-6 mb-6"></div>
+                <p class="max-w-2xl text-lg text-stone-500 mx-auto font-light">
+                    From the brick streets of Brazil to major international headlines, Peyza brings you the stories that matter with clarity and integrity.
+                </p>
             </div>
-            <input type="file" id="banner-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'banner')"><input type="file" id="avatar-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'avatar')">
-            <div class="h-32 bg-gray-200 dark:bg-darkSec relative mb-12 rounded-md group cursor-pointer overflow-hidden border dark:border-darkBorder" onclick="document.getElementById('banner-upload').click()"><img id="edit-banner-preview" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-camera text-white text-2xl drop-shadow-md"></i></div><div class="absolute -bottom-10 left-4 w-24 h-24 rounded-full border-4 border-white dark:border-dark bg-gray-300 dark:bg-darkSec overflow-hidden cursor-pointer group hover:opacity-90" onclick="event.stopPropagation(); document.getElementById('avatar-upload').click()"><img id="edit-avatar-preview" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-camera text-white drop-shadow-md"></i></div></div></div>
-            <form class="space-y-4 mt-8">
-                <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md"><span class="font-bold text-sm">Dark Mode</span><button type="button" onclick="app.toggleTheme()" id="theme-btn" class="text-gray-500 hover:text-rose-500 font-bold text-sm transition">Switch</button></div>
-                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Name</label><input type="text" id="edit-name" class="w-full outline-none text-sm bg-transparent dark:text-white"></div>
-                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Bio</label><textarea id="edit-bio" class="w-full outline-none text-sm resize-none h-20 bg-transparent dark:text-white"></textarea></div>
-                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Location</label><input type="text" id="edit-location" class="w-full outline-none text-sm bg-transparent dark:text-white"></div>
-                <div id="bot-control-panel" class="hidden flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md"><span class="font-bold text-sm">Auto-Posting</span><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="bot-auto-post" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div></label></div>
-                <hr class="border-gray-100 dark:border-darkBorder my-4">
-                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500"><label class="block text-xs text-gray-500">Secret PIN</label><input type="password" id="secret-pin" oninput="app.checkPin()" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent" placeholder="Enter code"></div>
-                <div id="god-mode-panel" class="hidden space-y-4 bg-rose-50 dark:bg-rose-900/10 p-4 rounded-lg border border-rose-100 dark:border-rose-900/30">
-                    <h3 class="font-bold text-rose-600 mb-2">⚡ God Mode Active</h3>
-                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 bg-white dark:bg-dark"><label class="block text-xs text-gray-500">Follower Count (Cheat)</label><input type="number" id="edit-followers" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent"></div>
-                    <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md bg-white dark:bg-dark"><div class="flex flex-col"><span class="font-bold text-sm">Force Verify</span><span class="text-xs text-gray-500">Bypass requirements</span></div><button type="button" id="btn-verify" onclick="app.requestVerification(true)" class="bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition">Get Badge</button></div>
-                    <button type="button" onclick="app.openCreateBotModal()" class="w-full bg-rose-500 text-white font-bold py-2 rounded-md hover:bg-rose-600 transition"><i class="fa-solid fa-robot mr-2"></i> Create New Bot</button>
-                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-2 bg-white dark:bg-dark"><label class="block text-xs text-gray-500 mb-2">Virality Speed</label><select id="edit-virality" class="w-full outline-none text-sm bg-transparent dark:text-white"><option value="0.1">Slow (Realistic)</option><option value="1">Normal</option><option value="5">Fast</option><option value="20">Superfast (Viral)</option><option value="2000">Ultra Fast (Godspeed)</option></select></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="group p-8 bg-white rounded-xl border border-stone-100 shadow-sm hover:shadow-xl hover:border-stone-200 transition-all duration-300 animate-fade-up delay-500">
+                    <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mb-6 text-stone-700 group-hover:bg-stone-800 group-hover:text-white transition-colors">
+                        <i class="fas fa-newspaper text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-stone-900 mb-3 serif">Daily Briefings</h3>
+                    <p class="text-stone-500 leading-relaxed">Curated daily digests delivered straight to your device every morning.</p>
                 </div>
-            </form>
+
+                <!-- Feature 2 -->
+                <div class="group p-8 bg-white rounded-xl border border-stone-100 shadow-sm hover:shadow-xl hover:border-stone-200 transition-all duration-300 animate-fade-up delay-500">
+                    <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mb-6 text-stone-700 group-hover:bg-earth-accent group-hover:text-white transition-colors">
+                        <i class="fas fa-broadcast-tower text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-stone-900 mb-3 serif">Live Updates</h3>
+                    <p class="text-stone-500 leading-relaxed">Real-time breaking news alerts as they happen, locally and globally.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="group p-8 bg-white rounded-xl border border-stone-100 shadow-sm hover:shadow-xl hover:border-stone-200 transition-all duration-300 animate-fade-up delay-500">
+                    <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mb-6 text-stone-700 group-hover:bg-stone-800 group-hover:text-white transition-colors">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-stone-900 mb-3 serif">Community Focused</h3>
+                    <p class="text-stone-500 leading-relaxed">Dedicated sections for Brazil, IN announcements, events, and local heroes.</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Create Bot Modal -->
-    <div id="create-bot-modal" class="fixed inset-0 bg-black/50 z-[90] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-dark w-full max-w-[400px] rounded-2xl p-6 shadow-2xl relative animate-pop border dark:border-darkBorder">
-             <div class="flex justify-between items-center mb-6"><h2 class="font-bold text-xl">Create Bot</h2><button onclick="document.getElementById('create-bot-modal').classList.add('hidden')" class="text-gray-900 dark:text-white p-2"><i class="fa-solid fa-xmark text-xl"></i></button></div>
-            <div class="space-y-4"><input type="text" id="bot-name" placeholder="Bot Name" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><input type="text" id="bot-handle" placeholder="Bot Handle (no @)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><input type="text" id="bot-avatar" placeholder="Avatar URL (optional)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><button onclick="app.createBot()" class="w-full bg-rose-600 text-white font-bold py-2 rounded-full">Create</button></div>
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                <div class="text-center md:text-left">
+                    <span class="text-2xl font-black serif tracking-widest text-stone-100">PEYZA.ORG</span>
+                    <p class="mt-2 text-stone-500 text-sm">Founded Dec 2025 • Brazil, Indiana</p>
+                </div>
+                <div class="flex space-x-8">
+                    <a href="#" class="hover:text-stone-100 transition-transform hover:-translate-y-1">
+                        <i class="fab fa-facebook fa-lg"></i>
+                    </a>
+                    <a href="#" class="hover:text-stone-100 transition-transform hover:-translate-y-1">
+                        <i class="fab fa-twitter fa-lg"></i>
+                    </a>
+                    <a href="#" class="hover:text-stone-100 transition-transform hover:-translate-y-1">
+                        <i class="fab fa-instagram fa-lg"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-12 border-t border-stone-800 pt-8 text-center text-xs text-stone-600 uppercase tracking-widest">
+                &copy; 2025 Peyza.org. All rights reserved.
+            </div>
         </div>
-    </div>
+    </footer>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-2 rounded-full shadow-lg z-[100] transition-opacity duration-300 opacity-0 pointer-events-none font-bold text-sm">Action Successful</div>
-
-<script>
-/**
- * Peyza App Logic v6.1 - Fixes for Liking, Search, and UI
- */
-
-const BADGES = {
-    RED: `<svg viewBox="0 0 24 24" aria-label="Verified" class="w-5 h-5 ml-1 inline-block text-rose-500 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
-    PURPLE: `<svg viewBox="0 0 24 24" aria-label="Influencer" class="w-5 h-5 ml-1 inline-block text-purple-600 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
-    PLATINUM: `<svg viewBox="0 0 24 24" aria-label="Superstar" class="w-5 h-5 ml-1 inline-block text-slate-400 fill-current align-text-bottom drop-shadow-sm"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
-    OWNER: `<i class="fa-solid fa-crown w-5 h-5 ml-1 inline-block text-amber-400 align-text-bottom" title="Owner"></i>`
-};
-const ANALYTICS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" class="w-[18px] h-[18px] fill-current"><g><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></g></svg>`;
-
-const DEFAULT_BOTS = [
-    { handle: 'Peyza', name: 'Peyza', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=P&backgroundColor=e11d48', bio: 'The Official Peyza Account. Updates & News.', followers: 50000000, following: 0, isVerified: true, isOwner: true, autoPost: true },
-    { handle: 'tech_guru', name: 'Tech Insider', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Felix', bio: 'Latest tech news.', followers: 450200, following: 152, isVerified: true, autoPost: true },
-    { handle: 'JuiceWorlddd', name: 'Juice WRLD', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juice', bio: '999 Forever 🕊️', followers: 12500000, following: 1, isVerified: true, autoPost: true },
-    { handle: 'elonmusk', name: 'Elon Musk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elon', bio: 'Mars & Cars.', followers: 150000000, following: 140, isVerified: true, autoPost: true },
-    { handle: 'taylorswift13', name: 'Taylor Swift', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor', bio: 'I’m the problem, it’s me.', followers: 95000000, following: 0, isVerified: true, autoPost: true },
-    { handle: 'meme_lord', name: 'Daily Memes', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Meme', bio: 'I post memes.', followers: 12000, following: 50, isVerified: false, autoPost: true },
-    { handle: 'crypto_king', name: 'Crypto Chad', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Chad', bio: 'HODL.', followers: 8900, following: 1200, isVerified: false, autoPost: true },
-    { handle: 'art_daily', name: 'Artistic Soul', avatar: 'https://api.dicebear.com/7.x/micah/svg?seed=Art', bio: 'Digital artist.', followers: 230000, following: 890, isVerified: true, autoPost: true }
-];
-
-const FAMOUS_CONTENT = {
-    'Peyza': ["Welcome to Peyza v6.0! Enjoy the new badges.", "Who wants a Platinum checkmark?", "Server maintenance complete.", "PeyVids is now live on desktop!"],
-    'JuiceWorlddd': ["Lucid Dreams still hits differently 💔", "999 till the world ends", "Making music in heaven 🕊️"],
-    'elonmusk': ["Sending a rocket to Mars next week.", "Peyza is actually pretty cool.", "Thinking about buying an island."],
-    'taylorswift13': ["Tour dates coming soon! ✨", "In my era.", "Writing songs about rain."]
-};
-
-const MOCK_POSTS_CONTENT = ["Just deployed the new update! #coding", "Why is coffee so good? ☕️", "Peyza is looking slick with this red theme! ❤️", "AI is taking over.", "Can't believe it's already Friday.", "This new app design is fire 🔥", "Web3 is the future.", "Just saw a Cybertruck."];
-const MOCK_REPLIES_TEXT = ["Big if true.", "Agreed!", "Wow 😮", "Delete this.", "Peyza is taking over.", "🔥🔥🔥", "Actually...", "First!"];
-
-class PeyzaApp {
-    constructor() {
-        this.user = this.loadUser();
-        this.bots = this.loadBots();
-        this.posts = this.loadPosts();
-        this.notifications = this.loadNotifications();
-        this.currentView = 'home'; 
-        this.viewParam = null;
-        this.feedFilter = 'foryou';
-        this.profileFilter = 'posts';
-        this.settings = this.loadSettings();
-        this.editingHandle = null; 
-        this.replyingTo = null;
-        this.tempMedia = null;
-        this.tempMediaType = 'image';
-        this.postingToCommunity = null;
-        this.init();
-    }
-
-    init() {
-        this.applyTheme();
-        this.renderSidebarUser();
-        this.renderWhoToFollow();
-        this.renderSidebarTrends();
-        this.renderView();
-        setTimeout(() => { if(this.currentView === 'home') this.setFeedFilter('foryou'); }, 100);
-        setInterval(() => this.simulateStats(), 1000);
-        setInterval(() => this.generateRandomBotPost(), 15000);
-    }
-
-    // --- DATA ---
-    loadUser() { const s=localStorage.getItem('peyza_user_v8'); if(s)return JSON.parse(s); return { handle: 'guest_user', name: 'Guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Guest', banner: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=60', bio: 'Just a guest exploring Peyza.', location: 'Internet', joined: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), followers: 42, following: 15, isVerified: false, isOwner: false, likedPosts: [], repostedPosts: [], bookmarks: [], likedComments: [], createdBots: [] }; }
-    loadBots() { const s=localStorage.getItem('peyza_bots_v8'); if(s)return JSON.parse(s); return [...DEFAULT_BOTS]; }
-    loadPosts() { const s=localStorage.getItem('peyza_posts_v8'); if(s){let p=JSON.parse(s); if(p.length>200)p=p.slice(0,100); return p;} const p=[]; for(let i=0;i<20;i++)p.push(this.createMockPost(i*1000*60*20)); return p; }
-    loadNotifications() { const s=localStorage.getItem('peyza_notes_v8'); if(s)return JSON.parse(s); return []; }
-    loadSettings() { const s=localStorage.getItem('peyza_settings'); if(s)return JSON.parse(s); return { viralitySpeed: 1.0, theme: 'light' }; }
-    saveUser() { localStorage.setItem('peyza_user_v8', JSON.stringify(this.user)); this.renderSidebarUser(); }
-    saveBots() { localStorage.setItem('peyza_bots_v8', JSON.stringify(this.bots)); }
-    savePosts() { localStorage.setItem('peyza_posts_v8', JSON.stringify(this.posts)); }
-    saveNotifications() { localStorage.setItem('peyza_notes_v8', JSON.stringify(this.notifications)); }
-    saveSettings() { localStorage.setItem('peyza_settings', JSON.stringify(this.settings)); }
-
-    getProfile(handle) { if (handle === this.user.handle) return this.user; return this.bots.find(b => b.handle === handle); }
-
-    getBadgeHTML(user) {
-        if (user.isOwner) return BADGES.OWNER;
-        if (user.followers >= 10000000) return BADGES.PLATINUM;
-        if (user.followers >= 500000) return BADGES.PURPLE;
-        if (user.isVerified || user.followers >= 100000) return BADGES.RED;
-        return '';
-    }
-
-    createMockReply() {
-        const bot = this.bots[Math.floor(Math.random() * this.bots.length)];
-        return {
-            id: 'rep_' + Math.random().toString(36).substr(2, 9),
-            authorHandle: bot.handle, authorName: bot.name, avatar: bot.avatar,
-            content: MOCK_REPLIES_TEXT[Math.floor(Math.random() * MOCK_REPLIES_TEXT.length)],
-            time: 'Just now', likes: Math.floor(Math.random() * 50),
-            isVerified: bot.isVerified, followers: bot.followers, isOwner: bot.isOwner
-        };
-    }
-
-    createMockPost(timeOffset = 0) {
-        const bot = this.bots[Math.floor(Math.random() * this.bots.length)];
-        let content = MOCK_POSTS_CONTENT[Math.floor(Math.random() * MOCK_POSTS_CONTENT.length)];
-        if (FAMOUS_CONTENT[bot.handle]) content = FAMOUS_CONTENT[bot.handle][Math.floor(Math.random() * FAMOUS_CONTENT[bot.handle].length)];
-        const hasImage = Math.random() > 0.8;
-        const replies = [];
-        for(let i=0; i<Math.floor(Math.random()*3); i++) replies.push(this.createMockReply());
-        return {
-            id: 'post_' + Math.random().toString(36).substr(2, 9),
-            authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified, isOwner: bot.isOwner, followers: bot.followers,
-            content: content, image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null, video: null, poll: null, communityHandle: null, theme: 'default',
-            replies: replies, createdAt: Date.now() - timeOffset,
-            stats: { likes: Math.floor(Math.random()*50), reposts: Math.floor(Math.random()*10), replies: replies.length, views: Math.floor(Math.random()*500) },
-            baseVelocity: Math.random()
-        };
-    }
-
-    createPost(content, asHandle = null) {
-        let author = this.user;
-        if (asHandle && asHandle !== this.user.handle) author = this.bots.find(b => b.handle === asHandle) || this.user;
-        let poll = null;
-        const o1 = document.getElementById('poll-opt-1').value;
-        const o2 = document.getElementById('poll-opt-2').value;
-        if(o1 && o2 && !document.getElementById('poll-creator').classList.contains('hidden')) { poll = { options: [{ text: o1, votes: 0 }, { text: o2, votes: 0 }], totalVotes: 0 }; }
-        
-        if (this.replyingTo) {
-            const originalPost = this.posts.find(p => p.id === this.replyingTo);
-            if(originalPost) {
-                originalPost.stats.replies++;
-                originalPost.replies.unshift({
-                    id: 'rep_' + Math.random().toString(36).substr(2, 9),
-                    authorHandle: author.handle, authorName: author.name, avatar: author.avatar, content: content, time: 'Just now', likes: 0,
-                    isVerified: author.isVerified, isOwner: author.isOwner, followers: author.followers
-                });
-                this.savePosts();
-            }
-            this.replyingTo = null;
-            if(this.currentView === 'post') this.renderPostDetail(originalPost.id);
-            else this.navigate('home');
-        } else {
-            const newPost = {
-                id: 'post_' + Math.random().toString(36).substr(2, 9),
-                authorHandle: author.handle, authorName: author.name, authorAvatar: author.avatar, isVerified: author.isVerified, isOwner: author.isOwner, followers: author.followers,
-                content: content, image: this.tempMediaType === 'image' ? this.tempMedia : null, video: this.tempMediaType === 'video' ? this.tempMedia : null, poll: poll,
-                communityHandle: this.postingToCommunity, theme: 'default', createdAt: Date.now(), replies: [],
-                stats: { likes: 0, reposts: 0, replies: 0, views: 0 }, baseVelocity: Math.random()
-            };
-            this.posts.unshift(newPost);
-            this.savePosts();
-            this.navigate('home');
-        }
-        this.clearMedia(); this.postingToCommunity = null;
-    }
-
-    generateRandomBotPost() {
-        if(this.posts.filter(p => this.bots.some(b => b.handle === p.authorHandle)).length > 30) return;
-        this.bots.forEach(bot => {
-            if (bot.autoPost !== false && Math.random() < 0.0083) { 
-                this.posts.unshift(this.createMockPost());
-            }
-        });
-        this.savePosts();
-        if (this.currentView === 'home') this.renderFeed();
-    }
-
-    simulateStats() {
-        const now = Date.now();
-        let changed = false;
-        this.posts = this.posts.filter(p => { 
-            const isBot = this.bots.some(b => b.handle === p.authorHandle); 
-            return !(isBot && (now - p.createdAt > 4 * 60 * 60 * 1000)); 
-        });
-        
-        this.posts.forEach(post => {
-            if ((now - post.createdAt) / 1000 < 86400) {
-                let f = post.followers || 100;
-                const scale = Math.max(1, Math.log10(f));
-                const growth = this.settings.viralitySpeed * post.baseVelocity * scale * (1 + post.stats.reposts * 0.1);
-                
-                const oldViews = post.stats.views;
-                const newViews = Math.floor(oldViews + (growth * 5 * Math.random()));
-                
-                if (newViews > oldViews) { 
-                    post.stats.views = newViews; 
-                    if (post.authorHandle === this.user.handle && Math.floor(newViews/10000) > Math.floor(oldViews/10000)) {
-                        this.addNotification('viral', `Your post reached ${this.formatNumber(newViews)} views!`, post.content);
-                    }
-                    changed = true; 
-                }
-
-                if (Math.random() < 0.3) { post.stats.likes += Math.floor(growth * 2); changed = true; }
-                if (Math.random() < 0.05) { post.stats.reposts += 1; changed = true; }
-                if (post.replies && post.replies.length > 0 && Math.random() < 0.1) {
-                    const r = post.replies[Math.floor(Math.random() * post.replies.length)];
-                    r.likes++;
-                    if(r.authorHandle === this.user.handle) this.addNotification('like_comment', `Someone liked your comment: "${r.content.substring(0,20)}..."`, '');
-                    changed = true;
-                }
-            }
-        });
-        if (changed) { this.savePosts(); this.saveNotifications(); this.updateVisibleStats(); }
-    }
-
-    addNotification(type, title, body) {
-        this.notifications.unshift({ type, title, body, time: Date.now() });
-        this.saveNotifications();
-    }
-
-    updateVisibleStats() {
-        this.posts.forEach(post => {
-            const el = document.getElementById(`stats-${post.id}`);
-            if (el) {
-                const v = el.querySelector('.stat-views'); if(v) v.innerText = this.formatNumber(post.stats.views);
-                const l = el.querySelector('.stat-likes'); if(l) l.innerText = this.formatNumber(post.stats.likes);
-                const r = el.querySelector('.stat-reposts'); if(r) r.innerText = this.formatNumber(post.stats.reposts);
-                const c = el.querySelector('.stat-replies'); if(c) c.innerText = this.formatNumber(post.stats.replies);
-            }
-            if(post.replies) {
-                post.replies.forEach(rep => {
-                    const rl = document.getElementById(`reply-likes-${rep.id}`);
-                    if(rl) rl.innerText = rep.likes > 0 ? rep.likes : '';
-                });
-            }
-        });
-    }
-
-    // --- RENDERERS ---
-    renderView() {
-        const main = document.getElementById('main-view');
-        const header = document.getElementById('sticky-header');
-        const overlay = document.getElementById('peyvids-overlay');
-        main.innerHTML = ''; overlay.classList.add('hidden'); header.classList.remove('hidden');
-
-        if (this.currentView === 'home') {
-            header.innerHTML = `<div class="px-4 h-[53px] flex items-center justify-between cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})"><h2 class="text-lg font-bold">Home</h2><i class="fa-solid fa-wand-magic-sparkles text-rose-500"></i></div><div class="flex border-b border-gray-100 dark:border-darkBorder"><div onclick="app.setFeedFilter('foryou')" class="flex-1 text-center py-3 cursor-pointer relative ${this.feedFilter==='foryou'?'font-bold text-black dark:text-white':'text-gray-500'}">For You${this.feedFilter==='foryou'?`<div class="absolute bottom-0 w-full flex justify-center"><div class="bg-rose-500 w-14 h-1 rounded-full"></div></div>`:''}</div><div onclick="app.setFeedFilter('following')" class="flex-1 text-center py-3 cursor-pointer relative ${this.feedFilter==='following'?'font-bold text-black dark:text-white':'text-gray-500'}">Following${this.feedFilter==='following'?`<div class="absolute bottom-0 w-full flex justify-center"><div class="bg-rose-500 w-14 h-1 rounded-full"></div></div>`:''}</div><div onclick="app.setFeedFilter('media')" class="flex-1 text-center py-3 cursor-pointer relative ${this.feedFilter==='media'?'font-bold text-black dark:text-white':'text-gray-500'}">Media${this.feedFilter==='media'?`<div class="absolute bottom-0 w-full flex justify-center"><div class="bg-rose-500 w-14 h-1 rounded-full"></div></div>`:''}</div></div>`;
-            this.renderFeed();
-        } else if (this.currentView === 'explore') {
-            header.innerHTML = `<div class="px-4 py-2"><input type="text" placeholder="Search Peyza" oninput="app.handleSearch(this.value)" value="${this.viewParam||''}" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-2 px-4 outline-none"></div>`;
-            this.renderExplore(this.viewParam);
-        } else if (this.currentView === 'notifications') {
-            header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white">Notifications</div>`;
-            this.renderNotifications();
-        } else if (this.currentView === 'profile') {
-            header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-4 cursor-pointer" onclick="app.navigate('home')"></i> ${this.viewParam}</div>`;
-            this.renderProfile(this.viewParam);
-        } else if (this.currentView === 'post') {
-            header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-4 cursor-pointer" onclick="app.navigate('home')"></i> Post</div>`;
-            this.renderPostDetail(this.viewParam);
-        } else if (this.currentView === 'peyvids') {
-            header.classList.add('hidden');
-            overlay.classList.remove('hidden');
-            this.renderPeyVids();
-        }
-    }
-
-    renderFeed() {
-        const container = document.getElementById('main-view');
-        let fps = [...this.posts];
-        if (this.feedFilter === 'media') fps = fps.filter(p => p.image || p.video);
-        else if (this.feedFilter === 'following') fps = fps.filter(p => p.authorHandle !== 'guest_user');
-        if (this.feedFilter === 'foryou') fps = fps.filter(p => !p.communityHandle);
-        fps.sort((a,b)=>b.createdAt-a.createdAt);
-        let html = '';
-        fps.forEach(p => html += this.buildPostHTML(p));
-        container.innerHTML = html || '<div class="p-10 text-center text-gray-500">No posts found</div>';
-    }
-
-    renderExplore(q) {
-        const c = document.getElementById('main-view');
-        if(!q) {
-            c.innerHTML = `<div class="p-4"><h2 class="font-bold text-xl mb-4 dark:text-white">Trends</h2><div class="space-y-4">${['#PeyzaV6', 'PlatinumBadge', 'Juice WRLD'].map(t=>`<div class="font-bold dark:text-white">${t}<br><span class="text-xs text-gray-500 font-normal">Trending</span></div>`).join('')}</div></div>`;
-        } else {
-            const ql = q.toLowerCase();
-            const resU = this.bots.filter(b => b.name.toLowerCase().includes(ql) || b.handle.toLowerCase().includes(ql));
-            const resP = this.posts.filter(p => p.content.toLowerCase().includes(ql));
-            let html = '<div class="p-4"><h3 class="font-bold mb-2 dark:text-white">People</h3>';
-            if(resU.length===0) html += '<p class="text-gray-500">No users found</p>';
-            resU.forEach(u => html += this.buildUserListHTML(u));
-            html += '<h3 class="font-bold mt-4 mb-2 dark:text-white">Posts</h3>';
-            if(resP.length===0) html += '<p class="text-gray-500">No posts found</p>';
-            resP.forEach(p => html += this.buildPostHTML(p));
-            html += '</div>';
-            c.innerHTML = html;
-        }
-    }
-
-    renderNotifications() {
-        const c = document.getElementById('main-view');
-        let html = '';
-        this.notifications.forEach(n => {
-            html += `<div class="p-4 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec"><p class="font-bold dark:text-white">${n.title}</p><p class="text-sm text-gray-500">${n.body}</p></div>`;
-        });
-        c.innerHTML = html || '<div class="p-10 text-center text-gray-500">No notifications</div>';
-    }
-
-    renderProfile(handle) {
-        const c = document.getElementById('main-view');
-        const p = this.getProfile(handle) || { name:'Unknown', handle:handle, followers:0, following:0, bio:'', avatar:'', isVerified:false, isOwner:false };
-        const badge = this.getBadgeHTML(p);
-        const isMe = handle === this.user.handle;
-        
-        const html = `
-            <div>
-                <div class="h-32 bg-gray-200 dark:bg-darkSec"><img src="${p.banner||''}" class="w-full h-full object-cover"></div>
-                <div class="px-4 relative mb-4">
-                    <div class="flex justify-between">
-                        <div class="-mt-10 w-24 h-24 rounded-full border-4 border-white dark:border-dark overflow-hidden"><img src="${p.avatar}" class="w-full h-full object-cover"></div>
-                        <div class="mt-3">${isMe||this.user.isPremium?`<button onclick="app.openEditProfile('${handle}')" class="border border-gray-300 dark:border-darkBorder px-4 py-1 rounded-full font-bold text-sm dark:text-white">Edit</button>`:`<button onclick="app.toggleFollow('${handle}',this)" class="bg-black text-white px-4 py-1 rounded-full font-bold text-sm">Follow</button>`}</div>
-                    </div>
-                    <div class="mt-2"><h1 class="font-bold text-xl dark:text-white">${p.name} ${badge}</h1><p class="text-gray-500 text-sm">@${p.handle}</p></div>
-                    <p class="mt-2 dark:text-white">${p.bio}</p>
-                    <div class="flex gap-4 mt-2 text-sm dark:text-gray-400"><span><b>${this.formatNumber(p.following)}</b> Following</span><span><b>${this.formatNumber(p.followers)}</b> Followers</span></div>
-                </div>
-                <div class="flex border-b border-gray-100 dark:border-darkBorder">
-                    <div onclick="app.setProfileFilter('posts')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='posts'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Posts</div>
-                    <div onclick="app.setProfileFilter('media')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='media'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Media</div>
-                    <div onclick="app.setProfileFilter('likes')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='likes'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Likes</div>
-                </div>
-                <div id="profile-feed">
-                    ${this.profileFilter === 'media' ? this.renderMediaGrid(handle) : this.getPostsByHandle(handle)}
-                </div>
-            </div>
-        `;
-        c.innerHTML = html;
-    }
-
-    renderMediaGrid(handle) {
-        const posts = this.posts.filter(p => p.authorHandle === handle && (p.image || p.video));
-        if(posts.length === 0) return '<div class="p-8 text-center text-gray-500">No media</div>';
-        let html = '<div class="grid grid-cols-3 gap-1">';
-        posts.forEach(p => {
-            html += `
-                <div class="aspect-square bg-gray-100 relative cursor-pointer group" onclick="app.navigate('post', '${p.id}')">
-                    ${p.video ? `<video src="${p.video}" class="w-full h-full object-cover"></video><i class="fa-solid fa-play absolute top-1 right-1 text-white drop-shadow-md"></i>` : `<img src="${p.image}" class="w-full h-full object-cover">`}
-                    <div class="absolute bottom-0 left-0 w-full bg-black/50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-eye"></i> ${this.formatNumber(p.stats.views)}</div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        return html;
-    }
-
-    getPostsByHandle(handle) {
-        let ups;
-        if(this.profileFilter==='likes') { if(handle!==this.user.handle) return '<div class="p-8 text-center">Likes Private</div>'; ups=this.posts.filter(p=>this.user.likedPosts.includes(p.id)); }
-        else ups=this.posts.filter(p=>p.authorHandle===handle);
-        ups.sort((a,b)=>b.createdAt-a.createdAt);
-        let html=''; ups.forEach(p=>html+=this.buildPostHTML(p));
-        return html||'<div class="p-8 text-center text-gray-500">No posts</div>';
-    }
-
-    renderPostDetail(id) {
-        const p = this.posts.find(x=>x.id===id); if(!p)return;
-        const c = document.getElementById('main-view');
-        const badge = this.getBadgeHTML({isOwner:p.isOwner, followers:p.followers, isVerified:p.isVerified});
-        
-        let repliesHtml = '';
-        if(p.replies) {
-            p.replies.forEach(r => {
-                const rBadge = this.getBadgeHTML({isOwner:r.isOwner, followers:r.followers, isVerified:r.isVerified});
-                const isLiked = this.user.likedComments.includes(r.id);
-                repliesHtml += `
-                    <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder bg-white dark:bg-dark">
-                        <div class="shrink-0 w-10 h-10 rounded-full overflow-hidden"><img src="${r.avatar}" class="w-full h-full object-cover"></div>
-                        <div class="w-full">
-                            <div class="flex justify-between">
-                                <div class="font-bold dark:text-white">${r.authorName} ${rBadge} <span class="text-gray-500 font-normal">@${r.authorHandle} · ${r.time}</span></div>
-                            </div>
-                            <div class="text-gray-900 dark:text-white mt-1">${r.content}</div>
-                            <div class="mt-2 flex items-center gap-4 text-gray-500 text-sm">
-                                <div class="cursor-pointer hover:text-rose-500 ${isLiked?'text-rose-500':''}" onclick="app.likeComment('${r.id}', '${p.id}', this)"><i class="${isLiked?'fa-solid':'fa-regular'} fa-heart"></i> <span id="reply-likes-${r.id}">${r.likes>0?r.likes:''}</span></div>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        const html = `
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-darkBorder">
-                <div class="flex gap-3 items-center mb-3">
-                    <img src="${p.authorAvatar}" class="w-10 h-10 rounded-full cursor-pointer" onclick="app.navigate('profile','${p.authorHandle}')">
-                    <div><div class="font-bold dark:text-white">${p.authorName} ${badge}</div><div class="text-gray-500">@${p.authorHandle}</div></div>
-                </div>
-                <div class="text-xl dark:text-white mb-3">${p.content}</div>
-                ${p.image?`<img src="${p.image}" class="rounded-xl border dark:border-darkBorder w-full mb-3">`:''}
-                ${p.video?`<video src="${p.video}" controls class="rounded-xl w-full mb-3"></video>`:''}
-                <div class="text-gray-500 text-sm py-2 border-b border-gray-100 dark:border-darkBorder">${new Date(p.createdAt).toLocaleDateString()} · <b>${this.formatNumber(p.stats.views)}</b> Views</div>
-                <div class="flex justify-between py-2 text-gray-500 text-xl px-2" id="stats-${p.id}">
-                    <div onclick="app.openReplyModal('${p.id}')"><i class="fa-regular fa-comment cursor-pointer hover:text-blue-500"></i></div>
-                    <div onclick="app.toggleRepost('${p.id}', this)"><i class="fa-solid fa-retweet cursor-pointer hover:text-green-500"></i></div>
-                    <div onclick="app.toggleLike('${p.id}', this)" class="${this.user.likedPosts.includes(p.id)?'liked':''}"><i class="${this.user.likedPosts.includes(p.id)?'fa-solid':'fa-regular'} fa-heart cursor-pointer hover:text-rose-500"></i></div>
-                    <div><i class="fa-solid fa-share cursor-pointer"></i></div>
-                </div>
-            </div>
-            <div class="pb-20">${repliesHtml}</div>
-        `;
-        c.innerHTML = html;
-    }
-
-    renderPeyVids() {
-        const c = document.getElementById('peyvids-overlay');
-        c.innerHTML = `
-            <div id="peyvids-feed" class="w-full max-w-[500px] h-full mx-auto bg-black relative shadow-2xl overflow-y-scroll snap-y snap-mandatory hide-scrollbar"></div>
-            <div class="absolute top-4 left-4 z-50 text-white text-3xl cursor-pointer drop-shadow-md" onclick="app.navigate('home')"><i class="fa-solid fa-arrow-left"></i></div>
-        `;
-        const feed = document.getElementById('peyvids-feed');
-        const vids = this.posts.filter(p => p.video || p.image).sort(() => 0.5 - Math.random()).slice(0, 10);
-        
-        let html = '';
-        vids.forEach(p => {
-            const badge = this.getBadgeHTML({isOwner:p.isOwner, followers:p.followers, isVerified:p.isVerified});
-            html += `
-                <div class="peyvid-item w-full h-full relative snap-start bg-gray-900 flex items-center justify-center">
-                    ${p.video ? `<video src="${p.video}" class="w-full h-full object-cover" autoplay muted loop></video>` : `<img src="${p.image}" class="w-full h-full object-cover">`}
-                    <div class="absolute right-2 bottom-20 flex flex-col gap-4 text-white items-center">
-                         <div class="flex flex-col items-center"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-fire text-2xl ${this.user.likedPosts.includes(p.id)?'text-amber-500':''}"></i></div><span class="text-xs font-bold">${this.formatNumber(p.stats.likes)}</span></div>
-                         <div class="flex flex-col items-center"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-comment-dots text-2xl"></i></div><span class="text-xs font-bold">${this.formatNumber(p.stats.replies)}</span></div>
-                    </div>
-                    <div class="absolute left-0 bottom-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent">
-                        <div class="font-bold text-white mb-1 flex items-center gap-1">${p.authorName} ${badge}</div>
-                        <div class="text-white text-sm line-clamp-2">${p.content}</div>
-                        ${p.replies && p.replies.length > 0 ? `<div class="mt-2 bg-white/10 rounded p-2 text-xs text-white backdrop-blur-sm"><b>${p.replies[0].authorName}:</b> ${p.replies[0].content}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        });
-        feed.innerHTML = html;
-    }
-
-    buildPostHTML(p) {
-        const badge = this.getBadgeHTML({isOwner:p.isOwner, followers:p.followers, isVerified:p.isVerified});
-        return `
-            <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec cursor-pointer" onclick="app.navigate('post', '${p.id}')">
-                <img src="${p.authorAvatar}" class="w-10 h-10 rounded-full object-cover">
-                <div class="w-full">
-                    <div class="flex justify-between"><div class="font-bold dark:text-white flex items-center">${p.authorName} ${badge} <span class="text-gray-500 font-normal ml-1">@${p.authorHandle} · ${this.timeAgo(p.createdAt)}</span></div></div>
-                    <div class="dark:text-white mb-2">${p.content}</div>
-                    ${p.image ? `<img src="${p.image}" class="rounded-xl border dark:border-darkBorder max-h-[300px] w-full object-cover">` : ''}
-                    ${p.video ? `<div class="relative"><video src="${p.video}" class="rounded-xl max-h-[300px] w-full object-cover"></video><div class="absolute inset-0 flex items-center justify-center text-white text-4xl"><i class="fa-solid fa-play-circle opacity-80"></i></div></div>` : ''}
-                    <div class="flex flex-row items-center justify-between mt-2 text-gray-500 text-sm max-w-[400px]" id="stats-${p.id}">
-                        <div class="flex items-center gap-1 hover:text-blue-500" onclick="event.stopPropagation(); app.openReplyModal('${p.id}')"><i class="fa-regular fa-comment"></i> <span class="stat-replies">${this.formatNumber(p.stats.replies)}</span></div>
-                        <div class="flex items-center gap-1 hover:text-green-500" onclick="event.stopPropagation(); app.toggleRepost('${p.id}', this)"><i class="fa-solid fa-retweet"></i> <span class="stat-reposts">${this.formatNumber(p.stats.reposts)}</span></div>
-                        <div class="flex items-center gap-1 hover:text-rose-500 ${this.user.likedPosts.includes(p.id)?'liked':''}" onclick="event.stopPropagation(); app.toggleLike('${p.id}', this)"><i class="${this.user.likedPosts.includes(p.id)?'fa-solid':'fa-regular'} fa-heart"></i> <span class="stat-likes">${this.formatNumber(p.stats.likes)}</span></div>
-                        <div class="flex items-center gap-1 whitespace-nowrap">${ANALYTICS_ICON} <span class="stat-views">${this.formatNumber(p.stats.views)}</span></div>
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    // ACTIONS
-    likeComment(cId, pId, btn) {
-        if(!this.user.likedComments.includes(cId)) {
-            this.user.likedComments.push(cId);
-            const p = this.posts.find(x=>x.id===pId);
-            const c = p.replies.find(x=>x.id===cId);
-            if(c) { 
-                c.likes++; 
-                btn.classList.add('text-rose-500'); 
-                btn.querySelector('i').classList.replace('fa-regular', 'fa-solid');
-                const count = document.getElementById(`reply-likes-${cId}`);
-                if(count) count.innerText = c.likes;
-            }
-            this.saveUser(); this.savePosts();
-        }
-    }
-    
-    toggleLike(id,b){
-        event.stopPropagation();
-        const p=this.posts.find(x=>x.id===id); if(!p)return;
-        if(!this.user.likedPosts)this.user.likedPosts=[];
-        const i=this.user.likedPosts.indexOf(id);
-        const icon = b.querySelector('i');
-        
-        if(i===-1){
-            this.user.likedPosts.push(id);
-            p.stats.likes++;
-            b.classList.add('liked');
-            if(icon) { icon.classList.remove('fa-regular'); icon.classList.add('fa-solid','animate-pop'); }
-        }else{
-            this.user.likedPosts.splice(i,1);
-            p.stats.likes--;
-            b.classList.remove('liked');
-            if(icon) { icon.classList.add('fa-regular'); icon.classList.remove('fa-solid','animate-pop'); }
-        }
-        
-        // Update number if element exists (Feed)
-        if(b.parentElement && b.parentElement.querySelector('.stat-likes')) {
-             b.parentElement.querySelector('.stat-likes').innerText=this.formatNumber(p.stats.likes);
-        }
-        this.saveUser();this.savePosts();
-    }
-
-    toggleRepost(id,b){
-        event.stopPropagation();
-        const p=this.posts.find(x=>x.id===id); if(!p)return;
-        if(!this.user.repostedPosts)this.user.repostedPosts=[];
-        const i=this.user.repostedPosts.indexOf(id);
-        if(i===-1){this.user.repostedPosts.push(id);p.stats.reposts++;b.classList.add('reposted');}
-        else{this.user.repostedPosts.splice(i,1);p.stats.reposts--;b.classList.remove('reposted');}
-        
-        if(b.parentElement && b.parentElement.querySelector('.stat-reposts')) {
-            b.parentElement.querySelector('.stat-reposts').innerText=this.formatNumber(p.stats.reposts);
-        }
-        this.saveUser();this.savePosts();
-    }
-    
-    toggleBookmark(id,b){
-        event.stopPropagation();
-        if(!this.user.bookmarks)this.user.bookmarks=[];
-        const i=this.user.bookmarks.indexOf(id);
-        const icon = b.querySelector('i');
-        if(i===-1){this.user.bookmarks.push(id);b.classList.add('bookmarked');if(icon)icon.classList.replace('fa-regular','fa-solid');this.showToast('Saved');}
-        else{this.user.bookmarks.splice(i,1);b.classList.remove('bookmarked');if(icon)icon.classList.replace('fa-solid','fa-regular');this.showToast('Removed');}
-        this.saveUser();
-    }
-
-    shareApp(){ event.stopPropagation(); navigator.clipboard.writeText("Check out Peyza!").then(()=>this.showToast('Link Copied')); }
-    toggleFollow(h,b){ event.stopPropagation(); if(b.innerText==='Follow'){b.innerText='Following';b.classList.replace('bg-black','bg-white');b.classList.replace('text-white','text-black');b.classList.add('border','border-gray-300');this.user.following++;}else{b.innerText='Follow';b.classList.replace('bg-white','bg-black');b.classList.replace('text-black','text-white');b.classList.remove('border','border-gray-300');this.user.following--;}this.saveUser();}
-    showToast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.remove('opacity-0');setTimeout(()=>t.classList.add('opacity-0'),2000);}
-    formatNumber(n){if(n==null)return'0';if(n>=1000000)return(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1000)return(n/1000).toFixed(1).replace(/\.0$/,'')+'K';return n.toString();}
-    timeAgo(d){const s=Math.floor((new Date()-d)/1000);if(s>31536000)return Math.floor(s/31536000)+'y';if(s>2592000)return Math.floor(s/2592000)+'mo';if(s>86400)return Math.floor(s/86400)+'d';if(s>3600)return Math.floor(s/3600)+'h';if(s>60)return Math.floor(s/60)+'m';return s+'s';}
-    navigate(v,p){this.currentView=v;this.viewParam=p;window.scrollTo(0,0);this.renderView();}
-    setFeedFilter(f){this.feedFilter=f;this.renderView();}
-    setProfileFilter(f){this.profileFilter=f;this.renderProfile(this.viewParam);}
-    handleSearch(q){if(this.currentView==='explore')this.renderExplore(q);}
-    openComposeModal(){document.getElementById('compose-modal').classList.remove('hidden');}
-    closeComposeModal(){document.getElementById('compose-modal').classList.add('hidden');}
-    publishPost(){const c=document.getElementById('compose-input').value;if(c)this.createPost(c);this.closeComposeModal();}
-    openReplyModal(id){this.replyingTo=id;this.openComposeModal();}
-    toggleTheme(){this.settings.theme=this.settings.theme==='light'?'dark':'light';this.applyTheme();this.saveSettings();}
-    applyTheme(){document.querySelector('html').classList.toggle('dark',this.settings.theme==='dark');}
-    openSettings(){/*Stub*/}
-    openEditProfile(h){/*Stub - assume modal open logic*/}
-    closeEditProfile(){document.getElementById('edit-profile-modal').classList.add('hidden');}
-    saveProfile(){/*Stub*/}
-    checkPin(){/*Stub*/}
-    requestVerification(){/*Stub*/}
-    openCreateBotModal(){/*Stub*/}
-    createBot(){/*Stub*/}
-    handleImageUpload(){/*Stub*/}
-    handlePostMedia(){/*Stub*/}
-    clearMedia(){/*Stub*/}
-    closePeyVids(){this.navigate('home');}
-    
-    renderSidebarUser(){const e=document.getElementById('sidebar-user');if(e)e.innerHTML=`<div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200"><img src="${this.user.avatar}" class="w-full h-full object-cover"></div><div class="hidden xl:block"><p class="font-bold text-sm truncate w-[140px] flex items-center dark:text-white">${this.user.name} ${this.getBadgeHTML(this.user)}</p><p class="text-gray-500 text-sm truncate w-[140px]">@${this.user.handle}</p></div>`;}
-    renderWhoToFollow(){/*Stub*/}
-    renderSidebarTrends(){/*Stub*/}
-}
-const app = new PeyzaApp();
-</script>
 </body>
 </html>
