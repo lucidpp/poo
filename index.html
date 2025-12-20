@@ -1,192 +1,228 @@
-import React, { useState, useEffect } from 'react';
-import { Camera, Search, ChevronRight, Menu, X, Globe, Shield, Zap } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peyza.org | The Canvas for Digital Visionaries</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #f4f4f5;
+        }
+        .bg-glow {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, rgba(10, 10, 10, 0) 70%);
+        }
+        .selection-emerald::selection {
+            background-color: rgba(16, 185, 129, 0.3);
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+    </style>
+</head>
+<body class="selection-emerald">
 
-const App = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const APP_URL = "https://app.peyza.org";
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const NavButton = ({ children, primary = false, className = "", onClick }) => (
-    <button 
-      onClick={onClick}
-      className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-      primary 
-        ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20" 
-        : "text-zinc-400 hover:text-white hover:bg-zinc-800"
-    } ${className}`}>
-      {children}
-    </button>
-  );
-
-  const handleRedirect = () => {
-    window.location.href = APP_URL;
-  };
-
-  return (
-    <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-sans selection:bg-emerald-500/30">
-      {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
-        isScrolled ? "bg-[#0a0a0a]/90 backdrop-blur-md border-zinc-800" : "bg-transparent border-transparent"
-      }`}>
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-10">
-            <a href="#" className="text-2xl font-bold tracking-tighter flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-                <Camera size={18} className="text-black" />
-              </div>
-              PEYZA<span className="text-emerald-500">.</span>ORG
-            </a>
-            
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-              <button onClick={handleRedirect} className="hover:text-white transition-colors">Discover</button>
-              <button onClick={handleRedirect} className="hover:text-white transition-colors">Community</button>
-              <button onClick={handleRedirect} className="hover:text-white transition-colors">Showcase</button>
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 border-b border-transparent">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-10">
+                <a href="#" class="text-2xl font-bold tracking-tighter flex items-center gap-2">
+                    <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    PEYZA<span class="text-emerald-500">.</span>ORG
+                </a>
+                
+                <div class="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+                    <button onclick="redirectToApp()" class="hover:text-white transition-colors">Discover</button>
+                    <button onclick="redirectToApp()" class="hover:text-white transition-colors">Community</button>
+                    <button onclick="redirectToApp()" class="hover:text-white transition-colors">Showcase</button>
+                </div>
             </div>
-          </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <div className="relative mr-4">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-              <input 
-                type="text" 
-                placeholder="Search artists..." 
-                className="bg-zinc-900/50 border border-zinc-800 rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:outline-none focus:border-emerald-500/50 transition-colors"
-              />
+            <div class="hidden md:flex items-center gap-4">
+                <div class="relative mr-4">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input 
+                        type="text" 
+                        placeholder="Search artists..." 
+                        class="bg-zinc-900/50 border border-zinc-800 rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                    >
+                </div>
+                <button onclick="redirectToApp()" class="px-5 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all">Sign In</button>
+                <button onclick="redirectToApp()" class="px-5 py-2 rounded-full text-sm font-medium bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all">Sign Up</button>
             </div>
-            <NavButton onClick={handleRedirect}>Sign In</NavButton>
-            <NavButton primary onClick={handleRedirect}>Sign Up</NavButton>
-          </div>
 
-          <button className="md:hidden text-zinc-400" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            {isMobileMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="relative pt-44 pb-32 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <h1 className="text-5xl md:text-8xl font-bold tracking-tight mb-8">
-            The Canvas for <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-              Digital Visionaries.
-            </span>
-          </h1>
-          <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl mb-12 leading-relaxed">
-            Peyza is a curated haven for professional photographers and digital artists. 
-            Join a community that values quality over quantity.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button 
-              onClick={handleRedirect}
-              className="w-full sm:w-auto px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2"
-            >
-              Start Your Portfolio <ChevronRight size={20} />
+            <button class="md:hidden text-zinc-400" onclick="toggleMobileMenu()">
+                <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
-            <button 
-              onClick={handleRedirect}
-              className="w-full sm:w-auto px-8 py-4 bg-zinc-900 text-white font-bold rounded-full border border-zinc-800 hover:border-zinc-600 transition-colors"
-            >
-              Enter the App
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] bg-black p-6 flex flex-col hidden">
+        <div class="flex justify-between items-center mb-12">
+            <span class="font-bold text-xl text-zinc-100">MENU</span>
+            <button onclick="toggleMobileMenu()" class="text-zinc-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
-          </div>
         </div>
-
-        {/* Ambient background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none"></div>
-      </section>
-
-      {/* Value Propositions Section (Replaces the Gallery) */}
-      <section className="max-w-7xl mx-auto px-6 py-24 border-t border-zinc-900">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-          <div className="flex flex-col items-center">
-            <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
-              <Globe className="text-emerald-400" size={28} />
-            </div>
-            <h3 className="text-xl font-bold mb-4">Global Reach</h3>
-            <p className="text-zinc-500 leading-relaxed">Connect with galleries and art collectors from every corner of the world.</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
-              <Shield className="text-emerald-400" size={28} />
-            </div>
-            <h3 className="text-xl font-bold mb-4">Artist Protection</h3>
-            <p className="text-zinc-500 leading-relaxed">Advanced tools to ensure your creative property remains uniquely yours.</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
-              <Zap className="text-emerald-400" size={28} />
-            </div>
-            <h3 className="text-xl font-bold mb-4">Instant Sync</h3>
-            <p className="text-zinc-500 leading-relaxed">Upload once, showcase everywhere. Fast, high-resolution rendering.</p>
-          </div>
+        <div class="flex flex-col gap-8 text-3xl font-bold text-zinc-100">
+            <button onclick="redirectToApp()" class="text-left hover:text-emerald-500">Discover</button>
+            <button onclick="redirectToApp()" class="text-left hover:text-emerald-500">Community</button>
+            <div class="h-px bg-zinc-800 my-4"></div>
+            <button onclick="redirectToApp()" class="text-left hover:text-emerald-500">Sign In</button>
+            <button onclick="redirectToApp()" class="text-left text-emerald-500">Sign Up</button>
         </div>
-      </section>
+    </div>
 
-      {/* Footer */}
-      <footer className="bg-zinc-900/30 border-t border-zinc-800 py-16 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-2">
-            <a href="#" className="text-xl font-bold tracking-tighter flex items-center gap-2 mb-6">
-              PEYZA<span className="text-emerald-500">.</span>ORG
-            </a>
-            <p className="text-zinc-500 max-w-sm mb-8">
-              A community-driven platform for high-end photography and artistic expression. Build your legacy, pixel by pixel.
+    <!-- Hero Section -->
+    <section class="relative pt-44 pb-32 px-6 overflow-hidden">
+        <div class="max-w-7xl mx-auto text-center relative z-10">
+            <h1 class="text-5xl md:text-8xl font-bold tracking-tight mb-8">
+                The Canvas for <br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                    Digital Visionaries.
+                </span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl mb-12 leading-relaxed">
+                Peyza is a curated haven for professional photographers and digital artists. 
+                Join a community that values quality over quantity.
             </p>
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Platform</h4>
-            <ul className="space-y-4 text-zinc-500 text-sm">
-              <li><button onClick={handleRedirect} className="hover:text-emerald-400 transition-colors">Sign In</button></li>
-              <li><button onClick={handleRedirect} className="hover:text-emerald-400 transition-colors">Sign Up</button></li>
-              <li><button onClick={handleRedirect} className="hover:text-emerald-400 transition-colors">Explore</button></li>
-            </ul>
-          </div>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button 
+                    onclick="redirectToApp()"
+                    class="w-full sm:w-auto px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2"
+                >
+                    Start Your Portfolio 
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+                <button 
+                    onclick="redirectToApp()"
+                    class="w-full sm:w-auto px-8 py-4 bg-zinc-900 text-white font-bold rounded-full border border-zinc-800 hover:border-zinc-600 transition-colors"
+                >
+                    Enter the App
+                </button>
+            </div>
+        </div>
 
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Support</h4>
-            <ul className="space-y-4 text-zinc-500 text-sm">
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Artist Guidelines</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Privacy</a></li>
-            </ul>
-          </div>
+        <!-- Ambient background glow -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-glow blur-[120px] rounded-full pointer-events-none"></div>
+    </section>
+
+    <!-- Value Propositions Section -->
+    <section class="max-w-7xl mx-auto px-6 py-24 border-t border-zinc-900">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
+                    <svg class="text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                </div>
+                <h3 class="text-xl font-bold mb-4">Global Reach</h3>
+                <p class="text-zinc-500 leading-relaxed">Connect with galleries and art collectors from every corner of the world.</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
+                    <svg class="text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                </div>
+                <h3 class="text-xl font-bold mb-4">Artist Protection</h3>
+                <p class="text-zinc-500 leading-relaxed">Advanced tools to ensure your creative property remains uniquely yours.</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
+                    <svg class="text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <h3 class="text-xl font-bold mb-4">Instant Sync</h3>
+                <p class="text-zinc-500 leading-relaxed">Upload once, showcase everywhere. Fast, high-resolution rendering.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-zinc-900/30 border-t border-zinc-800 py-16 px-6">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="col-span-1 md:col-span-2">
+                <a href="#" class="text-xl font-bold tracking-tighter flex items-center gap-2 mb-6 text-zinc-100">
+                    <div class="w-6 h-6 bg-emerald-500 rounded flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    PEYZA<span class="text-emerald-500">.</span>ORG
+                </a>
+                <p class="text-zinc-500 max-w-sm mb-8">
+                    A community-driven platform for high-end photography and artistic expression. Build your legacy, pixel by pixel.
+                </p>
+            </div>
+            
+            <div>
+                <h4 class="text-sm font-bold uppercase tracking-widest mb-6 text-zinc-100">Platform</h4>
+                <ul class="space-y-4 text-zinc-500 text-sm">
+                    <li><button onclick="redirectToApp()" class="hover:text-emerald-400 transition-colors">Sign In</button></li>
+                    <li><button onclick="redirectToApp()" class="hover:text-emerald-400 transition-colors">Sign Up</button></li>
+                    <li><button onclick="redirectToApp()" class="hover:text-emerald-400 transition-colors">Explore</button></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-bold uppercase tracking-widest mb-6 text-zinc-100">Support</h4>
+                <ul class="space-y-4 text-zinc-500 text-sm">
+                    <li><a href="#" class="hover:text-emerald-400 transition-colors">Help Center</a></li>
+                    <li><a href="#" class="hover:text-emerald-400 transition-colors">Artist Guidelines</a></li>
+                    <li><a href="#" class="hover:text-emerald-400 transition-colors">Privacy</a></li>
+                </ul>
+            </div>
         </div>
         
-        <div className="max-w-7xl mx-auto pt-16 mt-16 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-600 text-xs">
-          <p>© 2024 PEYZA.ORG Photography. All Rights Reserved.</p>
-          <p>Deviant aesthetic • Minimalist design</p>
+        <div class="max-w-7xl mx-auto pt-16 mt-16 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-600 text-xs">
+            <p>© 2024 PEYZA.ORG Photography. All Rights Reserved.</p>
+            <p>Deviant aesthetic • Minimalist design</p>
         </div>
-      </footer>
+    </footer>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-black p-6 flex flex-col">
-          <div className="flex justify-between items-center mb-12">
-            <span className="font-bold text-xl">MENU</span>
-            <button onClick={() => setIsMobileMenuOpen(false)}><X size={32} /></button>
-          </div>
-          <div className="flex flex-col gap-8 text-3xl font-bold">
-            <button onClick={handleRedirect} className="text-left hover:text-emerald-500">Discover</button>
-            <button onClick={handleRedirect} className="text-left hover:text-emerald-500">Community</button>
-            <div className="h-px bg-zinc-800 my-4"></div>
-            <button onClick={handleRedirect} className="text-left hover:text-emerald-500">Sign In</button>
-            <button onClick={handleRedirect} className="text-left text-emerald-500">Sign Up</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+    <script>
+        const navbar = document.getElementById('navbar');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const APP_URL = "https://app.peyza.org";
 
-export default App;
+        // Handle scroll effect for navbar
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('bg-[#0a0a0a]/90', 'backdrop-blur-md', 'border-zinc-800');
+                navbar.classList.remove('bg-transparent', 'border-transparent');
+            } else {
+                navbar.classList.remove('bg-[#0a0a0a]/90', 'backdrop-blur-md', 'border-zinc-800');
+                navbar.classList.add('bg-transparent', 'border-transparent');
+            }
+        });
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+            if (!mobileMenu.classList.contains('hidden')) {
+                document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Redirect helper
+        function redirectToApp() {
+            window.location.href = APP_URL;
+        }
+    </script>
+</body>
+</html>
