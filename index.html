@@ -1,296 +1,192 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peyza.org | Daily News Blog</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        stone: {
-                            50: '#fafaf9',
-                            100: '#f5f5f4',
-                            200: '#e7e5e4',
-                            300: '#d6d3d1',
-                            400: '#a8a29e',
-                            500: '#78716c',
-                            600: '#57534e',
-                            700: '#44403c',
-                            800: '#292524',
-                            900: '#1c1917',
-                        },
-                        earth: {
-                            accent: '#c2410c', // Muted rust for urgency
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300&family=Inter:wght@300;400;600;800&display=swap');
+import React, { useState, useEffect } from 'react';
+import { Camera, Search, ChevronRight, Menu, X, Globe, Shield, Zap } from 'lucide-react';
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #fafaf9; /* Stone-50 */
-            color: #44403c; /* Stone-700 */
-        }
+const App = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-        h1, h2, h3, .serif {
-            font-family: 'Merriweather', serif;
-        }
+  const APP_URL = "https://app.peyza.org";
 
-        .hero-bg {
-            background-color: #f5f5f4; /* Stone-100 */
-            position: relative;
-            overflow: hidden;
-        }
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-        /* Minimalist grain texture */
-        .hero-pattern {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            pointer-events: none;
-        }
+  const NavButton = ({ children, primary = false, className = "", onClick }) => (
+    <button 
+      onClick={onClick}
+      className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+      primary 
+        ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20" 
+        : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+    } ${className}`}>
+      {children}
+    </button>
+  );
 
-        .ticker-wrap {
-            width: 100%;
-            overflow: hidden;
-            background-color: #44403c; /* Stone-700 */
-            color: #e7e5e4; /* Stone-200 */
-            white-space: nowrap;
-        }
+  const handleRedirect = () => {
+    window.location.href = APP_URL;
+  };
 
-        .ticker {
-            display: inline-block;
-            padding-left: 100%;
-            animation: ticker 35s linear infinite;
-        }
-
-        .ticker__item {
-            display: inline-block;
-            padding: 0 2rem;
-            font-size: 0.8rem;
-            font-weight: 500;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        @keyframes ticker {
-            0% { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(-100%, 0, 0); }
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-up {
-            opacity: 0; /* Start hidden */
-            animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .delay-100 { animation-delay: 0.1s; }
-        .delay-200 { animation-delay: 0.3s; }
-        .delay-300 { animation-delay: 0.5s; }
-        .delay-400 { animation-delay: 0.7s; }
-        .delay-500 { animation-delay: 0.9s; }
-
-        .btn-primary {
-            background-color: #292524; /* Stone-800 */
-            color: #fafaf9;
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            background-color: #44403c; /* Stone-700 */
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(41, 37, 36, 0.15);
-        }
-
-        .btn-secondary {
-            border: 1px solid #78716c; /* Stone-500 */
-            color: #44403c;
-            background: transparent;
-            transition: all 0.3s ease;
-        }
-        .btn-secondary:hover {
-            background-color: #e7e5e4; /* Stone-200 */
-            border-color: #44403c;
-        }
-    </style>
-</head>
-<body class="bg-stone-50 flex flex-col min-h-screen selection:bg-stone-200 selection:text-stone-900">
-
-    <!-- Breaking News Ticker -->
-    <div class="ticker-wrap py-3 border-b border-stone-600">
-        <div class="ticker">
-            <div class="ticker__item">Peyza.org Launches Global Platform</div>
-            <div class="ticker__item">Local Stories, Worldwide Impact</div>
-            <div class="ticker__item">Brazil, Indiana: The New Hub for Digital Journalism</div>
-            <div class="ticker__item">Breaking: Community Voices Amplified</div>
-            <div class="ticker__item">Read More at app.peyza.org</div>
-        </div>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="bg-stone-50/80 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-                <div class="flex-shrink-0 flex items-center gap-3">
-                    <div class="w-9 h-9 bg-stone-800 text-stone-100 flex items-center justify-center font-bold serif text-lg rounded-sm">P</div>
-                    <span class="font-bold text-xl tracking-tight text-stone-800 serif">Peyza.org</span>
-                </div>
-                <div class="hidden md:flex space-x-10">
-                    <a href="#" class="text-stone-500 hover:text-stone-900 transition-colors text-sm uppercase tracking-wide font-medium">Mission</a>
-                    <a href="#" class="text-stone-500 hover:text-stone-900 transition-colors text-sm uppercase tracking-wide font-medium">Local</a>
-                    <a href="#" class="text-stone-500 hover:text-stone-900 transition-colors text-sm uppercase tracking-wide font-medium">Global</a>
-                </div>
-                <div>
-                    <a href="https://app.peyza.org" class="btn-primary px-5 py-2.5 rounded text-sm font-medium">
-                        Access App
-                    </a>
-                </div>
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-sans selection:bg-emerald-500/30">
+      {/* Navigation */}
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
+        isScrolled ? "bg-[#0a0a0a]/90 backdrop-blur-md border-zinc-800" : "bg-transparent border-transparent"
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-10">
+            <a href="#" className="text-2xl font-bold tracking-tighter flex items-center gap-2">
+              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                <Camera size={18} className="text-black" />
+              </div>
+              PEYZA<span className="text-emerald-500">.</span>ORG
+            </a>
+            
+            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+              <button onClick={handleRedirect} className="hover:text-white transition-colors">Discover</button>
+              <button onClick={handleRedirect} className="hover:text-white transition-colors">Community</button>
+              <button onClick={handleRedirect} className="hover:text-white transition-colors">Showcase</button>
             </div>
-        </div>
-    </nav>
+          </div>
 
-    <!-- Hero Section -->
-    <div class="hero-bg flex-grow flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 relative">
-        <div class="hero-pattern"></div>
-        
-        <div class="max-w-4xl w-full text-center relative z-10">
-            <!-- Badge -->
-            <div class="animate-fade-up">
-                <span class="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-stone-200 text-stone-600 mb-8 border border-stone-300">
-                    <span class="w-1.5 h-1.5 bg-stone-500 rounded-full mr-2"></span>
-                    Est. December 2025
-                </span>
+          <div className="hidden md:flex items-center gap-4">
+            <div className="relative mr-4">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <input 
+                type="text" 
+                placeholder="Search artists..." 
+                className="bg-zinc-900/50 border border-zinc-800 rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:outline-none focus:border-emerald-500/50 transition-colors"
+              />
             </div>
+            <NavButton onClick={handleRedirect}>Sign In</NavButton>
+            <NavButton primary onClick={handleRedirect}>Sign Up</NavButton>
+          </div>
 
-            <!-- Headline -->
-            <h1 class="animate-fade-up delay-100 text-6xl md:text-8xl font-black tracking-tighter mb-6 serif leading-[0.9] text-stone-900">
-                Local Heart.<br/>
-                <span class="text-stone-400">Global Pulse.</span>
-            </h1>
+          <button className="md:hidden text-zinc-400" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
+      </nav>
 
-            <!-- Subheadline -->
-            <p class="animate-fade-up delay-200 mt-8 text-xl text-stone-600 max-w-2xl mx-auto font-light leading-relaxed">
-                Connecting the community of Brazil, Indiana to the world stage. <br class="hidden md:block">Unbiased, real-time reporting for the modern era.
+      {/* Hero Section */}
+      <section className="relative pt-44 pb-32 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <h1 className="text-5xl md:text-8xl font-bold tracking-tight mb-8">
+            The Canvas for <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+              Digital Visionaries.
+            </span>
+          </h1>
+          <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl mb-12 leading-relaxed">
+            Peyza is a curated haven for professional photographers and digital artists. 
+            Join a community that values quality over quantity.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button 
+              onClick={handleRedirect}
+              className="w-full sm:w-auto px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2"
+            >
+              Start Your Portfolio <ChevronRight size={20} />
+            </button>
+            <button 
+              onClick={handleRedirect}
+              className="w-full sm:w-auto px-8 py-4 bg-zinc-900 text-white font-bold rounded-full border border-zinc-800 hover:border-zinc-600 transition-colors"
+            >
+              Enter the App
+            </button>
+          </div>
+        </div>
+
+        {/* Ambient background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+      </section>
+
+      {/* Value Propositions Section (Replaces the Gallery) */}
+      <section className="max-w-7xl mx-auto px-6 py-24 border-t border-zinc-900">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+          <div className="flex flex-col items-center">
+            <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
+              <Globe className="text-emerald-400" size={28} />
+            </div>
+            <h3 className="text-xl font-bold mb-4">Global Reach</h3>
+            <p className="text-zinc-500 leading-relaxed">Connect with galleries and art collectors from every corner of the world.</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
+              <Shield className="text-emerald-400" size={28} />
+            </div>
+            <h3 className="text-xl font-bold mb-4">Artist Protection</h3>
+            <p className="text-zinc-500 leading-relaxed">Advanced tools to ensure your creative property remains uniquely yours.</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
+              <Zap className="text-emerald-400" size={28} />
+            </div>
+            <h3 className="text-xl font-bold mb-4">Instant Sync</h3>
+            <p className="text-zinc-500 leading-relaxed">Upload once, showcase everywhere. Fast, high-resolution rendering.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-zinc-900/30 border-t border-zinc-800 py-16 px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="col-span-1 md:col-span-2">
+            <a href="#" className="text-xl font-bold tracking-tighter flex items-center gap-2 mb-6">
+              PEYZA<span className="text-emerald-500">.</span>ORG
+            </a>
+            <p className="text-zinc-500 max-w-sm mb-8">
+              A community-driven platform for high-end photography and artistic expression. Build your legacy, pixel by pixel.
             </p>
+          </div>
+          
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Platform</h4>
+            <ul className="space-y-4 text-zinc-500 text-sm">
+              <li><button onClick={handleRedirect} className="hover:text-emerald-400 transition-colors">Sign In</button></li>
+              <li><button onClick={handleRedirect} className="hover:text-emerald-400 transition-colors">Sign Up</button></li>
+              <li><button onClick={handleRedirect} className="hover:text-emerald-400 transition-colors">Explore</button></li>
+            </ul>
+          </div>
 
-            <!-- Buttons -->
-            <div class="animate-fade-up delay-300 flex flex-col sm:flex-row gap-5 justify-center mt-12">
-                <a href="https://app.peyza.org" class="btn-primary group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded shadow-lg">
-                    Enter Site
-                    <i class="fas fa-arrow-right ml-3 transition-transform group-hover:translate-x-1 text-sm"></i>
-                </a>
-                <button class="btn-secondary inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded">
-                    Subscribe
-                </button>
-            </div>
-
-            <!-- Footer Stats/Info -->
-            <div class="animate-fade-up delay-400 mt-16 pt-10 border-t border-stone-300 flex flex-col md:flex-row justify-center items-center gap-8 text-xs font-medium text-stone-500 uppercase tracking-widest">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-map-marker-alt text-stone-400"></i>
-                    <span>Brazil, Indiana HQ</span>
-                </div>
-                <div class="hidden md:block w-1 h-1 bg-stone-300 rounded-full"></div>
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-globe-americas text-stone-400"></i>
-                    <span>Global Coverage</span>
-                </div>
-                <div class="hidden md:block w-1 h-1 bg-stone-300 rounded-full"></div>
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-bolt text-stone-400"></i>
-                    <span>24/7 Updates</span>
-                </div>
-            </div>
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Support</h4>
+            <ul className="space-y-4 text-zinc-500 text-sm">
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Help Center</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Artist Guidelines</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Privacy</a></li>
+            </ul>
+          </div>
         </div>
+        
+        <div className="max-w-7xl mx-auto pt-16 mt-16 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-600 text-xs">
+          <p>© 2024 PEYZA.ORG Photography. All Rights Reserved.</p>
+          <p>Deviant aesthetic • Minimalist design</p>
+        </div>
+      </footer>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] bg-black p-6 flex flex-col">
+          <div className="flex justify-between items-center mb-12">
+            <span className="font-bold text-xl">MENU</span>
+            <button onClick={() => setIsMobileMenuOpen(false)}><X size={32} /></button>
+          </div>
+          <div className="flex flex-col gap-8 text-3xl font-bold">
+            <button onClick={handleRedirect} className="text-left hover:text-emerald-500">Discover</button>
+            <button onClick={handleRedirect} className="text-left hover:text-emerald-500">Community</button>
+            <div className="h-px bg-zinc-800 my-4"></div>
+            <button onClick={handleRedirect} className="text-left hover:text-emerald-500">Sign In</button>
+            <button onClick={handleRedirect} className="text-left text-emerald-500">Sign Up</button>
+          </div>
+        </div>
+      )}
     </div>
+  );
+};
 
-    <!-- Features Section -->
-    <div class="bg-stone-50 py-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 animate-fade-up delay-500">
-                <h2 class="text-3xl font-bold text-stone-900 serif sm:text-4xl tracking-tight">
-                    Reporting Today's Truth
-                </h2>
-                <div class="w-16 h-1 bg-stone-300 mx-auto mt-6 mb-6"></div>
-                <p class="max-w-2xl text-lg text-stone-500 mx-auto font-light">
-                    From the brick streets of Brazil to major international headlines, Peyza brings you the stories that matter with clarity and integrity.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div class="group p-8 bg-white rounded-xl border border-stone-100 shadow-sm hover:shadow-xl hover:border-stone-200 transition-all duration-300 animate-fade-up delay-500">
-                    <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mb-6 text-stone-700 group-hover:bg-stone-800 group-hover:text-white transition-colors">
-                        <i class="fas fa-newspaper text-xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-stone-900 mb-3 serif">Daily Briefings</h3>
-                    <p class="text-stone-500 leading-relaxed">Curated daily digests delivered straight to your device every morning.</p>
-                </div>
-
-                <!-- Feature 2 -->
-                <div class="group p-8 bg-white rounded-xl border border-stone-100 shadow-sm hover:shadow-xl hover:border-stone-200 transition-all duration-300 animate-fade-up delay-500">
-                    <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mb-6 text-stone-700 group-hover:bg-earth-accent group-hover:text-white transition-colors">
-                        <i class="fas fa-broadcast-tower text-xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-stone-900 mb-3 serif">Live Updates</h3>
-                    <p class="text-stone-500 leading-relaxed">Real-time breaking news alerts as they happen, locally and globally.</p>
-                </div>
-
-                <!-- Feature 3 -->
-                <div class="group p-8 bg-white rounded-xl border border-stone-100 shadow-sm hover:shadow-xl hover:border-stone-200 transition-all duration-300 animate-fade-up delay-500">
-                    <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mb-6 text-stone-700 group-hover:bg-stone-800 group-hover:text-white transition-colors">
-                        <i class="fas fa-users text-xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-stone-900 mb-3 serif">Community Focused</h3>
-                    <p class="text-stone-500 leading-relaxed">Dedicated sections for Brazil, IN announcements, events, and local heroes.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="bg-stone-900 text-stone-400 py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-8">
-                <div class="text-center md:text-left">
-                    <span class="text-2xl font-black serif tracking-widest text-stone-100">PEYZA.ORG</span>
-                    <p class="mt-2 text-stone-500 text-sm">Founded Dec 2025 • Brazil, Indiana</p>
-                </div>
-                <div class="flex space-x-8">
-                    <a href="#" class="hover:text-stone-100 transition-transform hover:-translate-y-1">
-                        <i class="fab fa-facebook fa-lg"></i>
-                    </a>
-                    <a href="#" class="hover:text-stone-100 transition-transform hover:-translate-y-1">
-                        <i class="fab fa-twitter fa-lg"></i>
-                    </a>
-                    <a href="#" class="hover:text-stone-100 transition-transform hover:-translate-y-1">
-                        <i class="fab fa-instagram fa-lg"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="mt-12 border-t border-stone-800 pt-8 text-center text-xs text-stone-600 uppercase tracking-widest">
-                &copy; 2025 Peyza.org. All rights reserved.
-            </div>
-        </div>
-    </footer>
-
-</body>
-</html>
+export default App;
