@@ -1,808 +1,1029 @@
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <title>Peyza - The Red Social Network</title>
-    <meta name="theme-color" content="#e11d48">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peyza - Music Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: '#000000',
-                        darkSec: '#16181c',
-                        darkText: '#e7e9ea',
-                        darkBorder: '#2f3336'
-                    }
-                }
-            }
-        }
-    </script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #be123c; }
-
-        /* Animations */
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.4); }
-            100% { transform: scale(1); }
+        /* Custom Utilities */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
         }
-        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
-        
-        .nav-item.active i { font-weight: 900; }
-        
-        /* Mobile Nav Animations */
-        .nav-icon { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s; }
-        .nav-icon.active { transform: scale(1.25); }
-        
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .mobile-nav { padding-bottom: env(safe-area-inset-bottom); }
-        
-        /* Interaction States */
-        .liked { color: #e11d48 !important; }
-        .reposted { color: #22c55e !important; }
-        .bookmarked { color: #3b82f6 !important; }
-        .liked-fire { color: #f59e0b !important; }
-        
-        /* Post Themes */
-        .post-highlight {
-            border: 2px solid #fbbf24 !important; 
-            background-color: rgba(251, 191, 36, 0.05);
+        @keyframes bounce-in {
+            0% { transform: translateY(-20px); opacity: 0; }
+            50% { transform: translateY(5px); }
+            100% { transform: translateY(0); opacity: 1; }
         }
-
-        /* PeyVids Specific */
-        .peyvids-container {
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 60;
-            background: black;
+        .animate-bounce-in {
+            animation: bounce-in 0.5s ease-out forwards;
         }
-        .peyvid-item {
-            scroll-snap-align: start;
-            height: 100vh;
-            width: 100%;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+        body {
+            background-color: black;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden; /* Prevent body scroll */
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+        }
+        /* Dashboard Grid */
+        .dashboard-card {
+            background-color: #181818;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #282828;
         }
     </style>
 </head>
-<body class="flex justify-center min-h-screen bg-white text-[#0f1419] dark:bg-dark dark:text-darkText transition-colors duration-200">
+<body class="flex flex-col h-screen w-full">
 
-    <!-- Left Sidebar (Desktop) -->
-    <header class="hidden sm:flex flex-col w-[80px] xl:w-[275px] h-screen fixed left-0 top-0 border-r border-gray-100 dark:border-darkBorder px-2 xl:px-8 py-4 z-50 bg-white dark:bg-dark justify-between">
-        <div class="space-y-4">
-            <div class="p-3 w-min hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full cursor-pointer transition transform active:scale-90" onclick="app.navigate('home')">
-                <i class="fa-solid fa-p text-3xl text-rose-600"></i>
-            </div>
-            <nav class="space-y-2 text-xl">
-                <a onclick="app.navigate('home')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item active" id="nav-home">
-                    <i class="fa-solid fa-house"></i> <span class="hidden xl:block font-medium">Home</span>
-                </a>
-                <a onclick="app.navigate('explore')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-explore">
-                    <i class="fa-solid fa-magnifying-glass"></i> <span class="hidden xl:block font-medium">Explore</span>
-                </a>
-                <a onclick="app.navigate('peyvids')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-peyvids">
-                    <i class="fa-solid fa-play"></i> <span class="hidden xl:block font-medium">PeyVids</span>
-                </a>
-                <a onclick="app.navigate('notifications')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-notifications">
-                    <i class="fa-regular fa-bell"></i> <span class="hidden xl:block font-medium">Notifications</span>
-                </a>
-                <a onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-profile">
-                    <i class="fa-regular fa-user"></i> <span class="hidden xl:block font-medium">Profile</span>
-                </a>
-                <a onclick="app.openSettings()" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item">
-                    <i class="fa-solid fa-gear"></i> <span class="hidden xl:block font-medium">Settings</span>
-                </a>
-            </nav>
-            <button onclick="app.openComposeModal()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-full p-4 xl:py-3 xl:px-8 w-full shadow-lg transition transform active:scale-95 mt-4">
-                <i class="fa-solid fa-feather sm:hidden"></i> <span class="hidden xl:block font-bold text-lg">Post</span>
-            </button>
-        </div>
-        <div onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-3 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer mb-4 transition" id="sidebar-user">
-            <!-- Injected by JS -->
-        </div>
-    </header>
-
-    <!-- Main Content Feed -->
-    <main class="w-full sm:ml-[80px] xl:ml-[275px] max-w-[600px] border-r border-gray-100 dark:border-darkBorder min-h-screen pb-20 sm:pb-0 relative">
-        <div id="sticky-header" class="sticky top-0 bg-white/80 dark:bg-dark/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-darkBorder"></div>
-        <div id="main-view" class="animate-fade-in"></div>
-    </main>
-    
-    <!-- PeyVids Overlay -->
-    <div id="peyvids-overlay" class="peyvids-container hidden bg-black flex justify-center">
-        <div id="peyvids-feed" class="w-full max-w-[500px] bg-black h-full relative shadow-2xl border-x border-gray-800"></div>
-        <div class="absolute top-4 left-4 z-50 text-white text-3xl cursor-pointer hover:scale-110 transition drop-shadow-md" onclick="app.closePeyVids()"><i class="fa-solid fa-arrow-left"></i></div>
+    <div id="app" class="flex flex-col h-full w-full">
+        <!-- App content will be injected here -->
     </div>
 
-    <!-- Right Sidebar (Desktop) -->
-    <aside class="hidden lg:block w-[350px] pl-8 py-4 h-screen sticky top-0">
-        <div class="relative group mb-6">
-            <div class="absolute left-4 top-3 text-gray-500 group-focus-within:text-rose-500"><i class="fa-solid fa-magnifying-glass"></i></div>
-            <input type="text" placeholder="Search Peyza" onkeyup="if(event.key === 'Enter') { app.navigate('explore', this.value); }" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-3 pl-12 pr-4 outline-none focus:bg-white dark:focus:bg-black focus:ring-1 focus:ring-rose-500 transition border border-transparent dark:border-darkBorder">
-        </div>
-        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4 mb-4">
-            <h3 class="font-extrabold text-xl mb-4">Trends for you</h3>
-            <div class="space-y-4" id="sidebar-trends"></div>
-        </div>
-        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4">
-            <h3 class="font-extrabold text-xl mb-4">Who to follow</h3>
-            <div id="who-to-follow" class="space-y-4"></div>
-        </div>
-    </aside>
-
-    <!-- Mobile Navigation Bottom -->
-    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30" id="mobile-nav-bar"></div>
-
-    <!-- Floating Action Button (Mobile) -->
-    <button onclick="app.openComposeModal()" class="fixed bottom-20 right-4 bg-rose-500 text-white rounded-full p-4 shadow-lg sm:hidden z-20 hover:bg-rose-600 active:scale-90 transition animate-pop">
-        <i class="fa-solid fa-feather text-xl"></i>
-    </button>
-
-    <!-- Compose Modal -->
-    <div id="compose-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-[70] hidden flex items-start justify-center pt-16 sm:pt-24 p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-dark w-full max-w-[600px] rounded-2xl p-4 shadow-2xl relative animate-pop border dark:border-darkBorder">
-            <div class="flex justify-between items-center mb-4">
-                <button onclick="app.closeComposeModal()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button>
-                <div class="flex gap-4">
-                     <span class="text-rose-500 font-bold text-sm self-center">Drafts</span>
-                     <button onclick="app.publishPost()" class="bg-rose-500 text-white px-4 py-1.5 rounded-full font-bold text-sm hover:bg-rose-600 disabled:opacity-50 transition">Post</button>
-                </div>
-            </div>
-            <div class="flex gap-3">
-                <img id="compose-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-darkBorder">
-                <div class="w-full">
-                    <div id="author-selector" class="hidden mb-2"><select id="post-as-select" class="text-sm font-bold bg-transparent outline-none text-rose-500 cursor-pointer"></select></div>
-                    <div id="replying-to-indicator" class="hidden text-sm text-gray-500 mb-1">Replying to <span class="text-rose-500">@post</span></div>
-                    <div id="community-indicator" class="hidden text-sm text-gray-500 mb-1">Posting to <span class="text-rose-500 font-bold" id="community-name-target">Community</span></div>
-                    <textarea id="compose-input" class="w-full h-24 resize-none outline-none text-xl placeholder-gray-500 bg-transparent dark:text-white mt-2" placeholder="What is happening?!"></textarea>
-                    
-                    <div id="media-preview" class="hidden relative mb-2">
-                        <img id="media-preview-img" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden">
-                        <video id="media-preview-video" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden" controls></video>
-                        <button onclick="app.clearMedia()" class="absolute top-1 left-1 bg-black/50 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-
-                    <div id="poll-creator" class="hidden border border-gray-200 dark:border-darkBorder rounded-xl p-3 mb-2">
-                        <div class="space-y-2">
-                            <input type="text" id="poll-opt-1" placeholder="Choice 1" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white">
-                            <input type="text" id="poll-opt-2" placeholder="Choice 2" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white">
-                        </div>
-                        <div class="mt-2 text-rose-500 text-xs font-bold cursor-pointer" onclick="document.getElementById('poll-creator').classList.add('hidden')">Remove Poll</div>
-                    </div>
-
-                    <div class="border-t border-gray-100 dark:border-darkBorder pt-3 flex justify-between items-center text-rose-500 text-lg">
-                        <div class="flex gap-4">
-                            <i class="fa-regular fa-image cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-image-upload').click()"></i>
-                            <i class="fa-solid fa-video cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-video-upload').click()"></i>
-                            <i class="fa-solid fa-square-poll-horizontal cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('poll-creator').classList.remove('hidden')"></i>
-                            <i class="fa-regular fa-face-smile cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
-                        </div>
-                    </div>
-                    <input type="file" id="post-image-upload" hidden accept="image/*" onchange="app.handlePostMedia(event, 'image')">
-                    <input type="file" id="post-video-upload" hidden accept="video/*" onchange="app.handlePostMedia(event, 'video')">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Profile / Settings Modal -->
-    <div id="edit-profile-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-dark w-full max-w-[500px] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-pop border dark:border-darkBorder">
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-4"><button onclick="app.closeEditProfile()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button><h2 class="font-bold text-xl" id="edit-modal-title">Edit Profile</h2></div>
-                <button onclick="app.saveProfile()" class="bg-black dark:bg-white dark:text-black text-white px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-800 transition">Save</button>
-            </div>
-            <input type="file" id="banner-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'banner')"><input type="file" id="avatar-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'avatar')">
-            <div class="h-32 bg-gray-200 dark:bg-darkSec relative mb-12 rounded-md group cursor-pointer overflow-hidden border dark:border-darkBorder" onclick="document.getElementById('banner-upload').click()"><img id="edit-banner-preview" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-camera text-white text-2xl drop-shadow-md"></i></div><div class="absolute -bottom-10 left-4 w-24 h-24 rounded-full border-4 border-white dark:border-dark bg-gray-300 dark:bg-darkSec overflow-hidden cursor-pointer group hover:opacity-90" onclick="event.stopPropagation(); document.getElementById('avatar-upload').click()"><img id="edit-avatar-preview" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-camera text-white drop-shadow-md"></i></div></div></div>
-            <form class="space-y-4 mt-8">
-                <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md"><span class="font-bold text-sm">Dark Mode</span><button type="button" onclick="app.toggleTheme()" id="theme-btn" class="text-gray-500 hover:text-rose-500 font-bold text-sm transition">Switch</button></div>
-                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Name</label><input type="text" id="edit-name" class="w-full outline-none text-sm bg-transparent dark:text-white"></div>
-                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Bio</label><textarea id="edit-bio" class="w-full outline-none text-sm resize-none h-20 bg-transparent dark:text-white"></textarea></div>
-                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Location</label><input type="text" id="edit-location" class="w-full outline-none text-sm bg-transparent dark:text-white"></div>
-                <div id="bot-control-panel" class="hidden flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md"><span class="font-bold text-sm">Auto-Posting</span><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="bot-auto-post" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div></label></div>
-                <hr class="border-gray-100 dark:border-darkBorder my-4">
-                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500"><label class="block text-xs text-gray-500">Secret PIN</label><input type="password" id="secret-pin" oninput="app.checkPin()" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent" placeholder="Enter code"></div>
-                <div id="god-mode-panel" class="hidden space-y-4 bg-rose-50 dark:bg-rose-900/10 p-4 rounded-lg border border-rose-100 dark:border-rose-900/30">
-                    <h3 class="font-bold text-rose-600 mb-2">⚡ God Mode Active</h3>
-                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 bg-white dark:bg-dark"><label class="block text-xs text-gray-500">Follower Count (Cheat)</label><input type="number" id="edit-followers" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent"></div>
-                    <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md bg-white dark:bg-dark"><div class="flex flex-col"><span class="font-bold text-sm">Force Verify</span><span class="text-xs text-gray-500">Bypass requirements</span></div><button type="button" id="btn-verify" onclick="app.requestVerification(true)" class="bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition">Get Badge</button></div>
-                    <button type="button" onclick="app.openCreateBotModal()" class="w-full bg-rose-500 text-white font-bold py-2 rounded-md hover:bg-rose-600 transition"><i class="fa-solid fa-robot mr-2"></i> Create New Bot</button>
-                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-2 bg-white dark:bg-dark"><label class="block text-xs text-gray-500 mb-2">Virality Speed</label><select id="edit-virality" class="w-full outline-none text-sm bg-transparent dark:text-white"><option value="0.1">Slow (Realistic)</option><option value="1">Normal</option><option value="5">Fast</option><option value="20">Superfast (Viral)</option><option value="2000">Ultra Fast (Godspeed)</option></select></div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Create Bot Modal -->
-    <div id="create-bot-modal" class="fixed inset-0 bg-black/50 z-[90] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-dark w-full max-w-[400px] rounded-2xl p-6 shadow-2xl relative animate-pop border dark:border-darkBorder">
-             <div class="flex justify-between items-center mb-6"><h2 class="font-bold text-xl">Create Bot</h2><button onclick="document.getElementById('create-bot-modal').classList.add('hidden')" class="text-gray-900 dark:text-white p-2"><i class="fa-solid fa-xmark text-xl"></i></button></div>
-            <div class="space-y-4"><input type="text" id="bot-name" placeholder="Bot Name" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><input type="text" id="bot-handle" placeholder="Bot Handle (no @)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><input type="text" id="bot-avatar" placeholder="Avatar URL (optional)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><button onclick="app.createBot()" class="w-full bg-rose-600 text-white font-bold py-2 rounded-full">Create</button></div>
-        </div>
-    </div>
-
-    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-2 rounded-full shadow-lg z-[100] transition-opacity duration-300 opacity-0 pointer-events-none font-bold text-sm">Action Successful</div>
+    <!-- Hidden File Inputs -->
+    <input type="file" id="global-file-input" class="hidden" accept="image/*">
+    <input type="file" id="global-audio-input" class="hidden" accept="audio/*">
 
 <script>
-/**
- * Peyza App Logic v6.1 - Fixes for Liking, Search, and UI
- */
+    // --- Utils ---
+    const generateId = () => Math.random().toString(36).substr(2, 9);
+    const formatNumber = (num) => num.toLocaleString('en-US');
 
-const BADGES = {
-    RED: `<svg viewBox="0 0 24 24" aria-label="Verified" class="w-5 h-5 ml-1 inline-block text-rose-500 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
-    PURPLE: `<svg viewBox="0 0 24 24" aria-label="Influencer" class="w-5 h-5 ml-1 inline-block text-purple-600 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
-    PLATINUM: `<svg viewBox="0 0 24 24" aria-label="Superstar" class="w-5 h-5 ml-1 inline-block text-slate-400 fill-current align-text-bottom drop-shadow-sm"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
-    OWNER: `<i class="fa-solid fa-crown w-5 h-5 ml-1 inline-block text-amber-400 align-text-bottom" title="Owner"></i>`
-};
-const ANALYTICS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" class="w-[18px] h-[18px] fill-current"><g><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></g></svg>`;
+    const formatDate = (dayCount) => {
+        const date = new Date(2025, 0, 1);
+        date.setDate(date.getDate() + dayCount);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
 
-const DEFAULT_BOTS = [
-    { handle: 'Peyza', name: 'Peyza', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=P&backgroundColor=e11d48', bio: 'The Official Peyza Account. Updates & News.', followers: 50000000, following: 0, isVerified: true, isOwner: true, autoPost: true },
-    { handle: 'tech_guru', name: 'Tech Insider', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Felix', bio: 'Latest tech news.', followers: 450200, following: 152, isVerified: true, autoPost: true },
-    { handle: 'JuiceWorlddd', name: 'Juice WRLD', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juice', bio: '999 Forever 🕊️', followers: 12500000, following: 1, isVerified: true, autoPost: true },
-    { handle: 'elonmusk', name: 'Elon Musk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elon', bio: 'Mars & Cars.', followers: 150000000, following: 140, isVerified: true, autoPost: true },
-    { handle: 'taylorswift13', name: 'Taylor Swift', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor', bio: 'I’m the problem, it’s me.', followers: 95000000, following: 0, isVerified: true, autoPost: true },
-    { handle: 'meme_lord', name: 'Daily Memes', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Meme', bio: 'I post memes.', followers: 12000, following: 50, isVerified: false, autoPost: true },
-    { handle: 'crypto_king', name: 'Crypto Chad', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Chad', bio: 'HODL.', followers: 8900, following: 1200, isVerified: false, autoPost: true },
-    { handle: 'art_daily', name: 'Artistic Soul', avatar: 'https://api.dicebear.com/7.x/micah/svg?seed=Art', bio: 'Digital artist.', followers: 230000, following: 890, isVerified: true, autoPost: true }
-];
+    // --- Mock Geography Data Generator ---
+    const COUNTRIES = ['USA', 'UK', 'Brazil', 'Japan', 'Germany', 'Mexico', 'France', 'Canada', 'Australia'];
+    const CITIES = ['Los Angeles', 'London', 'Sao Paulo', 'Tokyo', 'Berlin', 'Mexico City', 'Paris', 'Toronto', 'Sydney', 'New York', 'Chicago'];
 
-const FAMOUS_CONTENT = {
-    'Peyza': ["Welcome to Peyza v6.0! Enjoy the new badges.", "Who wants a Platinum checkmark?", "Server maintenance complete.", "PeyVids is now live on desktop!"],
-    'JuiceWorlddd': ["Lucid Dreams still hits differently 💔", "999 till the world ends", "Making music in heaven 🕊️"],
-    'elonmusk': ["Sending a rocket to Mars next week.", "Peyza is actually pretty cool.", "Thinking about buying an island."],
-    'taylorswift13': ["Tour dates coming soon! ✨", "In my era.", "Writing songs about rain."]
-};
+    const generateGeoStats = () => {
+        return {
+            countries: COUNTRIES.map(c => ({ name: c, listeners: Math.floor(Math.random() * 50000) })).sort((a,b) => b.listeners - a.listeners).slice(0, 5),
+            cities: CITIES.map(c => ({ name: c, listeners: Math.floor(Math.random() * 20000) })).sort((a,b) => b.listeners - a.listeners).slice(0, 5)
+        };
+    };
 
-const MOCK_POSTS_CONTENT = ["Just deployed the new update! #coding", "Why is coffee so good? ☕️", "Peyza is looking slick with this red theme! ❤️", "AI is taking over.", "Can't believe it's already Friday.", "This new app design is fire 🔥", "Web3 is the future.", "Just saw a Cybertruck."];
-const MOCK_REPLIES_TEXT = ["Big if true.", "Agreed!", "Wow 😮", "Delete this.", "Peyza is taking over.", "🔥🔥🔥", "Actually...", "First!"];
+    // --- Initial Data ---
+    const INITIAL_ARTISTS = [
+        {
+            id: 'a1',
+            name: 'Neon Horizon',
+            bio: 'Synthwave legends from the future.',
+            followers: 125000,
+            monthlyListeners: 450000,
+            momentum: 80, 
+            lastReleaseDay: -20,
+            artistPickPlaylistId: null,
+            image: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=400&h=400&fit=crop',
+            banner: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&h=400&fit=crop',
+            verified: true,
+            color: 'from-purple-900',
+            geoStats: generateGeoStats()
+        },
+        {
+            id: 'a2',
+            name: 'Luna Drift',
+            bio: 'Ethereal vocals meeting heavy bass.',
+            followers: 3200,
+            monthlyListeners: 8900,
+            momentum: 95, 
+            lastReleaseDay: -5,
+            artistPickPlaylistId: null,
+            image: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=400&h=400&fit=crop',
+            banner: 'https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=1200&h=400&fit=crop',
+            verified: false,
+            color: 'from-blue-900',
+            geoStats: generateGeoStats()
+        }
+    ];
 
-class PeyzaApp {
-    constructor() {
-        this.user = this.loadUser();
-        this.bots = this.loadBots();
-        this.posts = this.loadPosts();
-        this.notifications = this.loadNotifications();
-        this.currentView = 'home'; 
-        this.viewParam = null;
-        this.feedFilter = 'foryou';
-        this.profileFilter = 'posts';
-        this.settings = this.loadSettings();
-        this.editingHandle = null; 
-        this.replyingTo = null;
-        this.tempMedia = null;
-        this.tempMediaType = 'image';
-        this.postingToCommunity = null;
-        this.init();
+    const INITIAL_ALBUMS = [
+        { id: 'al1', artistId: 'a1', title: 'Nightcall', year: 2024, cover: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&h=300&fit=crop', type: 'Album' },
+        { id: 'al2', artistId: 'a2', title: 'Phases', year: 2025, cover: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=300&h=300&fit=crop', type: 'Single' }
+    ];
+
+    const INITIAL_SONGS = [
+        { id: 's1', artistId: 'a1', albumId: 'al1', title: 'Midnight City', streams: 154020, saves: 12040, duration: '3:45', cover: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&h=300&fit=crop', audioUrl: null, featArtistId: null },
+        { id: 's2', artistId: 'a1', albumId: 'al1', title: 'Cyber Heart', streams: 89000, saves: 5000, duration: '2:50', cover: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&h=300&fit=crop', audioUrl: null, featArtistId: null },
+        { id: 's3', artistId: 'a2', albumId: 'al2', title: 'Moonlight', streams: 12000, saves: 1200, duration: '4:12', cover: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=300&h=300&fit=crop', audioUrl: null, featArtistId: null },
+    ];
+
+    const INITIAL_PLAYLISTS = [
+        { id: 'p1', name: 'My Top Hits', songs: ['s1', 's3'], cover: null },
+    ];
+
+    // --- State ---
+    const state = {
+        view: 'home',
+        activeArtistId: null,
+        activeAlbumId: null,
+        activePlaylistId: null,
+        dashboardArtistId: null, // For Peyza for Artists view
+        artists: [...INITIAL_ARTISTS],
+        albums: [...INITIAL_ALBUMS],
+        songs: [...INITIAL_SONGS],
+        playlists: [...INITIAL_PLAYLISTS],
+        currentSong: null,
+        isPlaying: false,
+        day: 0,
+        dailyLog: [],
+        showDailyLog: false,
+        modal: null,
+        
+        editForm: {},
+        releaseForm: { title: '', type: 'Single', cover: '', tracks: [] }
+    };
+
+    // --- Audio System ---
+    const audioPlayer = new Audio();
+    audioPlayer.addEventListener('timeupdate', () => renderPlayer());
+    audioPlayer.addEventListener('ended', () => {
+        state.isPlaying = false;
+        render();
+    });
+
+    // --- Actions ---
+
+    function setView(view, id = null) {
+        state.view = view;
+        if (view === 'artist') state.activeArtistId = id;
+        if (view === 'playlist') state.activePlaylistId = id;
+        if (view === 'album') state.activeAlbumId = id;
+        if (view === 'dashboard-detail') state.dashboardArtistId = id;
+        window.scrollTo(0, 0);
+        render();
     }
 
-    init() {
-        this.applyTheme();
-        this.renderSidebarUser();
-        this.renderWhoToFollow();
-        this.renderSidebarTrends();
-        this.renderView();
-        setTimeout(() => { if(this.currentView === 'home') this.setFeedFilter('foryou'); }, 100);
-        setInterval(() => this.simulateStats(), 1000);
-        setInterval(() => this.generateRandomBotPost(), 15000);
+    function togglePlay() {
+        if (!state.currentSong) return;
+        state.isPlaying = !state.isPlaying;
+        if (state.isPlaying && state.currentSong.audioUrl) audioPlayer.play();
+        else audioPlayer.pause();
+        render();
     }
 
-    // --- DATA ---
-    loadUser() { const s=localStorage.getItem('peyza_user_v8'); if(s)return JSON.parse(s); return { handle: 'guest_user', name: 'Guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Guest', banner: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=60', bio: 'Just a guest exploring Peyza.', location: 'Internet', joined: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), followers: 42, following: 15, isVerified: false, isOwner: false, likedPosts: [], repostedPosts: [], bookmarks: [], likedComments: [], createdBots: [] }; }
-    loadBots() { const s=localStorage.getItem('peyza_bots_v8'); if(s)return JSON.parse(s); return [...DEFAULT_BOTS]; }
-    loadPosts() { const s=localStorage.getItem('peyza_posts_v8'); if(s){let p=JSON.parse(s); if(p.length>200)p=p.slice(0,100); return p;} const p=[]; for(let i=0;i<20;i++)p.push(this.createMockPost(i*1000*60*20)); return p; }
-    loadNotifications() { const s=localStorage.getItem('peyza_notes_v8'); if(s)return JSON.parse(s); return []; }
-    loadSettings() { const s=localStorage.getItem('peyza_settings'); if(s)return JSON.parse(s); return { viralitySpeed: 1.0, theme: 'light' }; }
-    saveUser() { localStorage.setItem('peyza_user_v8', JSON.stringify(this.user)); this.renderSidebarUser(); }
-    saveBots() { localStorage.setItem('peyza_bots_v8', JSON.stringify(this.bots)); }
-    savePosts() { localStorage.setItem('peyza_posts_v8', JSON.stringify(this.posts)); }
-    saveNotifications() { localStorage.setItem('peyza_notes_v8', JSON.stringify(this.notifications)); }
-    saveSettings() { localStorage.setItem('peyza_settings', JSON.stringify(this.settings)); }
+    function playSong(songId) {
+        const song = state.songs.find(s => s.id === songId);
+        if (!song) return;
+        state.currentSong = song;
+        state.isPlaying = true;
+        if (song.audioUrl) {
+            audioPlayer.src = song.audioUrl;
+            audioPlayer.play();
+        } else {
+            audioPlayer.pause();
+            audioPlayer.src = "";
+        }
+        render();
+    }
 
-    getProfile(handle) { if (handle === this.user.handle) return this.user; return this.bots.find(b => b.handle === handle); }
+    // --- UPDATED SIMULATION LOGIC ---
+    function handleNextDay() {
+        state.day++;
+        const newLogs = [];
 
-    getBadgeHTML(user) {
-        if (user.isOwner) return BADGES.OWNER;
-        if (user.followers >= 10000000) return BADGES.PLATINUM;
-        if (user.followers >= 500000) return BADGES.PURPLE;
-        if (user.isVerified || user.followers >= 100000) return BADGES.RED;
+        // 1. Artist Momentum & Fall Off
+        const updatedArtists = state.artists.map(artist => {
+            const daysSinceRelease = state.day - artist.lastReleaseDay;
+            let newMomentum = artist.momentum;
+            let listenerChange = 0;
+
+            // Decay: Aggressive fall off if inactive
+            if (daysSinceRelease > 60) newMomentum -= 1; // Falling off fast
+            if (daysSinceRelease > 120) newMomentum -= 2; // Irrelevant
+
+            // Fall Off Mechanics
+            if (newMomentum < 40) {
+                const decayRate = 0.02; // Lose 2% listeners daily
+                listenerChange = -Math.floor(artist.monthlyListeners * decayRate);
+                if (Math.random() > 0.95) newLogs.push(`${artist.name} is fading into obscurity...`);
+            } else {
+                // Organic Growth
+                const growthRate = 1 + ((Math.random() * 0.005) * (newMomentum / 100));
+                listenerChange = Math.floor(artist.monthlyListeners * (growthRate - 1));
+            }
+
+            // Cap Momentum
+            newMomentum = Math.max(0, Math.min(100, newMomentum));
+
+            return {
+                ...artist,
+                momentum: newMomentum,
+                monthlyListeners: Math.max(0, artist.monthlyListeners + listenerChange),
+                followers: Math.max(0, artist.followers + Math.floor(listenerChange * 0.1))
+            };
+        });
+        state.artists = updatedArtists;
+
+        // 2. Song Streams & Viral Logic
+        const updatedSongs = state.songs.map(song => {
+            const artist = updatedArtists.find(a => a.id === song.artistId);
+            if (!artist) return song;
+
+            // Artist Pick Boost
+            const isArtistPick = artist.artistPickPlaylistId && state.playlists.find(p => p.id === artist.artistPickPlaylistId)?.songs.includes(song.id);
+            const pickMultiplier = isArtistPick ? 1.5 : 1.0;
+
+            // Base Streams
+            const baseDaily = Math.floor(artist.monthlyListeners / (Math.max(1, state.songs.filter(s => s.artistId === artist.id).length) * 5));
+            const volatility = Math.random() * 0.4 + 0.8;
+            const momentumMult = artist.momentum / 50;
+            
+            // Collab Boost
+            const collabBonus = song.featArtistId ? 1.4 : 1.0; 
+
+            let newStreams = Math.floor(baseDaily * volatility * momentumMult * collabBonus * pickMultiplier);
+            let newSaves = Math.floor(newStreams * 0.04); // 4% save rate
+
+            // Smart Viral Logic (Not "out of nowhere")
+            // Needs high momentum OR a collab to trigger big viral events
+            const viralThreshold = 0.99 - (song.featArtistId ? 0.02 : 0) - (artist.momentum > 80 ? 0.01 : 0);
+            
+            if (Math.random() > viralThreshold && newStreams > 50) {
+                const viralBonus = Math.floor(Math.random() * 50000 * (artist.momentum/50));
+                newStreams += viralBonus;
+                newSaves += Math.floor(viralBonus * 0.1);
+                newLogs.push(`"${song.title}" went viral! +${formatNumber(viralBonus)} streams.`);
+                
+                // Boost Momentum
+                const aIdx = updatedArtists.findIndex(a => a.id === artist.id);
+                if (aIdx >= 0) updatedArtists[aIdx].momentum = Math.min(100, updatedArtists[aIdx].momentum + 10);
+            }
+
+            return { ...song, streams: song.streams + newStreams, saves: song.saves + newSaves };
+        });
+        state.songs = updatedSongs;
+
+        if (newLogs.length > 0) {
+            state.dailyLog = newLogs;
+            state.showDailyLog = true;
+            setTimeout(() => { state.showDailyLog = false; render(); }, 5000);
+        }
+        render();
+    }
+
+    function createArtist(name) {
+        if (!name) return;
+        const newArtist = {
+            id: generateId(),
+            name: name,
+            bio: 'New artist on Peyza.',
+            followers: 0,
+            monthlyListeners: 0,
+            momentum: 100,
+            lastReleaseDay: state.day,
+            artistPickPlaylistId: null,
+            image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop',
+            banner: 'https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=1200&h=400&fit=crop',
+            verified: false,
+            color: 'from-gray-800',
+            geoStats: generateGeoStats()
+        };
+        state.artists.push(newArtist);
+        setView('artist', newArtist.id);
+    }
+
+    function createPlaylist() {
+        const newId = generateId();
+        state.playlists.push({ id: newId, name: `My Playlist #${state.playlists.length + 1}`, songs: [], cover: null });
+        setView('playlist', newId);
+    }
+
+    // --- Modal Logic ---
+    function openEditArtist(artistId) {
+        const artist = state.artists.find(a => a.id === artistId);
+        state.editForm = { ...artist };
+        state.modal = 'edit-artist';
+        render();
+    }
+
+    function saveArtistEdit() {
+        const idx = state.artists.findIndex(a => a.id === state.editForm.id);
+        if (idx !== -1) {
+            state.artists[idx] = { ...state.artists[idx], ...state.editForm };
+        }
+        state.modal = null;
+        render();
+    }
+
+    function openReleaseModal() {
+        state.releaseForm = { title: '', type: 'Single', cover: '', tracks: [] };
+        state.modal = 'release';
+        render();
+    }
+
+    function addTrackToRelease() {
+        state.releaseForm.tracks.push({ title: '', featArtistId: '', file: null });
+        render();
+    }
+
+    function updateTrackFeat(index, val) {
+        state.releaseForm.tracks[index].featArtistId = val;
+    }
+
+    function finalizeRelease() {
+        if (!state.releaseForm.title || !state.activeArtistId) return;
+
+        const newAlbumId = generateId();
+        const newAlbum = {
+            id: newAlbumId,
+            artistId: state.activeArtistId,
+            title: state.releaseForm.title,
+            year: 2025,
+            cover: state.releaseForm.cover || 'https://images.unsplash.com/photo-1621360841012-3f6b5b5b9b9b?w=300&h=300&fit=crop',
+            type: state.releaseForm.type
+        };
+        state.albums.unshift(newAlbum);
+
+        const newSongs = state.releaseForm.tracks.map(track => ({
+            id: generateId(),
+            artistId: state.activeArtistId,
+            albumId: newAlbumId,
+            title: track.title || 'Untitled',
+            duration: '3:00',
+            streams: 0,
+            saves: 0,
+            cover: newAlbum.cover,
+            audioUrl: track.file ? track.file : null, // File is dataURI string here
+            featArtistId: track.featArtistId || null
+        }));
+        state.songs.push(...newSongs);
+
+        // Boost Momentum for Collab
+        let collabBoost = 0;
+        if (newSongs.some(s => s.featArtistId)) collabBoost = 10;
+
+        const artistIdx = state.artists.findIndex(a => a.id === state.activeArtistId);
+        if (artistIdx !== -1) {
+            state.artists[artistIdx].lastReleaseDay = state.day;
+            state.artists[artistIdx].momentum = Math.min(100, state.artists[artistIdx].momentum + 15 + collabBoost);
+        }
+
+        state.modal = null;
+        render();
+    }
+
+    // --- UPDATED FILE UPLOAD (FileReader Base64) ---
+    function triggerFileUpload(type, callback) {
+        const inputId = type === 'audio' ? 'global-audio-input' : 'global-file-input';
+        const input = document.getElementById(inputId);
+        input.onchange = (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (ev) => callback(ev.target.result); // Pass Base64 string
+                reader.readAsDataURL(e.target.files[0]);
+            }
+            input.value = '';
+        };
+        input.click();
+    }
+
+    // --- Views ---
+
+    function SongRow(song, index, showArtist, showStreams, showDate) {
+        const artist = state.artists.find(a => a.id === song.artistId);
+        const featArtist = song.featArtistId ? state.artists.find(a => a.id === song.featArtistId) : null;
+        const album = state.albums.find(a => a.id === song.albumId);
+        const isCurrent = state.currentSong && state.currentSong.id === song.id;
+        const isPlaying = isCurrent && state.isPlaying;
+
+        return `
+            <div onclick="playSong('${song.id}')" class="group flex items-center p-2 rounded-md hover:bg-white/10 cursor-pointer transition-colors text-sm ${isCurrent ? 'text-green-500' : 'text-gray-400 hover:text-white'}">
+                <div class="w-8 text-center mr-4 flex items-center justify-center">
+                    ${isPlaying 
+                        ? `<img src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif" class="h-3">` 
+                        : `<span class="group-hover:hidden text-gray-400">${index + 1}</span><i data-lucide="play" class="hidden group-hover:block text-white w-3 h-3 fill-white"></i>`
+                    }
+                </div>
+                <div class="flex-1 flex items-center">
+                    <img src="${song.cover}" class="w-10 h-10 mr-4 rounded-sm bg-gray-800 object-cover shadow-sm">
+                    <div class="flex flex-col">
+                        <div class="font-medium text-base truncate ${isCurrent ? 'text-green-500' : 'text-white'}">
+                            ${song.title} ${featArtist ? `<span class="text-gray-400 font-normal">feat. ${featArtist.name}</span>` : ''}
+                        </div>
+                        <div class="flex gap-1 items-center">
+                            ${song.audioUrl ? '<span class="px-1 py-0.5 rounded bg-gray-700 text-[9px] text-gray-300 font-bold">LOCAL</span>' : ''}
+                            ${showArtist && artist ? `<span class="text-sm hover:underline text-gray-400 hover:text-white" onclick="event.stopPropagation(); setView('artist', '${artist.id}')">${artist.name}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+                ${showStreams ? `<div class="hidden md:block w-32 text-right mr-8 text-gray-400 text-xs font-variant-numeric tabular-nums">${formatNumber(song.streams)}</div>` : ''}
+                ${album && !showStreams ? `<div class="hidden lg:block w-48 text-left mr-8 hover:text-white hover:underline truncate" onclick="event.stopPropagation(); setView('album', '${album.id}')">${album.title}</div>` : ''}
+                <div class="w-16 text-right font-mono text-xs text-gray-400">${song.duration}</div>
+            </div>
+        `;
+    }
+
+    function RenderDashboardDetail() {
+        const artist = state.artists.find(a => a.id === state.dashboardArtistId);
+        const artistSongs = state.songs.filter(s => s.artistId === artist.id);
+        const totalStreams = artistSongs.reduce((sum, s) => sum + s.streams, 0);
+        const totalSaves = artistSongs.reduce((sum, s) => sum + s.saves, 0);
+
+        return `
+            <div class="p-8 space-y-8 pb-20">
+                <div class="flex items-center gap-4">
+                    <button onclick="setView('peyza-for-artists')" class="text-gray-400 hover:text-white"><i data-lucide="arrow-left"></i> Back</button>
+                    <h1 class="text-2xl font-bold text-white">Artist Dashboard: ${artist.name}</h1>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="dashboard-card">
+                        <h3 class="text-gray-400 text-sm font-bold uppercase mb-2">Total Streams</h3>
+                        <div class="text-4xl font-black text-white">${formatNumber(totalStreams)}</div>
+                        <div class="text-green-500 text-sm mt-2 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> +${formatNumber(Math.floor(totalStreams * 0.05))} last 24h</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3 class="text-gray-400 text-sm font-bold uppercase mb-2">Active Listeners</h3>
+                        <div class="text-4xl font-black text-white">${formatNumber(artist.monthlyListeners)}</div>
+                        <div class="${artist.momentum < 50 ? 'text-red-500' : 'text-green-500'} text-sm mt-2 flex items-center gap-1">
+                             Momentum Score: ${Math.round(artist.momentum)}/100
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3 class="text-gray-400 text-sm font-bold uppercase mb-2">Total Saves</h3>
+                        <div class="text-4xl font-black text-white">${formatNumber(totalSaves)}</div>
+                    </div>
+                </div>
+
+                <!-- Geography -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="dashboard-card">
+                        <h3 class="text-white font-bold mb-4 flex items-center gap-2"><i data-lucide="globe" class="w-4 h-4"></i> Top Countries</h3>
+                        <div class="space-y-3">
+                            ${artist.geoStats.countries.map((c, i) => `
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-300">${i+1}. ${c.name}</span>
+                                    <span class="font-mono text-gray-500">${formatNumber(c.listeners)} listeners</span>
+                                </div>
+                                <div class="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-500" style="width: ${(c.listeners / artist.monthlyListeners) * 500}%"></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3 class="text-white font-bold mb-4 flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Top Cities</h3>
+                        <div class="space-y-3">
+                            ${artist.geoStats.cities.map((c, i) => `
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-300">${i+1}. ${c.name}</span>
+                                    <span class="font-mono text-gray-500">${formatNumber(c.listeners)} listeners</span>
+                                </div>
+                                <div class="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500" style="width: ${(c.listeners / artist.monthlyListeners) * 800}%"></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Discography Table -->
+                <div class="dashboard-card">
+                    <h3 class="text-white font-bold mb-4">Song Performance</h3>
+                    <div class="w-full text-left border-collapse">
+                        <div class="grid grid-cols-[1fr_1fr_1fr_1fr] text-xs font-bold text-gray-500 uppercase border-b border-gray-800 pb-2 mb-2">
+                            <div>Title</div>
+                            <div class="text-right">Streams</div>
+                            <div class="text-right">Saves</div>
+                            <div class="text-right">Save Rate</div>
+                        </div>
+                        ${artistSongs.sort((a,b) => b.streams - a.streams).map(s => `
+                            <div class="grid grid-cols-[1fr_1fr_1fr_1fr] text-sm py-2 border-b border-gray-800/50 hover:bg-white/5">
+                                <div class="text-white truncate pr-2">${s.title}</div>
+                                <div class="text-right text-gray-400 font-mono">${formatNumber(s.streams)}</div>
+                                <div class="text-right text-gray-400 font-mono">${formatNumber(s.saves)}</div>
+                                <div class="text-right text-gray-400 font-mono">${((s.saves / s.streams)*100).toFixed(1)}%</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function RenderPeyzaForArtists() {
+        return `
+            <div class="p-8 pt-12">
+                <div class="flex items-center justify-between mb-8">
+                    <h1 class="text-4xl font-black text-white tracking-tight flex items-center gap-3">
+                        <i data-lucide="bar-chart-2" class="w-8 h-8 text-blue-500"></i> Peyza for Artists
+                    </h1>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${state.artists.map(a => `
+                        <div onclick="setView('dashboard-detail', '${a.id}')" class="bg-[#181818] p-6 rounded-xl border border-gray-800 hover:border-blue-500 cursor-pointer transition-all group">
+                            <div class="flex items-center gap-4 mb-4">
+                                <img src="${a.image}" class="w-16 h-16 rounded-full object-cover shadow-lg">
+                                <div>
+                                    <h2 class="font-bold text-xl text-white group-hover:underline">${a.name}</h2>
+                                    <div class="text-xs text-gray-400 font-mono">${formatNumber(state.songs.filter(s => s.artistId === a.id).length)} Releases</div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-800">
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase font-bold">Listeners</div>
+                                    <div class="text-white font-mono">${formatNumber(a.monthlyListeners)}</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase font-bold">Health</div>
+                                    <div class="${a.momentum > 70 ? 'text-green-500' : 'text-yellow-500'} font-bold">${Math.round(a.momentum)}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // --- Main Renderer Updates ---
+    function RenderMainContent() {
+        // ... (Existing home/playlist/album cases from previous, reusing)
+        if (state.view === 'peyza-for-artists') return RenderPeyzaForArtists();
+        if (state.view === 'dashboard-detail') return RenderDashboardDetail();
+        
+        // Re-injecting HOME view
+        if (state.view === 'home') {
+            return `
+                <div class="pb-8">
+                    <div class="h-64 bg-gradient-to-b from-indigo-900 to-[#121212] p-8 flex flex-col justify-end">
+                        <h2 class="text-3xl font-bold text-white mb-6">Good evening</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                             ${[...state.playlists, ...state.artists.slice(0, 4)].map((item) => {
+                                const isArtist = !!item.followers;
+                                const action = isArtist ? `setView('artist', '${item.id}')` : `setView('playlist', '${item.id}')`;
+                                const img = item.image || (item.cover ? item.cover : 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100&h=100&fit=crop');
+                                return `
+                                    <div onclick="${action}" class="bg-white/10 hover:bg-white/20 transition-colors rounded flex items-center overflow-hidden cursor-pointer group h-20">
+                                        <img src="${img}" class="h-full aspect-square object-cover shadow-lg">
+                                        <span class="font-bold text-white px-4 truncate">${item.name}</span>
+                                        <div class="ml-auto mr-4 w-12 h-12 bg-[#1db954] rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity translate-y-1 group-hover:translate-y-0 shadow-black">
+                                            <i data-lucide="play" class="ml-1 text-black fill-black w-6 h-6"></i>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div class="px-8 mt-8">
+                        <h2 class="text-2xl font-bold text-white mb-4">Your Artists</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                            ${state.artists.map(artist => `
+                                <div onclick="setView('artist', '${artist.id}')" class="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group">
+                                    <div class="mb-4 relative">
+                                        <img src="${artist.image}" class="w-full aspect-square object-cover rounded-full shadow-lg shadow-black">
+                                        <div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+                                            <i data-lucide="play" class="ml-1 text-black fill-black w-6 h-6"></i>
+                                        </div>
+                                    </div>
+                                    <h3 class="font-bold text-white truncate">${artist.name}</h3>
+                                    <p class="text-sm text-gray-400 mt-1 line-clamp-1">Artist ${artist.momentum < 50 ? '<span class="text-red-500 text-xs ml-1 font-bold">▼ Falling Off</span>' : ''}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ARTIST VIEW (Updated with Artist Pick)
+        if (state.view === 'artist') {
+            const artist = state.artists.find(a => a.id === state.activeArtistId);
+            const artistSongs = state.songs.filter(s => s.artistId === artist.id);
+            const popularSongs = [...artistSongs].sort((a,b) => b.streams - a.streams).slice(0, 5);
+            const artistAlbums = state.albums.filter(a => a.artistId === artist.id).sort((a,b) => b.year - a.year);
+            const similarArtists = state.artists.filter(a => a.id !== artist.id).slice(0,3);
+            
+            // Artist Pick Logic
+            let artistPickPlaylist = null;
+            if (artist.artistPickPlaylistId) {
+                artistPickPlaylist = state.playlists.find(p => p.id === artist.artistPickPlaylistId);
+            }
+
+            return `
+                <div class="pb-8">
+                    <div class="relative h-[40vh] min-h-[340px] flex flex-col justify-end p-8 bg-gradient-to-b ${artist.color} to-[#121212]">
+                        <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay z-0" style="background-image: url('${artist.banner}')"></div>
+                        <div class="relative z-10">
+                            ${artist.verified ? `<div class="flex items-center gap-2 text-white mb-2"><div class="bg-[#3d91f4] rounded-full p-0.5"><i data-lucide="check" class="text-white w-3 h-3 stroke-[4]"></i></div><span class="text-sm font-medium">Verified Artist</span></div>` : ''}
+                            <h1 class="text-7xl md:text-8xl font-black text-white tracking-tighter shadow-black drop-shadow-lg mb-6">${artist.name}</h1>
+                            <p class="text-white font-medium text-base drop-shadow-md mb-2">
+                                ${formatNumber(artist.monthlyListeners)} monthly listeners
+                                <span class="text-xs ml-2 px-2 py-0.5 rounded-full ${artist.momentum < 50 ? 'bg-red-500/50' : 'bg-green-500/50'}">Momentum: ${Math.round(artist.momentum)}</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-gradient-to-b from-[#121212]/40 to-[#121212] sticky top-16 z-10 backdrop-blur-md flex items-center gap-8">
+                        <button class="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] flex items-center justify-center hover:scale-105 transition-transform shadow-lg">
+                            <i data-lucide="play" class="ml-1 text-black fill-black w-7 h-7"></i>
+                        </button>
+                        <button class="px-6 py-1.5 border border-gray-500 rounded-full text-sm font-bold text-white hover:border-white hover:scale-105 transition-all uppercase tracking-widest">Follow</button>
+                        <button onclick="openEditArtist('${artist.id}')" class="px-6 py-1.5 border border-gray-500 rounded-full text-sm font-bold text-white hover:border-white hover:scale-105 transition-all uppercase tracking-widest">Edit Profile</button>
+                        <button onclick="openReleaseModal()" class="px-6 py-1.5 bg-white text-black rounded-full text-sm font-bold hover:scale-105 transition-all uppercase tracking-widest ml-auto">Release Music</button>
+                        <i data-lucide="more-horizontal" class="text-gray-400 hover:text-white cursor-pointer w-8 h-8"></i>
+                    </div>
+                    <div class="px-8 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-12 mt-4">
+                        <div>
+                            <!-- Artist Pick Section -->
+                            ${artistPickPlaylist ? `
+                                <div class="mb-12">
+                                    <h2 class="text-xs font-bold text-gray-400 uppercase mb-2">Artist Pick</h2>
+                                    <div onclick="setView('playlist', '${artistPickPlaylist.id}')" class="flex gap-4 cursor-pointer hover:bg-white/10 p-2 rounded transition-colors group">
+                                        <div class="w-16 h-16 bg-[#282828] flex items-center justify-center text-gray-500"><i data-lucide="music"></i></div>
+                                        <div class="flex flex-col justify-center">
+                                            <div class="bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded w-fit mb-1">Posted By ${artist.name}</div>
+                                            <div class="font-bold text-white group-hover:underline">${artistPickPlaylist.name}</div>
+                                            <div class="text-xs text-gray-400">Playlist</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <div class="mb-12">
+                                <h2 class="text-2xl font-bold text-white mb-6">Popular</h2>
+                                <div class="flex flex-col">
+                                    ${popularSongs.length > 0 ? popularSongs.map((s, i) => SongRow(s, i, false, true)).join('') : '<div class="text-gray-500 italic">No music yet.</div>'}
+                                </div>
+                            </div>
+                            <div class="mb-12">
+                                <h2 class="text-2xl font-bold text-white mb-6">Discography</h2>
+                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                    ${artistAlbums.map(album => `
+                                        <div onclick="setView('album', '${album.id}')" class="group bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors cursor-pointer">
+                                            <div class="relative mb-4 shadow-lg">
+                                                <img src="${album.cover}" class="w-full aspect-square object-cover rounded shadow-black drop-shadow-2xl">
+                                                <div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:scale-105">
+                                                    <i data-lucide="play" class="ml-1 text-black fill-black w-6 h-6"></i>
+                                                </div>
+                                            </div>
+                                            <h3 class="text-white font-bold truncate pr-2">${album.title}</h3>
+                                            <p class="text-sm text-gray-400 mt-1">${album.year} • ${album.type}</p>
+                                        </div>
+                                    `).join('')}
+                                    ${artistAlbums.length === 0 ? '<div class="text-gray-500">No releases found.</div>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidden lg:block space-y-8">
+                            <div>
+                                <h2 class="text-2xl font-bold text-white mb-6">About</h2>
+                                <div class="relative rounded-lg overflow-hidden group cursor-pointer h-80 hover:scale-[1.02] transition-transform duration-300 shadow-2xl">
+                                    <img src="${artist.image}" class="absolute inset-0 w-full h-full object-cover">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
+                                    <div class="absolute bottom-0 left-0 p-6">
+                                        <div class="font-bold text-white text-lg mb-2">${formatNumber(artist.monthlyListeners)} Monthly Listeners</div>
+                                        <p class="text-white text-sm line-clamp-3 leading-relaxed opacity-90">${artist.bio}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ALBUM VIEW REUSE
+        if (state.view === 'album') {
+            const album = state.albums.find(a => a.id === state.activeAlbumId);
+            const artist = state.artists.find(a => a.id === album.artistId);
+            const albumSongs = state.songs.filter(s => s.albumId === album.id);
+            // Reuse same album layout as previous, just inject
+            return `
+                <div class="pb-8">
+                    <div class="h-[30vh] min-h-[300px] flex items-end gap-6 p-8 bg-gradient-to-b ${artist.color} to-[#121212]">
+                        <div class="w-52 h-52 shadow-2xl shadow-black/50">
+                            <img src="${album.cover}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <span class="uppercase text-xs font-bold text-white tracking-widest">${album.type}</span>
+                            <h1 class="text-6xl font-black text-white tracking-tight">${album.title}</h1>
+                            <div class="flex items-center gap-2 text-sm text-white font-bold mt-2">
+                                <div class="flex items-center gap-1 hover:underline cursor-pointer" onclick="setView('artist', '${artist.id}')">
+                                    <img src="${artist.image}" class="w-6 h-6 rounded-full">
+                                    <span>${artist.name}</span>
+                                </div>
+                                <span class="text-gray-300">• ${album.year}</span>
+                                <span class="text-gray-300">• ${albumSongs.length} songs</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-black/20 p-8 pt-4">
+                        <div class="flex items-center gap-6 mb-8">
+                            <button class="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] flex items-center justify-center hover:scale-105 transition-transform shadow-lg"><i data-lucide="play" class="ml-1 text-black fill-black w-7 h-7"></i></button>
+                            <i data-lucide="heart" class="text-gray-400 hover:text-white cursor-pointer w-8 h-8"></i>
+                        </div>
+                        ${albumSongs.map((s, i) => SongRow(s, i, false, true)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // PLAYLIST VIEW REUSE
+        if (state.view === 'playlist') {
+            const playlist = state.playlists.find(p => p.id === state.activePlaylistId);
+            return `
+                <div class="p-8 pt-20 bg-gradient-to-b from-gray-900 to-[#121212] min-h-full">
+                   <div class="flex items-end gap-6 mb-8">
+                      <div class="w-60 h-60 bg-gradient-to-br from-gray-700 to-gray-900 shadow-2xl flex items-center justify-center shadow-black">
+                         <i data-lucide="music" class="text-white opacity-20 w-20 h-20"></i>
+                      </div>
+                      <div>
+                         <h5 class="text-xs uppercase font-bold text-white mb-2">Playlist</h5>
+                         <h1 class="text-7xl font-black text-white mb-6">${playlist.name}</h1>
+                         <p class="text-gray-400 font-medium">Created by You • ${playlist.songs.length} songs</p>
+                      </div>
+                   </div>
+                   <div class="bg-black/20 rounded-lg p-4">
+                      ${playlist.songs.length === 0 ? '<div class="text-center text-gray-500 p-8">No songs.</div>' : playlist.songs.map((sid, i) => {
+                          const song = state.songs.find(s => s.id === sid);
+                          return song ? SongRow(song, i, true, false) : '';
+                      }).join('')}
+                   </div>
+                </div>
+            `;
+        }
+
+        // CREATE ARTIST VIEW REUSE
+        if (state.view === 'create-artist') {
+             return `
+                <div class="p-8 max-w-2xl mx-auto mt-20">
+                    <h2 class="text-5xl font-black text-white mb-10 text-center">Start a Legacy</h2>
+                    <div class="bg-[#181818] p-10 rounded-xl shadow-2xl space-y-8 border border-gray-800">
+                        <div>
+                            <label class="text-white font-bold block mb-3 text-lg">Artist Name</label>
+                            <input id="new-artist-name-input" class="w-full bg-[#2a2a2a] text-white p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1db954] font-bold text-2xl placeholder-gray-600" placeholder="e.g. The Weeknd">
+                        </div>
+                        <button onclick="createArtist(document.getElementById('new-artist-name-input').value)" class="w-full bg-[#1db954] hover:bg-[#1ed760] text-black font-black py-5 rounded-full text-xl uppercase tracking-widest transition-transform hover:scale-[1.02]">
+                            Launch Career
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
         return '';
     }
 
-    createMockReply() {
-        const bot = this.bots[Math.floor(Math.random() * this.bots.length)];
-        return {
-            id: 'rep_' + Math.random().toString(36).substr(2, 9),
-            authorHandle: bot.handle, authorName: bot.name, avatar: bot.avatar,
-            content: MOCK_REPLIES_TEXT[Math.floor(Math.random() * MOCK_REPLIES_TEXT.length)],
-            time: 'Just now', likes: Math.floor(Math.random() * 50),
-            isVerified: bot.isVerified, followers: bot.followers, isOwner: bot.isOwner
-        };
-    }
+    function RenderPlayer() {
+        if (!state.currentSong) return `<div class="h-full flex items-center px-4"><div class="text-gray-500">Select a song to play</div></div>`;
+        const artist = state.artists.find(a => a.id === state.currentSong.artistId);
+        const feat = state.currentSong.featArtistId ? state.artists.find(a => a.id === state.currentSong.featArtistId) : null;
+        const progress = (audioPlayer.currentTime / (audioPlayer.duration || 1)) * 100;
 
-    createMockPost(timeOffset = 0) {
-        const bot = this.bots[Math.floor(Math.random() * this.bots.length)];
-        let content = MOCK_POSTS_CONTENT[Math.floor(Math.random() * MOCK_POSTS_CONTENT.length)];
-        if (FAMOUS_CONTENT[bot.handle]) content = FAMOUS_CONTENT[bot.handle][Math.floor(Math.random() * FAMOUS_CONTENT[bot.handle].length)];
-        const hasImage = Math.random() > 0.8;
-        const replies = [];
-        for(let i=0; i<Math.floor(Math.random()*3); i++) replies.push(this.createMockReply());
-        return {
-            id: 'post_' + Math.random().toString(36).substr(2, 9),
-            authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified, isOwner: bot.isOwner, followers: bot.followers,
-            content: content, image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null, video: null, poll: null, communityHandle: null, theme: 'default',
-            replies: replies, createdAt: Date.now() - timeOffset,
-            stats: { likes: Math.floor(Math.random()*50), reposts: Math.floor(Math.random()*10), replies: replies.length, views: Math.floor(Math.random()*500) },
-            baseVelocity: Math.random()
-        };
-    }
-
-    createPost(content, asHandle = null) {
-        let author = this.user;
-        if (asHandle && asHandle !== this.user.handle) author = this.bots.find(b => b.handle === asHandle) || this.user;
-        let poll = null;
-        const o1 = document.getElementById('poll-opt-1').value;
-        const o2 = document.getElementById('poll-opt-2').value;
-        if(o1 && o2 && !document.getElementById('poll-creator').classList.contains('hidden')) { poll = { options: [{ text: o1, votes: 0 }, { text: o2, votes: 0 }], totalVotes: 0 }; }
-        
-        if (this.replyingTo) {
-            const originalPost = this.posts.find(p => p.id === this.replyingTo);
-            if(originalPost) {
-                originalPost.stats.replies++;
-                originalPost.replies.unshift({
-                    id: 'rep_' + Math.random().toString(36).substr(2, 9),
-                    authorHandle: author.handle, authorName: author.name, avatar: author.avatar, content: content, time: 'Just now', likes: 0,
-                    isVerified: author.isVerified, isOwner: author.isOwner, followers: author.followers
-                });
-                this.savePosts();
-            }
-            this.replyingTo = null;
-            if(this.currentView === 'post') this.renderPostDetail(originalPost.id);
-            else this.navigate('home');
-        } else {
-            const newPost = {
-                id: 'post_' + Math.random().toString(36).substr(2, 9),
-                authorHandle: author.handle, authorName: author.name, authorAvatar: author.avatar, isVerified: author.isVerified, isOwner: author.isOwner, followers: author.followers,
-                content: content, image: this.tempMediaType === 'image' ? this.tempMedia : null, video: this.tempMediaType === 'video' ? this.tempMedia : null, poll: poll,
-                communityHandle: this.postingToCommunity, theme: 'default', createdAt: Date.now(), replies: [],
-                stats: { likes: 0, reposts: 0, replies: 0, views: 0 }, baseVelocity: Math.random()
-            };
-            this.posts.unshift(newPost);
-            this.savePosts();
-            this.navigate('home');
-        }
-        this.clearMedia(); this.postingToCommunity = null;
-    }
-
-    generateRandomBotPost() {
-        if(this.posts.filter(p => this.bots.some(b => b.handle === p.authorHandle)).length > 30) return;
-        this.bots.forEach(bot => {
-            if (bot.autoPost !== false && Math.random() < 0.0083) { 
-                this.posts.unshift(this.createMockPost());
-            }
-        });
-        this.savePosts();
-        if (this.currentView === 'home') this.renderFeed();
-    }
-
-    simulateStats() {
-        const now = Date.now();
-        let changed = false;
-        this.posts = this.posts.filter(p => { 
-            const isBot = this.bots.some(b => b.handle === p.authorHandle); 
-            return !(isBot && (now - p.createdAt > 4 * 60 * 60 * 1000)); 
-        });
-        
-        this.posts.forEach(post => {
-            if ((now - post.createdAt) / 1000 < 86400) {
-                let f = post.followers || 100;
-                const scale = Math.max(1, Math.log10(f));
-                const growth = this.settings.viralitySpeed * post.baseVelocity * scale * (1 + post.stats.reposts * 0.1);
-                
-                const oldViews = post.stats.views;
-                const newViews = Math.floor(oldViews + (growth * 5 * Math.random()));
-                
-                if (newViews > oldViews) { 
-                    post.stats.views = newViews; 
-                    if (post.authorHandle === this.user.handle && Math.floor(newViews/10000) > Math.floor(oldViews/10000)) {
-                        this.addNotification('viral', `Your post reached ${this.formatNumber(newViews)} views!`, post.content);
-                    }
-                    changed = true; 
-                }
-
-                if (Math.random() < 0.3) { post.stats.likes += Math.floor(growth * 2); changed = true; }
-                if (Math.random() < 0.05) { post.stats.reposts += 1; changed = true; }
-                if (post.replies && post.replies.length > 0 && Math.random() < 0.1) {
-                    const r = post.replies[Math.floor(Math.random() * post.replies.length)];
-                    r.likes++;
-                    if(r.authorHandle === this.user.handle) this.addNotification('like_comment', `Someone liked your comment: "${r.content.substring(0,20)}..."`, '');
-                    changed = true;
-                }
-            }
-        });
-        if (changed) { this.savePosts(); this.saveNotifications(); this.updateVisibleStats(); }
-    }
-
-    addNotification(type, title, body) {
-        this.notifications.unshift({ type, title, body, time: Date.now() });
-        this.saveNotifications();
-    }
-
-    updateVisibleStats() {
-        this.posts.forEach(post => {
-            const el = document.getElementById(`stats-${post.id}`);
-            if (el) {
-                const v = el.querySelector('.stat-views'); if(v) v.innerText = this.formatNumber(post.stats.views);
-                const l = el.querySelector('.stat-likes'); if(l) l.innerText = this.formatNumber(post.stats.likes);
-                const r = el.querySelector('.stat-reposts'); if(r) r.innerText = this.formatNumber(post.stats.reposts);
-                const c = el.querySelector('.stat-replies'); if(c) c.innerText = this.formatNumber(post.stats.replies);
-            }
-            if(post.replies) {
-                post.replies.forEach(rep => {
-                    const rl = document.getElementById(`reply-likes-${rep.id}`);
-                    if(rl) rl.innerText = rep.likes > 0 ? rep.likes : '';
-                });
-            }
-        });
-    }
-
-    // --- RENDERERS ---
-    renderView() {
-        const main = document.getElementById('main-view');
-        const header = document.getElementById('sticky-header');
-        const overlay = document.getElementById('peyvids-overlay');
-        main.innerHTML = ''; overlay.classList.add('hidden'); header.classList.remove('hidden');
-
-        if (this.currentView === 'home') {
-            header.innerHTML = `<div class="px-4 h-[53px] flex items-center justify-between cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})"><h2 class="text-lg font-bold">Home</h2><i class="fa-solid fa-wand-magic-sparkles text-rose-500"></i></div><div class="flex border-b border-gray-100 dark:border-darkBorder"><div onclick="app.setFeedFilter('foryou')" class="flex-1 text-center py-3 cursor-pointer relative ${this.feedFilter==='foryou'?'font-bold text-black dark:text-white':'text-gray-500'}">For You${this.feedFilter==='foryou'?`<div class="absolute bottom-0 w-full flex justify-center"><div class="bg-rose-500 w-14 h-1 rounded-full"></div></div>`:''}</div><div onclick="app.setFeedFilter('following')" class="flex-1 text-center py-3 cursor-pointer relative ${this.feedFilter==='following'?'font-bold text-black dark:text-white':'text-gray-500'}">Following${this.feedFilter==='following'?`<div class="absolute bottom-0 w-full flex justify-center"><div class="bg-rose-500 w-14 h-1 rounded-full"></div></div>`:''}</div><div onclick="app.setFeedFilter('media')" class="flex-1 text-center py-3 cursor-pointer relative ${this.feedFilter==='media'?'font-bold text-black dark:text-white':'text-gray-500'}">Media${this.feedFilter==='media'?`<div class="absolute bottom-0 w-full flex justify-center"><div class="bg-rose-500 w-14 h-1 rounded-full"></div></div>`:''}</div></div>`;
-            this.renderFeed();
-        } else if (this.currentView === 'explore') {
-            header.innerHTML = `<div class="px-4 py-2"><input type="text" placeholder="Search Peyza" oninput="app.handleSearch(this.value)" value="${this.viewParam||''}" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-2 px-4 outline-none"></div>`;
-            this.renderExplore(this.viewParam);
-        } else if (this.currentView === 'notifications') {
-            header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white">Notifications</div>`;
-            this.renderNotifications();
-        } else if (this.currentView === 'profile') {
-            header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-4 cursor-pointer" onclick="app.navigate('home')"></i> ${this.viewParam}</div>`;
-            this.renderProfile(this.viewParam);
-        } else if (this.currentView === 'post') {
-            header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-4 cursor-pointer" onclick="app.navigate('home')"></i> Post</div>`;
-            this.renderPostDetail(this.viewParam);
-        } else if (this.currentView === 'peyvids') {
-            header.classList.add('hidden');
-            overlay.classList.remove('hidden');
-            this.renderPeyVids();
-        }
-    }
-
-    renderFeed() {
-        const container = document.getElementById('main-view');
-        let fps = [...this.posts];
-        if (this.feedFilter === 'media') fps = fps.filter(p => p.image || p.video);
-        else if (this.feedFilter === 'following') fps = fps.filter(p => p.authorHandle !== 'guest_user');
-        if (this.feedFilter === 'foryou') fps = fps.filter(p => !p.communityHandle);
-        fps.sort((a,b)=>b.createdAt-a.createdAt);
-        let html = '';
-        fps.forEach(p => html += this.buildPostHTML(p));
-        container.innerHTML = html || '<div class="p-10 text-center text-gray-500">No posts found</div>';
-    }
-
-    renderExplore(q) {
-        const c = document.getElementById('main-view');
-        if(!q) {
-            c.innerHTML = `<div class="p-4"><h2 class="font-bold text-xl mb-4 dark:text-white">Trends</h2><div class="space-y-4">${['#PeyzaV6', 'PlatinumBadge', 'Juice WRLD'].map(t=>`<div class="font-bold dark:text-white">${t}<br><span class="text-xs text-gray-500 font-normal">Trending</span></div>`).join('')}</div></div>`;
-        } else {
-            const ql = q.toLowerCase();
-            const resU = this.bots.filter(b => b.name.toLowerCase().includes(ql) || b.handle.toLowerCase().includes(ql));
-            const resP = this.posts.filter(p => p.content.toLowerCase().includes(ql));
-            let html = '<div class="p-4"><h3 class="font-bold mb-2 dark:text-white">People</h3>';
-            if(resU.length===0) html += '<p class="text-gray-500">No users found</p>';
-            resU.forEach(u => html += this.buildUserListHTML(u));
-            html += '<h3 class="font-bold mt-4 mb-2 dark:text-white">Posts</h3>';
-            if(resP.length===0) html += '<p class="text-gray-500">No posts found</p>';
-            resP.forEach(p => html += this.buildPostHTML(p));
-            html += '</div>';
-            c.innerHTML = html;
-        }
-    }
-
-    renderNotifications() {
-        const c = document.getElementById('main-view');
-        let html = '';
-        this.notifications.forEach(n => {
-            html += `<div class="p-4 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec"><p class="font-bold dark:text-white">${n.title}</p><p class="text-sm text-gray-500">${n.body}</p></div>`;
-        });
-        c.innerHTML = html || '<div class="p-10 text-center text-gray-500">No notifications</div>';
-    }
-
-    renderProfile(handle) {
-        const c = document.getElementById('main-view');
-        const p = this.getProfile(handle) || { name:'Unknown', handle:handle, followers:0, following:0, bio:'', avatar:'', isVerified:false, isOwner:false };
-        const badge = this.getBadgeHTML(p);
-        const isMe = handle === this.user.handle;
-        
-        const html = `
-            <div>
-                <div class="h-32 bg-gray-200 dark:bg-darkSec"><img src="${p.banner||''}" class="w-full h-full object-cover"></div>
-                <div class="px-4 relative mb-4">
-                    <div class="flex justify-between">
-                        <div class="-mt-10 w-24 h-24 rounded-full border-4 border-white dark:border-dark overflow-hidden"><img src="${p.avatar}" class="w-full h-full object-cover"></div>
-                        <div class="mt-3">${isMe||this.user.isPremium?`<button onclick="app.openEditProfile('${handle}')" class="border border-gray-300 dark:border-darkBorder px-4 py-1 rounded-full font-bold text-sm dark:text-white">Edit</button>`:`<button onclick="app.toggleFollow('${handle}',this)" class="bg-black text-white px-4 py-1 rounded-full font-bold text-sm">Follow</button>`}</div>
+        return `
+            <div class="w-[30%] flex items-center gap-4">
+                <div class="relative group cursor-pointer">
+                    <img src="${state.currentSong.cover}" class="h-14 w-14 rounded shadow-md object-cover">
+                </div>
+                <div>
+                    <div class="text-white text-sm font-medium hover:underline cursor-pointer">${state.currentSong.title} ${feat ? `(feat. ${feat.name})` : ''}</div>
+                    <div class="text-xs text-gray-400 hover:underline cursor-pointer">${artist ? artist.name : ''}</div>
+                </div>
+                <i data-lucide="heart" class="text-gray-400 hover:text-white cursor-pointer ml-2 w-4 h-4"></i>
+            </div>
+            <div class="w-[40%] flex flex-col items-center max-w-2xl">
+                <div class="flex items-center gap-6 mb-2">
+                    <i data-lucide="skip-back" class="text-gray-400 hover:text-white cursor-pointer w-5 h-5 fill-current"></i>
+                    <button onclick="togglePlay()" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform">
+                        ${state.isPlaying ? '<i data-lucide="pause" class="text-black fill-black w-5 h-5"></i>' : '<i data-lucide="play" class="text-black fill-black w-5 h-5 ml-0.5"></i>'}
+                    </button>
+                    <i data-lucide="skip-forward" class="text-gray-400 hover:text-white cursor-pointer w-5 h-5 fill-current"></i>
+                </div>
+                <div class="w-full flex items-center gap-2 text-xs text-gray-400 font-mono">
+                    <span>${!state.isPlaying && !audioPlayer.currentTime ? '0:00' : '0:xx'}</span>
+                    <div class="h-1 bg-gray-600 rounded-full flex-1 group cursor-pointer overflow-hidden">
+                        <div class="h-full bg-white group-hover:bg-[#1db954] rounded-full relative" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day * 10) % 100 : 0)}%"></div>
                     </div>
-                    <div class="mt-2"><h1 class="font-bold text-xl dark:text-white">${p.name} ${badge}</h1><p class="text-gray-500 text-sm">@${p.handle}</p></div>
-                    <p class="mt-2 dark:text-white">${p.bio}</p>
-                    <div class="flex gap-4 mt-2 text-sm dark:text-gray-400"><span><b>${this.formatNumber(p.following)}</b> Following</span><span><b>${this.formatNumber(p.followers)}</b> Followers</span></div>
-                </div>
-                <div class="flex border-b border-gray-100 dark:border-darkBorder">
-                    <div onclick="app.setProfileFilter('posts')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='posts'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Posts</div>
-                    <div onclick="app.setProfileFilter('media')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='media'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Media</div>
-                    <div onclick="app.setProfileFilter('likes')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='likes'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Likes</div>
-                </div>
-                <div id="profile-feed">
-                    ${this.profileFilter === 'media' ? this.renderMediaGrid(handle) : this.getPostsByHandle(handle)}
+                    <span>${state.currentSong.duration}</span>
                 </div>
             </div>
+            <div class="w-[30%] flex justify-end items-center gap-3 text-gray-400">
+                <i data-lucide="volume-2" class="hover:text-white cursor-pointer w-4 h-4"></i>
+            </div>
         `;
-        c.innerHTML = html;
     }
 
-    renderMediaGrid(handle) {
-        const posts = this.posts.filter(p => p.authorHandle === handle && (p.image || p.video));
-        if(posts.length === 0) return '<div class="p-8 text-center text-gray-500">No media</div>';
-        let html = '<div class="grid grid-cols-3 gap-1">';
-        posts.forEach(p => {
-            html += `
-                <div class="aspect-square bg-gray-100 relative cursor-pointer group" onclick="app.navigate('post', '${p.id}')">
-                    ${p.video ? `<video src="${p.video}" class="w-full h-full object-cover"></video><i class="fa-solid fa-play absolute top-1 right-1 text-white drop-shadow-md"></i>` : `<img src="${p.image}" class="w-full h-full object-cover">`}
-                    <div class="absolute bottom-0 left-0 w-full bg-black/50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-eye"></i> ${this.formatNumber(p.stats.views)}</div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        return html;
-    }
+    function RenderModals() {
+        if (!state.modal) return '';
 
-    getPostsByHandle(handle) {
-        let ups;
-        if(this.profileFilter==='likes') { if(handle!==this.user.handle) return '<div class="p-8 text-center">Likes Private</div>'; ups=this.posts.filter(p=>this.user.likedPosts.includes(p.id)); }
-        else ups=this.posts.filter(p=>p.authorHandle===handle);
-        ups.sort((a,b)=>b.createdAt-a.createdAt);
-        let html=''; ups.forEach(p=>html+=this.buildPostHTML(p));
-        return html||'<div class="p-8 text-center text-gray-500">No posts</div>';
-    }
-
-    renderPostDetail(id) {
-        const p = this.posts.find(x=>x.id===id); if(!p)return;
-        const c = document.getElementById('main-view');
-        const badge = this.getBadgeHTML({isOwner:p.isOwner, followers:p.followers, isVerified:p.isVerified});
-        
-        let repliesHtml = '';
-        if(p.replies) {
-            p.replies.forEach(r => {
-                const rBadge = this.getBadgeHTML({isOwner:r.isOwner, followers:r.followers, isVerified:r.isVerified});
-                const isLiked = this.user.likedComments.includes(r.id);
-                repliesHtml += `
-                    <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder bg-white dark:bg-dark">
-                        <div class="shrink-0 w-10 h-10 rounded-full overflow-hidden"><img src="${r.avatar}" class="w-full h-full object-cover"></div>
-                        <div class="w-full">
-                            <div class="flex justify-between">
-                                <div class="font-bold dark:text-white">${r.authorName} ${rBadge} <span class="text-gray-500 font-normal">@${r.authorHandle} · ${r.time}</span></div>
+        if (state.modal === 'edit-artist') {
+            return `
+                <div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+                    <div class="bg-[#282828] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div class="flex justify-between items-center p-6 border-b border-gray-700">
+                            <h3 class="text-xl font-bold text-white">Edit Profile</h3>
+                            <button onclick="state.modal=null; render()" class="text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex justify-center md:justify-start">
+                                <div class="w-48 h-48 bg-[#181818] shadow-2xl relative group cursor-pointer overflow-hidden rounded-md" onclick="triggerFileUpload('image', (file) => { state.editForm.image = file; render(); })">
+                                    <img src="${state.editForm.image}" class="w-full h-full object-cover shadow-black">
+                                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white flex-col gap-2 transition-opacity">
+                                        <i data-lucide="upload"></i>
+                                        <span class="text-xs font-bold">Change Photo</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-gray-900 dark:text-white mt-1">${r.content}</div>
-                            <div class="mt-2 flex items-center gap-4 text-gray-500 text-sm">
-                                <div class="cursor-pointer hover:text-rose-500 ${isLiked?'text-rose-500':''}" onclick="app.likeComment('${r.id}', '${p.id}', this)"><i class="${isLiked?'fa-solid':'fa-regular'} fa-heart"></i> <span id="reply-likes-${r.id}">${r.likes>0?r.likes:''}</span></div>
+                            <div class="space-y-4">
+                                <div><label class="block text-xs font-bold text-gray-400 mb-1">Name</label><input value="${state.editForm.name}" oninput="state.editForm.name = this.value" class="w-full bg-[#3e3e3e] text-white rounded p-2.5 text-sm outline-none"></div>
+                                <div><label class="block text-xs font-bold text-gray-400 mb-1">Bio</label><textarea rows="4" oninput="state.editForm.bio = this.value" class="w-full bg-[#3e3e3e] text-white rounded p-2.5 text-sm outline-none">${state.editForm.bio}</textarea></div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 mb-1">Artist Pick Playlist</label>
+                                    <select onchange="state.editForm.artistPickPlaylistId = this.value" class="w-full bg-[#3e3e3e] text-white rounded p-2.5 text-sm outline-none">
+                                        <option value="">None</option>
+                                        ${state.playlists.map(p => `<option value="${p.id}" ${state.editForm.artistPickPlaylistId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2 space-y-4">
+                                <div onclick="triggerFileUpload('image', (file) => { state.editForm.banner = file; render(); })">
+                                    <label class="block text-xs font-bold text-gray-400 mb-1">Banner</label>
+                                    <div class="w-full h-32 bg-[#3e3e3e] rounded relative group overflow-hidden flex items-center justify-center cursor-pointer">
+                                        <img src="${state.editForm.banner}" class="w-full h-full object-cover opacity-50 absolute inset-0">
+                                        <div class="relative flex items-center gap-2 font-bold"><i data-lucide="image"></i> Upload New Banner</div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-1">Followers (Manual Boost)</label><input type="number" value="${state.editForm.followers}" oninput="state.editForm.followers = parseInt(this.value)" class="w-full bg-[#3e3e3e] text-white rounded p-2.5 text-sm outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-1">Listeners (Manual Boost)</label><input type="number" value="${state.editForm.monthlyListeners}" oninput="state.editForm.monthlyListeners = parseInt(this.value)" class="w-full bg-[#3e3e3e] text-white rounded p-2.5 text-sm outline-none"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>`;
-            });
-        }
-
-        const html = `
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-darkBorder">
-                <div class="flex gap-3 items-center mb-3">
-                    <img src="${p.authorAvatar}" class="w-10 h-10 rounded-full cursor-pointer" onclick="app.navigate('profile','${p.authorHandle}')">
-                    <div><div class="font-bold dark:text-white">${p.authorName} ${badge}</div><div class="text-gray-500">@${p.authorHandle}</div></div>
-                </div>
-                <div class="text-xl dark:text-white mb-3">${p.content}</div>
-                ${p.image?`<img src="${p.image}" class="rounded-xl border dark:border-darkBorder w-full mb-3">`:''}
-                ${p.video?`<video src="${p.video}" controls class="rounded-xl w-full mb-3"></video>`:''}
-                <div class="text-gray-500 text-sm py-2 border-b border-gray-100 dark:border-darkBorder">${new Date(p.createdAt).toLocaleDateString()} · <b>${this.formatNumber(p.stats.views)}</b> Views</div>
-                <div class="flex justify-between py-2 text-gray-500 text-xl px-2" id="stats-${p.id}">
-                    <div onclick="app.openReplyModal('${p.id}')"><i class="fa-regular fa-comment cursor-pointer hover:text-blue-500"></i></div>
-                    <div onclick="app.toggleRepost('${p.id}', this)"><i class="fa-solid fa-retweet cursor-pointer hover:text-green-500"></i></div>
-                    <div onclick="app.toggleLike('${p.id}', this)" class="${this.user.likedPosts.includes(p.id)?'liked':''}"><i class="${this.user.likedPosts.includes(p.id)?'fa-solid':'fa-regular'} fa-heart cursor-pointer hover:text-rose-500"></i></div>
-                    <div><i class="fa-solid fa-share cursor-pointer"></i></div>
-                </div>
-            </div>
-            <div class="pb-20">${repliesHtml}</div>
-        `;
-        c.innerHTML = html;
-    }
-
-    renderPeyVids() {
-        const c = document.getElementById('peyvids-overlay');
-        c.innerHTML = `
-            <div id="peyvids-feed" class="w-full max-w-[500px] h-full mx-auto bg-black relative shadow-2xl overflow-y-scroll snap-y snap-mandatory hide-scrollbar"></div>
-            <div class="absolute top-4 left-4 z-50 text-white text-3xl cursor-pointer drop-shadow-md" onclick="app.navigate('home')"><i class="fa-solid fa-arrow-left"></i></div>
-        `;
-        const feed = document.getElementById('peyvids-feed');
-        const vids = this.posts.filter(p => p.video || p.image).sort(() => 0.5 - Math.random()).slice(0, 10);
-        
-        let html = '';
-        vids.forEach(p => {
-            const badge = this.getBadgeHTML({isOwner:p.isOwner, followers:p.followers, isVerified:p.isVerified});
-            html += `
-                <div class="peyvid-item w-full h-full relative snap-start bg-gray-900 flex items-center justify-center">
-                    ${p.video ? `<video src="${p.video}" class="w-full h-full object-cover" autoplay muted loop></video>` : `<img src="${p.image}" class="w-full h-full object-cover">`}
-                    <div class="absolute right-2 bottom-20 flex flex-col gap-4 text-white items-center">
-                         <div class="flex flex-col items-center"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-fire text-2xl ${this.user.likedPosts.includes(p.id)?'text-amber-500':''}"></i></div><span class="text-xs font-bold">${this.formatNumber(p.stats.likes)}</span></div>
-                         <div class="flex flex-col items-center"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-comment-dots text-2xl"></i></div><span class="text-xs font-bold">${this.formatNumber(p.stats.replies)}</span></div>
-                    </div>
-                    <div class="absolute left-0 bottom-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent">
-                        <div class="font-bold text-white mb-1 flex items-center gap-1">${p.authorName} ${badge}</div>
-                        <div class="text-white text-sm line-clamp-2">${p.content}</div>
-                        ${p.replies && p.replies.length > 0 ? `<div class="mt-2 bg-white/10 rounded p-2 text-xs text-white backdrop-blur-sm"><b>${p.replies[0].authorName}:</b> ${p.replies[0].content}</div>` : ''}
+                        <div class="p-6 border-t border-gray-700 flex justify-end">
+                            <button onclick="saveArtistEdit()" class="px-8 py-3 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform">Save</button>
+                        </div>
                     </div>
                 </div>
             `;
-        });
-        feed.innerHTML = html;
-    }
-
-    buildPostHTML(p) {
-        const badge = this.getBadgeHTML({isOwner:p.isOwner, followers:p.followers, isVerified:p.isVerified});
-        return `
-            <div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec cursor-pointer" onclick="app.navigate('post', '${p.id}')">
-                <img src="${p.authorAvatar}" class="w-10 h-10 rounded-full object-cover">
-                <div class="w-full">
-                    <div class="flex justify-between"><div class="font-bold dark:text-white flex items-center">${p.authorName} ${badge} <span class="text-gray-500 font-normal ml-1">@${p.authorHandle} · ${this.timeAgo(p.createdAt)}</span></div></div>
-                    <div class="dark:text-white mb-2">${p.content}</div>
-                    ${p.image ? `<img src="${p.image}" class="rounded-xl border dark:border-darkBorder max-h-[300px] w-full object-cover">` : ''}
-                    ${p.video ? `<div class="relative"><video src="${p.video}" class="rounded-xl max-h-[300px] w-full object-cover"></video><div class="absolute inset-0 flex items-center justify-center text-white text-4xl"><i class="fa-solid fa-play-circle opacity-80"></i></div></div>` : ''}
-                    <div class="flex flex-row items-center justify-between mt-2 text-gray-500 text-sm max-w-[400px]" id="stats-${p.id}">
-                        <div class="flex items-center gap-1 hover:text-blue-500" onclick="event.stopPropagation(); app.openReplyModal('${p.id}')"><i class="fa-regular fa-comment"></i> <span class="stat-replies">${this.formatNumber(p.stats.replies)}</span></div>
-                        <div class="flex items-center gap-1 hover:text-green-500" onclick="event.stopPropagation(); app.toggleRepost('${p.id}', this)"><i class="fa-solid fa-retweet"></i> <span class="stat-reposts">${this.formatNumber(p.stats.reposts)}</span></div>
-                        <div class="flex items-center gap-1 hover:text-rose-500 ${this.user.likedPosts.includes(p.id)?'liked':''}" onclick="event.stopPropagation(); app.toggleLike('${p.id}', this)"><i class="${this.user.likedPosts.includes(p.id)?'fa-solid':'fa-regular'} fa-heart"></i> <span class="stat-likes">${this.formatNumber(p.stats.likes)}</span></div>
-                        <div class="flex items-center gap-1 whitespace-nowrap">${ANALYTICS_ICON} <span class="stat-views">${this.formatNumber(p.stats.views)}</span></div>
+        } else if (state.modal === 'release') {
+            return `
+                <div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+                    <div class="bg-[#282828] rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <div class="p-6 border-b border-gray-700">
+                            <h3 class="text-2xl font-bold text-white">New Release</h3>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8">
+                            <div class="flex flex-col gap-2">
+                                <div onclick="triggerFileUpload('image', (file) => { state.releaseForm.cover = file; render(); })" class="w-full aspect-square bg-[#181818] shadow-2xl relative group flex items-center justify-center border border-dashed border-gray-600 cursor-pointer">
+                                    ${state.releaseForm.cover 
+                                        ? `<img src="${state.releaseForm.cover}" class="w-full h-full object-cover">` 
+                                        : `<div class="text-center text-gray-400"><i data-lucide="music" class="mx-auto mb-2 w-10 h-10"></i><span class="text-xs font-bold">Upload Cover</span></div>`
+                                    }
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div><label class="block text-xs font-bold text-gray-400 mb-1">Title</label><input value="${state.releaseForm.title}" oninput="state.releaseForm.title = this.value" class="w-full bg-[#3e3e3e] text-white text-2xl font-bold rounded p-3 focus:bg-[#333] outline-none" placeholder="Album Name"></div>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="type" ${state.releaseForm.type === 'Single' ? 'checked' : ''} onchange="state.releaseForm.type = 'Single'; render()"> Single</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="type" ${state.releaseForm.type === 'Album' ? 'checked' : ''} onchange="state.releaseForm.type = 'Album'; render()"> Album/EP</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-[#181818]">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-white font-bold">Tracklist</h4>
+                                <button onclick="addTrackToRelease()" class="text-xs font-bold text-gray-400 hover:text-white uppercase tracking-wider">+ Add Track</button>
+                            </div>
+                            <div class="space-y-2">
+                                ${state.releaseForm.tracks.map((track, i) => `
+                                    <div class="flex gap-4 items-center bg-[#282828] p-2 rounded">
+                                        <span class="text-gray-500 w-6 text-center">${i + 1}</span>
+                                        <input value="${track.title}" oninput="state.releaseForm.tracks[${i}].title = this.value" placeholder="Track Title" class="bg-transparent text-white flex-1 outline-none text-sm font-medium">
+                                        
+                                        <!-- COLLAB DROPDOWN -->
+                                        <select onchange="updateTrackFeat(${i}, this.value)" class="bg-[#3e3e3e] text-white text-xs rounded px-2 py-1 outline-none w-32">
+                                            <option value="">No Feature</option>
+                                            ${state.artists.filter(a => a.id !== state.activeArtistId).map(a => `
+                                                <option value="${a.id}" ${track.featArtistId === a.id ? 'selected' : ''}>Feat. ${a.name}</option>
+                                            `).join('')}
+                                        </select>
+                                        
+                                        <button onclick="triggerFileUpload('audio', (file) => { state.releaseForm.tracks[${i}].file = file; render(); })" class="bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2">
+                                            <i data-lucide="upload" class="w-3 h-3"></i> ${track.file ? 'MP3 Loaded' : 'Upload MP3'}
+                                        </button>
+                                        <button onclick="state.releaseForm.tracks.splice(${i}, 1); render()" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+                                    </div>
+                                `).join('')}
+                                ${state.releaseForm.tracks.length === 0 ? '<div class="text-center py-8 text-gray-500 border-2 border-dashed border-gray-700 rounded-lg">No tracks added yet.</div>' : ''}
+                            </div>
+                        </div>
+                        <div class="p-6 border-t border-gray-700 flex justify-end gap-4">
+                            <button onclick="state.modal=null; render()" class="text-white font-bold hover:underline">Cancel</button>
+                            <button onclick="finalizeRelease()" class="px-8 py-3 bg-[#1db954] text-black font-bold rounded-full hover:scale-105 transition-transform">Release</button>
+                        </div>
                     </div>
                 </div>
-            </div>`;
+            `;
+        }
+        return '';
     }
 
-    // ACTIONS
-    likeComment(cId, pId, btn) {
-        if(!this.user.likedComments.includes(cId)) {
-            this.user.likedComments.push(cId);
-            const p = this.posts.find(x=>x.id===pId);
-            const c = p.replies.find(x=>x.id===cId);
-            if(c) { 
-                c.likes++; 
-                btn.classList.add('text-rose-500'); 
-                btn.querySelector('i').classList.replace('fa-regular', 'fa-solid');
-                const count = document.getElementById(`reply-likes-${cId}`);
-                if(count) count.innerText = c.likes;
-            }
-            this.saveUser(); this.savePosts();
-        }
-    }
-    
-    toggleLike(id,b){
-        event.stopPropagation();
-        const p=this.posts.find(x=>x.id===id); if(!p)return;
-        if(!this.user.likedPosts)this.user.likedPosts=[];
-        const i=this.user.likedPosts.indexOf(id);
-        const icon = b.querySelector('i');
-        
-        if(i===-1){
-            this.user.likedPosts.push(id);
-            p.stats.likes++;
-            b.classList.add('liked');
-            if(icon) { icon.classList.remove('fa-regular'); icon.classList.add('fa-solid','animate-pop'); }
-        }else{
-            this.user.likedPosts.splice(i,1);
-            p.stats.likes--;
-            b.classList.remove('liked');
-            if(icon) { icon.classList.add('fa-regular'); icon.classList.remove('fa-solid','animate-pop'); }
-        }
-        
-        // Update number if element exists (Feed)
-        if(b.parentElement && b.parentElement.querySelector('.stat-likes')) {
-             b.parentElement.querySelector('.stat-likes').innerText=this.formatNumber(p.stats.likes);
-        }
-        this.saveUser();this.savePosts();
-    }
-
-    toggleRepost(id,b){
-        event.stopPropagation();
-        const p=this.posts.find(x=>x.id===id); if(!p)return;
-        if(!this.user.repostedPosts)this.user.repostedPosts=[];
-        const i=this.user.repostedPosts.indexOf(id);
-        if(i===-1){this.user.repostedPosts.push(id);p.stats.reposts++;b.classList.add('reposted');}
-        else{this.user.repostedPosts.splice(i,1);p.stats.reposts--;b.classList.remove('reposted');}
-        
-        if(b.parentElement && b.parentElement.querySelector('.stat-reposts')) {
-            b.parentElement.querySelector('.stat-reposts').innerText=this.formatNumber(p.stats.reposts);
-        }
-        this.saveUser();this.savePosts();
-    }
-    
-    toggleBookmark(id,b){
-        event.stopPropagation();
-        if(!this.user.bookmarks)this.user.bookmarks=[];
-        const i=this.user.bookmarks.indexOf(id);
-        const icon = b.querySelector('i');
-        if(i===-1){this.user.bookmarks.push(id);b.classList.add('bookmarked');if(icon)icon.classList.replace('fa-regular','fa-solid');this.showToast('Saved');}
-        else{this.user.bookmarks.splice(i,1);b.classList.remove('bookmarked');if(icon)icon.classList.replace('fa-solid','fa-regular');this.showToast('Removed');}
-        this.saveUser();
+    function Sidebar() {
+        return `
+            <div class="w-[280px] bg-black flex flex-col h-full flex-shrink-0 relative z-30 border-r border-[#282828]">
+                <div class="p-6 pb-2">
+                    <div onclick="setView('home')" class="flex items-center gap-2 mb-6 cursor-pointer text-white">
+                        <i data-lucide="disc" class="w-8 h-8"></i>
+                        <span class="font-bold text-xl tracking-tight">Peyza</span>
+                    </div>
+                    <nav class="space-y-1">
+                        <button onclick="setView('home')" class="w-full flex items-center gap-4 px-4 py-3 rounded font-bold transition-colors ${state.view === 'home' ? 'text-white bg-[#282828]' : 'text-gray-400 hover:text-white'}"><i data-lucide="home" class="w-6 h-6"></i> Home</button>
+                        <button onclick="setView('search')" class="w-full flex items-center gap-4 px-4 py-3 rounded font-bold transition-colors ${state.view === 'search' ? 'text-white' : 'text-gray-400 hover:text-white'}"><i data-lucide="search" class="w-6 h-6"></i> Search</button>
+                        <button onclick="setView('library')" class="w-full flex items-center gap-4 px-4 py-3 rounded font-bold transition-colors ${state.view === 'library' ? 'text-white' : 'text-gray-400 hover:text-white'}"><i data-lucide="library" class="w-6 h-6"></i> Your Library</button>
+                        <button onclick="setView('peyza-for-artists')" class="w-full flex items-center gap-4 px-4 py-3 rounded font-bold transition-colors ${state.view === 'peyza-for-artists' || state.view === 'dashboard-detail' ? 'text-white bg-blue-900/20' : 'text-gray-400 hover:text-blue-400'}"><i data-lucide="bar-chart-2" class="w-6 h-6"></i> Peyza for Artists</button>
+                    </nav>
+                    <div class="mt-8 space-y-2">
+                        <button onclick="createPlaylist()" class="w-full flex items-center gap-4 px-4 py-2 text-gray-400 hover:text-white font-bold transition-colors group text-sm">
+                            <div class="w-6 h-6 bg-white group-hover:bg-white text-black flex items-center justify-center rounded-[2px] transition-colors"><i data-lucide="plus-square" class="w-4 h-4 text-black fill-current"></i></div> Create Playlist
+                        </button>
+                        <button onclick="setView('create-artist')" class="w-full flex items-center gap-4 px-4 py-2 text-gray-400 hover:text-white font-bold transition-colors group text-sm">
+                            <div class="w-6 h-6 bg-green-800 opacity-70 group-hover:opacity-100 flex items-center justify-center rounded-[2px] transition-opacity"><i data-lucide="user" class="w-4 h-4 text-green-400"></i></div> Sign New Artist
+                        </button>
+                    </div>
+                </div>
+                <div class="h-px bg-[#282828] mx-4 my-2"></div>
+                <div class="flex-1 overflow-y-auto px-2 scrollbar-hide">
+                    <div class="px-2 py-2 flex flex-col gap-1">
+                        ${state.playlists.map(p => `
+                            <div onclick="setView('playlist', '${p.id}')" class="text-gray-400 hover:text-white hover:bg-[#1a1a1a] p-2 rounded cursor-pointer truncate text-sm">
+                                ${p.name} <div class="text-xs text-gray-500">Playlist • Peyza</div>
+                            </div>
+                        `).join('')}
+                        ${state.artists.map(a => `
+                            <div onclick="setView('artist', '${a.id}')" class="text-gray-400 hover:text-white hover:bg-[#1a1a1a] p-2 rounded cursor-pointer flex items-center gap-3 text-sm">
+                                <img src="${a.image}" class="w-8 h-8 rounded-full object-cover">
+                                <div><div class="text-white font-medium">${a.name}</div><div class="text-xs text-gray-500">Artist</div></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
-    shareApp(){ event.stopPropagation(); navigator.clipboard.writeText("Check out Peyza!").then(()=>this.showToast('Link Copied')); }
-    toggleFollow(h,b){ event.stopPropagation(); if(b.innerText==='Follow'){b.innerText='Following';b.classList.replace('bg-black','bg-white');b.classList.replace('text-white','text-black');b.classList.add('border','border-gray-300');this.user.following++;}else{b.innerText='Follow';b.classList.replace('bg-white','bg-black');b.classList.replace('text-black','text-white');b.classList.remove('border','border-gray-300');this.user.following--;}this.saveUser();}
-    showToast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.remove('opacity-0');setTimeout(()=>t.classList.add('opacity-0'),2000);}
-    formatNumber(n){if(n==null)return'0';if(n>=1000000)return(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1000)return(n/1000).toFixed(1).replace(/\.0$/,'')+'K';return n.toString();}
-    timeAgo(d){const s=Math.floor((new Date()-d)/1000);if(s>31536000)return Math.floor(s/31536000)+'y';if(s>2592000)return Math.floor(s/2592000)+'mo';if(s>86400)return Math.floor(s/86400)+'d';if(s>3600)return Math.floor(s/3600)+'h';if(s>60)return Math.floor(s/60)+'m';return s+'s';}
-    navigate(v,p){this.currentView=v;this.viewParam=p;window.scrollTo(0,0);this.renderView();}
-    setFeedFilter(f){this.feedFilter=f;this.renderView();}
-    setProfileFilter(f){this.profileFilter=f;this.renderProfile(this.viewParam);}
-    handleSearch(q){if(this.currentView==='explore')this.renderExplore(q);}
-    openComposeModal(){document.getElementById('compose-modal').classList.remove('hidden');}
-    closeComposeModal(){document.getElementById('compose-modal').classList.add('hidden');}
-    publishPost(){const c=document.getElementById('compose-input').value;if(c)this.createPost(c);this.closeComposeModal();}
-    openReplyModal(id){this.replyingTo=id;this.openComposeModal();}
-    toggleTheme(){this.settings.theme=this.settings.theme==='light'?'dark':'light';this.applyTheme();this.saveSettings();}
-    applyTheme(){document.querySelector('html').classList.toggle('dark',this.settings.theme==='dark');}
-    openSettings(){/*Stub*/}
-    openEditProfile(h){/*Stub - assume modal open logic*/}
-    closeEditProfile(){document.getElementById('edit-profile-modal').classList.add('hidden');}
-    saveProfile(){/*Stub*/}
-    checkPin(){/*Stub*/}
-    requestVerification(){/*Stub*/}
-    openCreateBotModal(){/*Stub*/}
-    createBot(){/*Stub*/}
-    handleImageUpload(){/*Stub*/}
-    handlePostMedia(){/*Stub*/}
-    clearMedia(){/*Stub*/}
-    closePeyVids(){this.navigate('home');}
-    
-    renderSidebarUser(){const e=document.getElementById('sidebar-user');if(e)e.innerHTML=`<div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200"><img src="${this.user.avatar}" class="w-full h-full object-cover"></div><div class="hidden xl:block"><p class="font-bold text-sm truncate w-[140px] flex items-center dark:text-white">${this.user.name} ${this.getBadgeHTML(this.user)}</p><p class="text-gray-500 text-sm truncate w-[140px]">@${this.user.handle}</p></div>`;}
-    renderWhoToFollow(){/*Stub*/}
-    renderSidebarTrends(){/*Stub*/}
-}
-const app = new PeyzaApp();
+    function render() {
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="flex flex-1 overflow-hidden">
+                ${Sidebar()}
+                <div class="flex-1 bg-[#121212] m-2 rounded-lg overflow-hidden flex flex-col relative ml-0">
+                    <!-- Header -->
+                    <div class="h-16 bg-gradient-to-b from-black/50 to-transparent absolute top-0 w-full z-20 px-8 flex items-center justify-between pointer-events-none">
+                        <div class="flex gap-4 pointer-events-auto">
+                            <button onclick="setView('home')" class="w-8 h-8 bg-black/70 rounded-full flex items-center justify-center text-gray-300 hover:text-white"><i data-lucide="skip-back" class="rotate-180 w-5 h-5"></i></button>
+                            <button class="w-8 h-8 bg-black/70 rounded-full flex items-center justify-center text-gray-300 hover:text-white"><i data-lucide="skip-forward" class="rotate-180 w-5 h-5"></i></button>
+                        </div>
+                        <div class="flex items-center gap-4 pointer-events-auto">
+                            <div class="bg-black/40 px-4 py-1.5 rounded-full text-white text-xs font-mono border border-gray-800 flex items-center gap-2">
+                                <i data-lucide="calendar" class="text-[#1db954] w-3 h-3"></i> ${formatDate(state.day)}
+                            </div>
+                            <button onclick="handleNextDay()" class="bg-white text-black px-4 py-2 rounded-full font-bold text-sm hover:scale-105 transition-transform flex items-center gap-2">
+                                Next Day <i data-lucide="trending-up" class="w-4 h-4"></i>
+                            </button>
+                            <div class="w-8 h-8 bg-[#282828] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#333]">
+                                <i data-lucide="user" class="text-white w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Main Content -->
+                    <div class="flex-1 overflow-y-auto scrollbar-hide pt-16">
+                         ${state.showDailyLog && state.dailyLog.length > 0 ? `
+                            <div class="fixed top-20 right-8 z-50 bg-[#1db954] text-black p-4 rounded-lg shadow-2xl max-w-sm animate-bounce-in font-bold border-2 border-white">
+                                <h4 class="mb-1 text-lg flex items-center gap-2"><i data-lucide="trending-up" class="w-5 h-5"></i> Daily Report</h4>
+                                <ul class="text-xs list-disc pl-4 space-y-1 font-medium">
+                                    ${state.dailyLog.slice(0, 3).map(l => `<li>${l}</li>`).join('')}
+                                    ${state.dailyLog.length > 3 ? `<li>...and ${state.dailyLog.length - 3} more updates.</li>` : ''}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        ${RenderMainContent()}
+                    </div>
+                </div>
+            </div>
+            <!-- Player -->
+            <div id="player-bar" class="h-[90px] bg-[#181818] border-t border-[#282828] px-4 flex items-center justify-between relative z-50">
+                ${RenderPlayer()}
+            </div>
+            <!-- Modals -->
+            ${RenderModals()}
+        `;
+        lucide.createIcons();
+    }
+
+    render();
+    setInterval(() => { if (state.isPlaying && !state.currentSong?.audioUrl) renderPlayer(); }, 1000);
 </script>
 </body>
 </html>
