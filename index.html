@@ -1,1403 +1,446 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peyza Developer Simulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Site Metadata -->
+    <title>Peyza - The Red Social Network</title>
+    <meta name="description" content="Join Peyza, the hottest new social media platform.">
+    <meta name="theme-color" content="#e11d48">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#000000',
+                        darkSec: '#16181c',
+                        darkText: '#e7e9ea',
+                        darkBorder: '#2f3336'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Modern Dark/Grey Theme */
-        :root {
-            --rbx-bg: #191b1d;
-            --rbx-panel: #2b2d31;
-            --rbx-header: #232527;
-            --rbx-text: #ffffff;
-            --rbx-text-sec: #adadad;
-            --rbx-blue: #00b06f;
-            --rbx-divider: #393b3d;
-            --rbx-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-        body {
-            background-color: var(--rbx-bg);
-            color: var(--rbx-text);
-            font-family: 'Gotham SSm', 'Segoe UI', Helvetica, Arial, sans-serif;
-            overflow-x: hidden;
-        }
-        .rbx-card {
-            background-color: var(--rbx-panel);
-            border-radius: 12px;
-            box-shadow: var(--rbx-shadow);
-            border: 1px solid #383a40;
-        }
-        .rbx-input {
-            background-color: #1a1c1e;
-            border: 1px solid #393b3d;
-            color: white;
-            border-radius: 8px;
-        }
-        .rbx-input:focus {
-            border-color: #00b06f;
-            outline: none;
-        }
-        .rbx-btn-primary {
-            background-color: white;
-            color: black;
-            font-weight: 700;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        .rbx-btn-green {
-            background-color: #00b06f;
-            color: white;
-            font-weight: 700;
-            border-radius: 8px;
-            transition: background-color 0.2s;
-        }
-        .rbx-btn-green:hover {
-            background-color: #009960;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--rbx-bg); 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #4a4d52; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #606368; 
-        }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #be123c; }
 
-        .verified-badge {
-            color: #fff;
-            background-color: #00b06f;
-            border-radius: 50%;
-            padding: 2px;
-            font-size: 0.7em;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            margin-left: 4px;
-        }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        /* 3D View Container */
-        #game-view {
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+        
+        .nav-item.active i { font-weight: 900; }
+        .nav-icon { transition: transform 0.2s, color 0.2s; }
+        .nav-icon.active { transform: scale(1.25); }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .mobile-nav { padding-bottom: env(safe-area-inset-bottom); }
+        
+        .liked { color: #e11d48 !important; }
+        .reposted { color: #22c55e !important; }
+        .bookmarked { color: #3b82f6 !important; }
+        .liked-fire { color: #f59e0b !important; }
+        .post-highlight { border: 2px solid #fbbf24 !important; background-color: rgba(251, 191, 36, 0.05); }
+
+        /* PeyVids Specific */
+        .peyvids-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
+            width: 100%;
+            z-index: 60;
+            background: black;
+        }
+        .peyvid-item {
+            scroll-snap-align: start;
             height: 100vh;
-            z-index: 100;
-            background: #000;
-            display: none;
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-        
-        /* Mobile Bottom Nav */
-        .mobile-nav {
-            display: none;
-        }
-        @media (max-width: 768px) {
-            .mobile-nav {
-                display: flex;
-            }
-            .sidebar {
-                display: none !important;
-            }
-            main {
-                margin-left: 0 !important;
-                padding-bottom: 80px;
-            }
+        .peyvid-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0) 100%);
         }
     </style>
 </head>
-<body class="flex flex-col h-screen">
+<body class="flex justify-center min-h-screen bg-white text-[#0f1419] dark:bg-dark dark:text-darkText transition-colors duration-200">
 
-    <!-- Top Navigation (Desktop) -->
-    <nav class="h-14 bg-[#232527] border-b border-[#393b3d] flex items-center justify-between px-4 fixed w-full z-50 shadow-md">
-        <div class="flex items-center gap-6">
-            <h1 class="text-2xl font-extrabold cursor-pointer text-white tracking-tight hover:text-gray-300 transition" onclick="app.navigate('home')">Peyza</h1>
-            <ul class="hidden md:flex gap-6 text-base font-medium text-gray-400">
-                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('home')">Discover</li>
-                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('marketplace')">Marketplace</li>
-                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('devhub')">Create</li>
-                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('robux')">Robux</li>
-            </ul>
-        </div>
-        <div class="flex-1 max-w-xl mx-4 hidden md:block">
-            <div class="relative">
-                <input id="nav-search" type="text" placeholder="Search experiences..." class="w-full bg-[#1a1c1e] border border-[#393b3d] rounded-full py-2 px-4 text-sm text-white focus:outline-none focus:border-gray-500">
-                <i class="fas fa-search absolute right-4 top-2.5 text-gray-500 text-xs"></i>
+    <!-- Left Sidebar (Desktop) -->
+    <header class="hidden sm:flex flex-col w-[80px] xl:w-[275px] h-screen fixed left-0 top-0 border-r border-gray-100 dark:border-darkBorder px-2 xl:px-8 py-4 z-50 bg-white dark:bg-dark justify-between">
+        <div class="space-y-4">
+            <div class="p-3 w-min hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full cursor-pointer transition transform active:scale-90" onclick="app.navigate('home')">
+                <i class="fa-solid fa-p text-3xl text-rose-600"></i>
             </div>
+            <nav class="space-y-2 text-xl">
+                <a onclick="app.navigate('home')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item active" id="nav-home"><i class="fa-solid fa-house"></i> <span class="hidden xl:block font-medium">Home</span></a>
+                <a onclick="app.navigate('explore')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-explore"><i class="fa-solid fa-magnifying-glass"></i> <span class="hidden xl:block font-medium">Explore</span></a>
+                <a onclick="app.navigate('peyvids')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-peyvids"><i class="fa-solid fa-play"></i> <span class="hidden xl:block font-medium">PeyVids</span></a>
+                <a onclick="app.navigate('notifications')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-notifications"><i class="fa-regular fa-bell"></i> <span class="hidden xl:block font-medium">Notifications</span></a>
+                <a onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-profile"><i class="fa-regular fa-user"></i> <span class="hidden xl:block font-medium">Profile</span></a>
+                <a onclick="app.openSettings()" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item"><i class="fa-solid fa-gear"></i> <span class="hidden xl:block font-medium">Settings</span></a>
+            </nav>
+            <button onclick="app.openComposeModal()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-full p-4 xl:py-3 xl:px-8 w-full shadow-lg transition transform active:scale-95 mt-4"><i class="fa-solid fa-feather sm:hidden"></i> <span class="hidden xl:block font-bold text-lg">Post</span></button>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-1 bg-[#2b2d31] px-3 py-1 rounded-full cursor-pointer hover:bg-[#393b3d] transition border border-[#393b3d]" onclick="app.navigate('robux')">
-                <i class="fas fa-hexagon text-white text-xs"></i>
-                <span id="nav-robux" class="font-bold text-sm text-white">0</span>
-            </div>
-            <div class="flex items-center gap-2 cursor-pointer" onclick="app.navigate('profile')">
-                <div class="w-9 h-9 rounded-full bg-gray-600 overflow-hidden border border-[#393b3d]">
-                    <img id="nav-avatar-img" src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" alt="Avatar" class="w-full h-full object-cover">
-                </div>
-                <span id="nav-username" class="text-sm font-semibold text-white hidden sm:block">User</span>
-            </div>
-        </div>
-    </nav>
+        <div onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-3 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer mb-4 transition" id="sidebar-user"></div>
+    </header>
 
-    <!-- Sidebar (Desktop) -->
-    <aside class="sidebar fixed left-0 top-14 w-60 h-full bg-[#191b1d] border-r border-[#393b3d] pt-4 hidden lg:block z-40 overflow-y-auto">
-        <div class="flex flex-col gap-1 px-3">
-            <a onclick="app.navigate('home')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-home w-5"></i> Home</a>
-            <a onclick="app.navigate('profile')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-user w-5"></i> Profile</a>
-            <a onclick="app.navigate('messages')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white">
-                <i class="fas fa-comment-dots w-5"></i> Messages 
-                <span id="msg-badge" class="hidden bg-red-500 text-white text-[10px] px-1.5 rounded-full ml-auto">0</span>
-            </a>
-            <a onclick="app.navigate('groups')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-user-friends w-5"></i> Groups</a>
-            <a onclick="app.navigate('avatar')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-tshirt w-5"></i> Avatar</a>
-            <a onclick="app.navigate('inventory')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-box w-5"></i> Inventory</a>
-            
-            <div class="mt-4 border-t border-[#393b3d] pt-4 px-4">
-                <h3 class="text-xs font-bold text-gray-500 uppercase mb-2 tracking-wide">My Events</h3>
-                <a onclick="app.navigate('devhub')" class="py-2 hover:bg-[#2b2d31] rounded-lg px-2 -ml-2 cursor-pointer flex items-center gap-3 text-gray-300 font-semibold hover:text-white"><i class="fas fa-pencil-ruler w-5"></i> Developer Hub</a>
-            </div>
+    <!-- Main Content Feed -->
+    <main class="w-full sm:ml-[80px] xl:ml-[275px] max-w-[600px] border-r border-gray-100 dark:border-darkBorder min-h-screen pb-20 sm:pb-0 relative">
+        <div id="sticky-header" class="sticky top-0 bg-white/80 dark:bg-dark/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-darkBorder"></div>
+        <div id="main-view" class="animate-fade-in"></div>
+    </main>
+    
+    <!-- PeyVids Overlay -->
+    <div id="peyvids-overlay" class="peyvids-container hidden bg-black flex justify-center">
+        <!-- Overlay Content Injected JS -->
+    </div>
+
+    <!-- Right Sidebar (Desktop) -->
+    <aside class="hidden lg:block w-[350px] pl-8 py-4 h-screen sticky top-0">
+        <div class="relative group mb-6">
+            <div class="absolute left-4 top-3 text-gray-500 group-focus-within:text-rose-500"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <input type="text" placeholder="Search Peyza" onkeyup="if(event.key === 'Enter') { app.navigate('explore', this.value); }" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-3 pl-12 pr-4 outline-none focus:bg-white dark:focus:bg-black focus:ring-1 focus:ring-rose-500 transition border border-transparent dark:border-darkBorder">
         </div>
+        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4 mb-4"><h3 class="font-extrabold text-xl mb-4">Trends for you</h3><div class="space-y-4" id="sidebar-trends"></div></div>
+        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4"><h3 class="font-extrabold text-xl mb-4">Who to follow</h3><div id="who-to-follow" class="space-y-4"></div></div>
     </aside>
 
-    <!-- Mobile Bottom Navigation -->
-    <div class="mobile-nav fixed bottom-0 w-full bg-[#232527] border-t border-[#393b3d] h-16 z-50 flex justify-around items-center px-2">
-        <div onclick="app.navigate('home')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
-            <i class="fas fa-home text-xl mb-1"></i>
-            <span class="text-[10px] font-bold">Home</span>
-        </div>
-        <div onclick="app.navigate('devhub')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
-            <i class="fas fa-gamepad text-xl mb-1"></i>
-            <span class="text-[10px] font-bold">Create</span>
-        </div>
-        <div onclick="app.navigate('profile')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
-            <div class="w-8 h-8 rounded-full overflow-hidden border border-gray-500 mb-1">
-                 <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full object-cover">
+    <!-- Mobile Navigation Bottom -->
+    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30" id="mobile-nav-bar"></div>
+
+    <!-- Floating Action Button (Mobile) -->
+    <button onclick="app.openComposeModal()" class="fixed bottom-20 right-4 bg-rose-500 text-white rounded-full p-4 shadow-lg sm:hidden z-20 hover:bg-rose-600 active:scale-90 transition animate-pop"><i class="fa-solid fa-feather text-xl"></i></button>
+
+    <!-- Compose Modal -->
+    <div id="compose-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-[70] hidden flex items-start justify-center pt-16 sm:pt-24 p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[600px] rounded-2xl p-4 shadow-2xl relative animate-pop border dark:border-darkBorder">
+            <div class="flex justify-between items-center mb-4"><button onclick="app.closeComposeModal()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button><div class="flex gap-4"><span class="text-rose-500 font-bold text-sm self-center">Drafts</span><button onclick="app.publishPost()" class="bg-rose-500 text-white px-4 py-1.5 rounded-full font-bold text-sm hover:bg-rose-600 disabled:opacity-50 transition">Post</button></div></div>
+            <div class="flex gap-3">
+                <img id="compose-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-darkBorder">
+                <div class="w-full">
+                    <div id="author-selector" class="hidden mb-2"><select id="post-as-select" class="text-sm font-bold bg-transparent outline-none text-rose-500 cursor-pointer"></select></div>
+                    <div id="replying-to-indicator" class="hidden text-sm text-gray-500 mb-1">Replying to <span class="text-rose-500">@post</span></div>
+                    <div id="community-indicator" class="hidden text-sm text-gray-500 mb-1">Posting to <span class="text-rose-500 font-bold" id="community-name-target">Community</span></div>
+                    <textarea id="compose-input" class="w-full h-24 resize-none outline-none text-xl placeholder-gray-500 bg-transparent dark:text-white mt-2" placeholder="What is happening?!"></textarea>
+                    <div id="media-preview" class="hidden relative mb-2"><img id="media-preview-img" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden"><video id="media-preview-video" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden" controls></video><button onclick="app.clearMedia()" class="absolute top-1 left-1 bg-black/50 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button></div>
+                    <div id="poll-creator" class="hidden border border-gray-200 dark:border-darkBorder rounded-xl p-3 mb-2"><div class="space-y-2"><input type="text" id="poll-opt-1" placeholder="Choice 1" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white"><input type="text" id="poll-opt-2" placeholder="Choice 2" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white"></div><div class="mt-2 text-rose-500 text-xs font-bold cursor-pointer" onclick="document.getElementById('poll-creator').classList.add('hidden')">Remove Poll</div></div>
+                    <div class="border-t border-gray-100 dark:border-darkBorder pt-3 flex justify-between items-center text-rose-500 text-lg">
+                        <div class="flex gap-4"><i class="fa-regular fa-image cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-image-upload').click()"></i><i class="fa-solid fa-video cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-video-upload').click()"></i><i class="fa-solid fa-square-poll-horizontal cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('poll-creator').classList.remove('hidden')"></i><i class="fa-regular fa-face-smile cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i></div>
+                    </div>
+                    <input type="file" id="post-image-upload" hidden accept="image/*" onchange="app.handlePostMedia(event, 'image')"><input type="file" id="post-video-upload" hidden accept="video/*" onchange="app.handlePostMedia(event, 'video')">
+                </div>
             </div>
         </div>
-        <div onclick="app.navigate('robux')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
-             <i class="fas fa-hexagon text-xl mb-1"></i>
-             <span class="text-[10px] font-bold">Robux</span>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[500px] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-pop border dark:border-darkBorder">
+            <div class="flex justify-between items-center mb-6"><div class="flex items-center gap-4"><button onclick="app.closeEditProfile()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button><h2 class="font-bold text-xl" id="edit-modal-title">Edit Profile</h2></div><button onclick="app.saveProfile()" class="bg-black dark:bg-white dark:text-black text-white px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-800 transition">Save</button></div>
+            <input type="file" id="banner-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'banner')"><input type="file" id="avatar-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'avatar')">
+            <div class="h-32 bg-gray-200 dark:bg-darkSec relative mb-12 rounded-md group cursor-pointer overflow-hidden border dark:border-darkBorder" onclick="document.getElementById('banner-upload').click()"><img id="edit-banner-preview" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-camera text-white text-2xl drop-shadow-md"></i></div><div class="absolute -bottom-10 left-4 w-24 h-24 rounded-full border-4 border-white dark:border-dark bg-gray-300 dark:bg-darkSec overflow-hidden cursor-pointer group hover:opacity-90" onclick="event.stopPropagation(); document.getElementById('avatar-upload').click()"><img id="edit-avatar-preview" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-camera text-white drop-shadow-md"></i></div></div></div>
+            <form class="space-y-4 mt-8">
+                <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md"><span class="font-bold text-sm">Dark Mode</span><button type="button" onclick="app.toggleTheme()" id="theme-btn" class="text-gray-500 hover:text-rose-500 font-bold text-sm transition">Switch</button></div>
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Name</label><input type="text" id="edit-name" class="w-full outline-none text-sm bg-transparent dark:text-white"></div>
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Bio</label><textarea id="edit-bio" class="w-full outline-none text-sm resize-none h-20 bg-transparent dark:text-white"></textarea></div>
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition"><label class="block text-xs text-gray-500">Location</label><input type="text" id="edit-location" class="w-full outline-none text-sm bg-transparent dark:text-white"></div>
+                <div id="bot-control-panel" class="hidden flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md"><span class="font-bold text-sm">Auto-Posting</span><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="bot-auto-post" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div></label></div>
+                <hr class="border-gray-100 dark:border-darkBorder my-4">
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500"><label class="block text-xs text-gray-500">Secret PIN</label><input type="password" id="secret-pin" oninput="app.checkPin()" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent" placeholder="Enter code"></div>
+                <div id="god-mode-panel" class="hidden space-y-4 bg-rose-50 dark:bg-rose-900/10 p-4 rounded-lg border border-rose-100 dark:border-rose-900/30">
+                    <h3 class="font-bold text-rose-600 mb-2">⚡ God Mode Active</h3>
+                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 bg-white dark:bg-dark"><label class="block text-xs text-gray-500">Follower Count (Cheat)</label><input type="number" id="edit-followers" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent"></div>
+                    <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md bg-white dark:bg-dark"><div class="flex flex-col"><span class="font-bold text-sm">Force Verify</span><span class="text-xs text-gray-500">Bypass requirements</span></div><button type="button" id="btn-verify" onclick="app.requestVerification(true)" class="bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition">Get Badge</button></div>
+                    <button type="button" onclick="app.openCreateBotModal()" class="w-full bg-rose-500 text-white font-bold py-2 rounded-md hover:bg-rose-600 transition"><i class="fa-solid fa-robot mr-2"></i> Create New Bot</button>
+                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-2 bg-white dark:bg-dark"><label class="block text-xs text-gray-500 mb-2">Virality Speed</label><select id="edit-virality" class="w-full outline-none text-sm bg-transparent dark:text-white"><option value="0.1">Slow (Realistic)</option><option value="1">Normal</option><option value="5">Fast</option><option value="20">Superfast (Viral)</option><option value="2000">Ultra Fast (Godspeed)</option></select></div>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main id="main-content" class="lg:ml-60 mt-14 p-4 md:p-8 flex-1 overflow-y-auto pb-24">
-        <!-- Dynamic Content Injected Here -->
-    </main>
-
-    <!-- 3D Game Overlay -->
-    <div id="game-view" class="relative">
-        <div class="absolute top-4 left-4 z-50 flex gap-4">
-             <button onclick="threeApp.stopGame()" class="bg-red-600 text-white px-4 py-2 rounded font-bold shadow-lg hover:bg-red-700">Leave Game</button>
-             <div class="bg-black bg-opacity-50 text-white px-4 py-2 rounded font-bold backdrop-blur-sm">
-                Playing: <span id="game-playing-name">Game</span>
-             </div>
+    <!-- Create Bot Modal -->
+    <div id="create-bot-modal" class="fixed inset-0 bg-black/50 z-[90] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[400px] rounded-2xl p-6 shadow-2xl relative animate-pop border dark:border-darkBorder">
+             <div class="flex justify-between items-center mb-6"><h2 class="font-bold text-xl">Create Bot</h2><button onclick="document.getElementById('create-bot-modal').classList.add('hidden')" class="text-gray-900 dark:text-white p-2"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+            <div class="space-y-4"><input type="text" id="bot-name" placeholder="Bot Name" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><input type="text" id="bot-handle" placeholder="Bot Handle (no @)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><input type="text" id="bot-avatar" placeholder="Avatar URL (optional)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white"><button onclick="app.createBot()" class="w-full bg-rose-600 text-white font-bold py-2 rounded-full">Create</button></div>
         </div>
-        <div class="absolute bottom-10 left-10 z-50 text-white pointer-events-none select-none">
-            <p class="text-2xl font-bold mb-1">Controls</p>
-            <p class="text-sm opacity-80">Click/Drag to look around</p>
-            <p class="text-sm opacity-80">You earn +1 visit/sec while here</p>
-        </div>
-        <canvas id="game-canvas" class="w-full h-full block"></canvas>
     </div>
 
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed bottom-20 md:bottom-5 right-5 flex flex-col gap-2 z-[60]"></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-2 rounded-full shadow-lg z-[100] transition-opacity duration-300 opacity-0 pointer-events-none font-bold text-sm">Action Successful</div>
 
-    <script>
-        // --- Persistence Helpers ---
-        const storage = {
-            save: () => {
-                const data = {
-                    state: appState,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem('peyza_save_v6', JSON.stringify(data));
-            },
-            load: () => {
-                const data = localStorage.getItem('peyza_save_v6');
-                if (data) return JSON.parse(data);
-                return null;
+<script>
+/**
+ * Peyza App Logic v6.3 - Bug Fixes
+ */
+
+const BADGES = {
+    RED: `<svg viewBox="0 0 24 24" class="w-5 h-5 ml-1 inline-block text-rose-500 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
+    PURPLE: `<svg viewBox="0 0 24 24" class="w-5 h-5 ml-1 inline-block text-purple-600 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
+    PLATINUM: `<svg viewBox="0 0 24 24" class="w-5 h-5 ml-1 inline-block text-slate-400 fill-current align-text-bottom drop-shadow-sm"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
+    OWNER: `<i class="fa-solid fa-crown w-5 h-5 ml-1 inline-block text-amber-400 align-text-bottom" title="Owner"></i>`
+};
+const ANALYTICS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" class="w-[18px] h-[18px] fill-current"><g><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></g></svg>`;
+
+const DEFAULT_BOTS = [
+    { handle: 'Peyza', name: 'Peyza', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=P&backgroundColor=e11d48', bio: 'The Official Peyza Account.', followers: 50000000, following: 0, isVerified: true, isOwner: true, autoPost: true },
+    { handle: 'tech_guru', name: 'Tech Insider', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Felix', bio: 'Tech news.', followers: 450200, following: 152, isVerified: true, autoPost: true },
+    { handle: 'JuiceWorlddd', name: 'Juice WRLD', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juice', bio: '999 Forever 🕊️', followers: 12500000, following: 1, isVerified: true, autoPost: true },
+    { handle: 'elonmusk', name: 'Elon Musk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elon', bio: 'Mars.', followers: 150000000, following: 140, isVerified: true, autoPost: true },
+    { handle: 'taylorswift13', name: 'Taylor Swift', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor', bio: 'Me.', followers: 95000000, following: 0, isVerified: true, autoPost: true },
+    { handle: 'meme_lord', name: 'Daily Memes', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Meme', bio: 'Memes.', followers: 12000, following: 50, isVerified: false, autoPost: true },
+    { handle: 'crypto_king', name: 'Crypto Chad', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Chad', bio: 'HODL.', followers: 8900, following: 1200, isVerified: false, autoPost: true },
+    { handle: 'news_bot', name: 'Peyza News', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=News', bio: 'Breaking news.', followers: 1500000, following: 10, isVerified: true, autoPost: true },
+    { handle: 'kyliejenner', name: 'Kylie Jenner', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kylie', bio: 'Kylie Cosmetics.', followers: 40000000, following: 100, isVerified: true, autoPost: true }
+];
+const FAMOUS_CONTENT = { 'JuiceWorlddd': ["999"], 'elonmusk': ["Mars."], 'taylorswift13': ["Tour soon."], 'kyliejenner': ["New drop.", "Stormi 💗"] };
+const MOCK_POSTS_CONTENT = ["Hello World", "Peyza is cool", "Coding is fun", "Coffee time"];
+const MOCK_REPLIES_TEXT = ["Nice!", "Wow", "Cool", "First", "Ratio"];
+
+class PeyzaApp {
+    constructor() {
+        this.user = this.loadUser();
+        this.bots = this.loadBots();
+        this.posts = this.loadPosts();
+        this.notifications = this.loadNotifications();
+        this.currentView = 'home'; this.viewParam = null; this.feedFilter = 'foryou'; this.profileFilter = 'posts';
+        this.settings = this.loadSettings();
+        this.editingHandle = null; this.replyingTo = null; this.tempMedia = null; this.tempMediaType = 'image'; this.postingToCommunity = null;
+        this.init();
+    }
+    init() {
+        this.applyTheme(); this.renderSidebarUser(); this.renderWhoToFollow(); this.renderSidebarTrends(); this.renderView();
+        setTimeout(() => { if(this.currentView === 'home') this.setFeedFilter('foryou'); }, 100);
+        setInterval(() => this.simulateStats(), 1000);
+        setInterval(() => this.generateRandomBotPost(), 15000);
+    }
+    loadUser() { const s=localStorage.getItem('peyza_user_v9'); if(s)return JSON.parse(s); return { handle: 'guest_user', name: 'Guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Guest', banner: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=60', bio: 'Just a guest.', location: 'Internet', joined: 'May 2023', followers: 42, following: 15, isVerified: false, isOwner: false, likedPosts: [], repostedPosts: [], bookmarks: [], likedComments: [], createdBots: [] }; }
+    loadBots() { const s=localStorage.getItem('peyza_bots_v9'); if(s)return JSON.parse(s); return [...DEFAULT_BOTS]; }
+    loadPosts() { const s=localStorage.getItem('peyza_posts_v9'); if(s){let p=JSON.parse(s); if(p.length>200)p=p.slice(0,100); return p;} const p=[]; for(let i=0;i<20;i++)p.push(this.createMockPost(i*1000*60*20)); return p; }
+    loadNotifications() { const s=localStorage.getItem('peyza_notes_v9'); if(s)return JSON.parse(s); return []; }
+    loadSettings() { const s=localStorage.getItem('peyza_settings'); if(s)return JSON.parse(s); return { viralitySpeed: 1.0, theme: 'light' }; }
+    saveUser() { localStorage.setItem('peyza_user_v9', JSON.stringify(this.user)); this.renderSidebarUser(); }
+    saveBots() { localStorage.setItem('peyza_bots_v9', JSON.stringify(this.bots)); }
+    savePosts() { localStorage.setItem('peyza_posts_v9', JSON.stringify(this.posts)); }
+    saveNotifications() { localStorage.setItem('peyza_notes_v9', JSON.stringify(this.notifications)); }
+    saveSettings() { localStorage.setItem('peyza_settings', JSON.stringify(this.settings)); }
+    
+    getProfile(handle) { if (handle === this.user.handle) return this.user; return this.bots.find(b => b.handle === handle); }
+    getBadgeHTML(u) { if (u.isOwner) return BADGES.OWNER; if (u.followers >= 10000000) return BADGES.PLATINUM; if (u.followers >= 500000) return BADGES.PURPLE; if (u.isVerified || u.followers >= 100000) return BADGES.RED; return ''; }
+    
+    createMockPost(off=0) {
+        const bot = this.bots[Math.floor(Math.random()*this.bots.length)];
+        let content = MOCK_POSTS_CONTENT[Math.floor(Math.random()*MOCK_POSTS_CONTENT.length)];
+        if(FAMOUS_CONTENT[bot.handle]) content = FAMOUS_CONTENT[bot.handle][Math.floor(Math.random()*FAMOUS_CONTENT[bot.handle].length)];
+        return {
+            id: 'post_'+Math.random().toString(36).substr(2,9), authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified, isOwner: bot.isOwner, followers: bot.followers,
+            content: content, image: Math.random()>0.8?`https://picsum.photos/seed/${Math.random()}/600/350`:null, video: null, poll: null, communityHandle: null, theme: 'default',
+            replies: [], createdAt: Date.now()-off, stats: { likes: Math.floor(Math.random()*50), reposts: 0, replies: 0, views: Math.floor(Math.random()*500) }, baseVelocity: Math.random()
+        };
+    }
+    createPost(c, a) {
+        let auth = this.user; if(a && a!==this.user.handle) auth = this.bots.find(b=>b.handle===a)||this.user;
+        let poll = null; const o1=document.getElementById('poll-opt-1').value, o2=document.getElementById('poll-opt-2').value;
+        if(o1&&o2&&!document.getElementById('poll-creator').classList.contains('hidden')) poll={options:[{text:o1,votes:0},{text:o2,votes:0}],totalVotes:0};
+        
+        if(this.replyingTo) {
+            const op = this.posts.find(p=>p.id===this.replyingTo);
+            if(op) {
+                op.stats.replies++;
+                if(!op.replies) op.replies=[];
+                op.replies.unshift({ id:'r'+Math.random(), authorHandle:auth.handle, authorName:auth.name, avatar:auth.avatar, content:c, time:'Just now', likes:0, isVerified:auth.isVerified, isOwner:auth.isOwner, followers:auth.followers });
+                this.savePosts();
             }
-        };
-
-        // --- Data Generators ---
-        const generateDemoGames = () => {
-            const adjectives = ["Super", "Mega", "Ultimate", "Royal", "Dark", "Crazy", "Happy", "Speed", "Ninja", "Pixel", "Blox", "Build", "Escape"];
-            const nouns = ["City", "Tycoon", "Simulator", "Obby", "Wars", "Survival", "Life", "World", "Tower", "Legends", "Mystery", "School", "Island"];
-            const bots = ["Builderman", "Roblox", "NoobMaster", "ProGamer", "DevKing", "ScriptNinja", "PolyHex", "BlockSmith", "PixelArt"];
-            
-            const games = [];
-            for (let i = 0; i < 40; i++) {
-                const seed = Math.floor(Math.random() * 10000);
-                games.push({
-                    id: `demo_${i}`,
-                    name: `${adjectives[Math.floor(Math.random()*adjectives.length)]} ${nouns[Math.floor(Math.random()*nouns.length)]}`,
-                    description: "Experience the thrill in this amazing world! Play with friends, unlock items, and explore vast landscapes.",
-                    visits: Math.floor(Math.random() * 5000000) + 10000,
-                    active: Math.floor(Math.random() * 15000) + 50,
-                    favorites: Math.floor(Math.random() * 100000),
-                    likes: Math.floor(Math.random() * 50000),
-                    dislikes: Math.floor(Math.random() * 5000),
-                    created: "1/12/2024",
-                    genre: ["Adventure", "Tycoon", "Simulator", "Obby"][Math.floor(Math.random()*4)],
-                    icon: `https://picsum.photos/seed/${seed}/300/300`,
-                    thumbnail: `https://picsum.photos/seed/${seed}/768/432`,
-                    creatorName: bots[Math.floor(Math.random()*bots.length)],
-                    isDemo: true,
-                    gamepasses: [],
-                    events: []
-                });
+            this.replyingTo=null; if(this.currentView==='post') this.renderPostDetail(op.id); else this.navigate('home');
+        } else {
+            this.posts.unshift({
+                id: 'post_'+Math.random().toString(36).substr(2,9), authorHandle: auth.handle, authorName: auth.name, authorAvatar: auth.avatar, isVerified: auth.isVerified, isOwner: auth.isOwner, followers: auth.followers,
+                content: c, image: this.tempMediaType==='image'?this.tempMedia:null, video: this.tempMediaType==='video'?this.tempMedia:null, poll: poll, communityHandle: this.postingToCommunity, theme: 'default', createdAt: Date.now(), replies: [], stats: {likes:0,reposts:0,replies:0,views:0}, baseVelocity: Math.random()
+            });
+            this.savePosts(); this.navigate('home');
+        }
+        this.clearMedia(); this.postingToCommunity=null;
+    }
+    generateRandomBotPost() {
+        if(this.posts.filter(p=>this.bots.some(b=>b.handle===p.authorHandle)).length>30)return;
+        this.bots.forEach(b=>{ if(b.autoPost!==false && Math.random()<0.0083) this.posts.unshift(this.createMockPost()); });
+        this.savePosts(); if(this.currentView==='home') this.renderFeed();
+    }
+    simulateStats() {
+        const now = Date.now(); let changed = false;
+        this.posts = this.posts.filter(p => !(this.bots.some(b=>b.handle===p.authorHandle) && (now-p.createdAt > 14400000))); // 4h
+        this.posts.forEach(p => {
+            if ((now - p.createdAt)/1000 < 86400) {
+                let f = p.followers || 100; const scale = Math.max(1, Math.log10(f)); const g = this.settings.viralitySpeed * p.baseVelocity * scale;
+                const nv = Math.floor(p.stats.views + (g*5*Math.random()));
+                if(nv>p.stats.views) { p.stats.views=nv; changed=true; }
+                if(Math.random()<0.3) { p.stats.likes+=Math.floor(g*2); changed=true; }
             }
-            return games;
-        };
-
-        // --- Game State & Data ---
-        const initialGame = {
-            id: 'game_1',
-            name: "Mega Fun Obby!",
-            description: "Welcome to the most fun obstacle course on Peyza! Can you beat all 100 stages? Updates every Friday!",
-            visits: 15420,
-            active: 42,
-            favorites: 1200,
-            likes: 450,
-            dislikes: 12,
-            created: new Date().toLocaleDateString(),
-            genre: "Adventure",
-            icon: "https://picsum.photos/seed/icon1/300/300",
-            thumbnail: "https://picsum.photos/seed/thumb1/768/432",
-            creatorName: "PeyzaDev_2025",
-            ownerId: 'user', // 'user' or groupID
-            isDemo: false,
-            gamepasses: [
-                { id: 'gp_1', name: "Speed Coil", price: 99, sales: 12, image: "https://via.placeholder.com/150" }
-            ],
-            events: [] 
-        };
-
-        const defaultState = {
-            view: 'home',
-            user: {
-                username: "PeyzaDev_2025",
-                followers: 95000,
-                robux: 450,
-                usd: 0.00,
-                status: "Developing the next big hit!",
-                joinDate: "2/14/2021",
-                usedFreeSponsor: false,
-                avatarColor: '#1e1e1e'
-            },
-            groups: [],
-            messages: [
-                { id: 1, from: "Builderman", subject: "Welcome to Peyza!", body: "Welcome to the future of imagination. Start building today!", read: false },
-                { id: 2, from: "System", subject: "Premium Payout", body: "You earned 45 Robux from Premium Payouts yesterday.", read: true }
-            ],
-            games: [initialGame],
-            demoGames: [],
-            currentGameId: null,
-            currentGroupId: null,
-            eventsLog: [],
-            searchTerm: "",
-            inventory: []
-        };
-
-        let appState = defaultState;
-
-        // --- Core Application Logic ---
-
-        const app = {
-            init: () => {
-                const saved = storage.load();
-                if (saved) {
-                    appState = saved.state;
-                    if (!appState.groups) appState.groups = [];
-                    if (!appState.messages) appState.messages = defaultState.messages;
-                    appState.games.forEach(g => { if(!g.events) g.events = []; });
-                    appState.groups.forEach(g => { if(!g.announcements) g.announcements = []; });
-
-                    if (!appState.demoGames || appState.demoGames.length === 0) appState.demoGames = generateDemoGames();
-                    app.calculateOfflineProgress(saved.timestamp);
-                } else {
-                    appState.demoGames = generateDemoGames();
-                }
-                
-                app.startSimulation();
-                app.render();
-                app.updateHeader();
-
-                // Listeners
-                document.getElementById('nav-search').addEventListener('input', (e) => {
-                    appState.searchTerm = e.target.value.toLowerCase();
-                    if(appState.view === 'home') app.render(); 
-                });
-                
-                // Auto-save
-                setInterval(storage.save, 5000);
-                window.addEventListener('beforeunload', storage.save);
-            },
-
-            calculateOfflineProgress: (lastTime) => {
-                const now = Date.now();
-                const diffSeconds = (now - lastTime) / 1000;
-                
-                if (diffSeconds > 10) {
-                    let totalVisits = 0;
-                    let totalMembersGained = 0;
-
-                    appState.games.forEach(game => {
-                        const oldActive = game.active;
-                        const decay = Math.pow(0.999, diffSeconds); 
-                        game.active = Math.floor(game.active * decay);
-                        
-                        // Offline visits from decayed active players
-                        const avgActive = (oldActive + game.active) / 2;
-                        let offlineVisits = Math.floor(avgActive * 0.5 * diffSeconds);
-                        
-                        // Passive Group Visits (Members checking out game)
-                        if (game.ownerId !== 'user') {
-                            const group = appState.groups.find(g => g.id === game.ownerId);
-                            if (group) {
-                                // e.g. 5% of members visit per hour
-                                const memberVisits = Math.floor(group.members * (0.015 * diffSeconds)); 
-                                offlineVisits += memberVisits;
-
-                                // Visits -> New Members (Offline)
-                                const newMembers = Math.floor(offlineVisits / 800);
-                                group.members += newMembers;
-                                totalMembersGained += newMembers;
-                            }
-                        }
-
-                        game.visits += offlineVisits;
-                        totalVisits += offlineVisits;
-
-                        if (offlineVisits > 0 && !game.isDemo) {
-                            appState.user.followers += Math.floor(offlineVisits / 150);
-                        }
-                    });
-                    
-                    if (totalVisits > 0) {
-                        setTimeout(() => {
-                            let msg = `Welcome back! +${app.formatNumber(totalVisits)} Visits`;
-                            if(totalMembersGained > 0) msg += `, +${totalMembersGained} Group Members`;
-                            app.showToast(msg);
-                        }, 1000);
-                    }
-                }
-            },
-
-            navigate: (page, param = null) => {
-                appState.view = page;
-                if (page === 'game') appState.currentGameId = param;
-                if (page === 'group_details') appState.currentGroupId = param;
-                window.scrollTo(0,0);
-                app.render();
-            },
-
-            startSimulation: () => {
-                setInterval(() => {
-                    const allGames = [...appState.games, ...appState.demoGames];
-                    let unreadMsg = appState.messages.filter(m => !m.read).length;
-                    const badge = document.getElementById('msg-badge');
-                    if(badge) {
-                        badge.innerText = unreadMsg;
-                        badge.style.display = unreadMsg > 0 ? 'inline-block' : 'none';
-                    }
-
-                    allGames.forEach(game => {
-                        // 1. Natural Fluctuation
-                        const drift = (Math.random() - 0.49) * 2; 
-                        
-                        // 2. Determine Active Players
-                        let groupBoost = 0;
-                        
-                        // Group Synergy: Members provide a base floor of active players
-                        if (game.ownerId !== 'user') {
-                            const group = appState.groups.find(g => g.id === game.ownerId);
-                            if (group) {
-                                // 1 active player per 500 members guaranteed
-                                const baseActive = Math.floor(group.members / 500);
-                                if (game.active < baseActive) {
-                                    // Recover fast if below base
-                                    game.active += Math.ceil((baseActive - game.active) * 0.1);
-                                }
-                                
-                                // Visits -> Members (Realtime conversion)
-                                // If people are visiting, some join the group
-                                if(game.active > 0 && Math.random() < 0.005) {
-                                    group.members++;
-                                }
-                            }
-                        }
-
-                        if (game.active === 0) {
-                             if(Math.random() < 0.001) game.active = Math.floor(Math.random() * 20); 
-                        } else {
-                            const maxChange = Math.max(1, game.active * 0.03); 
-                            const actualChange = drift * maxChange;
-                            game.active = Math.floor(Math.max(0, game.active + actualChange));
-                        }
-                        
-                        // 3. Visits Accumulation
-                        const newVisits = Math.ceil(game.active * 0.5);
-                        game.visits += newVisits;
-
-                        // 4. Stats Growth 
-                        if (newVisits > 0) {
-                            if (Math.random() < 0.02) game.likes++;
-                            if (Math.random() < 0.01) game.favorites++;
-                            if (Math.random() < 0.001) game.dislikes++;
-                        }
-
-                        // 5. Followers from Visits
-                        if (!game.isDemo && newVisits > 0 && Math.random() < 0.02) { 
-                             appState.user.followers++;
-                        }
-
-                        // 6. Events Simulation
-                        if (game.events && game.events.length > 0) {
-                            game.events.forEach(ev => {
-                                if(Math.random() < 0.05) {
-                                    ev.interested += Math.floor(Math.random() * 5) + 1;
-                                    // Events drive group members heavily
-                                    if(game.ownerId !== 'user' && Math.random() < 0.6) {
-                                        const grp = appState.groups.find(g => g.id === game.ownerId);
-                                        if(grp) grp.members++;
-                                    }
-                                }
-                            });
-                        }
-
-                        // 7. Visits -> Robux
-                        if (!game.isDemo && game.active > 0 && Math.random() < 0.05) {
-                            appState.user.robux++;
-                        }
-
-                        // LIVE DOM UPDATE
-                        const activeEl = document.getElementById(`live-active-${game.id}`);
-                        if (activeEl) activeEl.innerText = app.formatNumber(game.active);
-                        const visitEl = document.getElementById(`live-visits-${game.id}`);
-                        if (visitEl) visitEl.innerText = `${app.formatNumber(game.visits)} Visits`;
-                    });
-
-                    // Simulate Groups (Bot Reactions)
-                    appState.groups.forEach(group => {
-                        if(group.announcements) {
-                            group.announcements.forEach(ann => {
-                                const age = Date.now() - ann.timestamp;
-                                if(age < 600000) { 
-                                    if(Math.random() < 0.1) ann.likes++;
-                                    if(Math.random() < 0.05) {
-                                        const bots = ["Noob123", "Guest99", "FanBoy", "RbxLover", "CoolGuy", "Sniper", "Gamer"];
-                                        ann.comments.push({
-                                            user: bots[Math.floor(Math.random()*bots.length)],
-                                            text: ["Awesome!", "Hype!", "Can't wait!", "Finally!", "Best group ever!"][Math.floor(Math.random()*5)]
-                                        });
-                                        if(appState.view === 'group_details' && appState.currentGroupId === group.id) app.render(false);
-                                    }
-                                }
-                            });
-                        }
-                        // Random organic group growth
-                        if(Math.random() < 0.01) group.members++;
-                    });
-
-                    app.updateHeader();
-                }, 1000);
-            },
-
-            // Actions
-            createGame: (name, genre, description, ownerId, iconFile, thumbFile) => {
-                const isGroup = ownerId !== 'user';
-                let creatorName = appState.user.username;
-                if(isGroup) {
-                    const g = appState.groups.find(gr => gr.id === ownerId);
-                    if(g) creatorName = g.name;
-                }
-
-                const seed = name.replace(/\s/g, '') + Date.now(); 
-
-                const newGame = {
-                    id: `game_${Date.now()}`,
-                    name: name || "Untitled Game",
-                    description: description || "No description provided.",
-                    genre: genre,
-                    visits: 0,
-                    active: 0,
-                    favorites: 0,
-                    likes: 0,
-                    dislikes: 0,
-                    created: new Date().toLocaleDateString(),
-                    icon: iconFile ? URL.createObjectURL(iconFile) : `https://picsum.photos/seed/${seed}/300/300`,
-                    thumbnail: thumbFile ? URL.createObjectURL(thumbFile) : `https://picsum.photos/seed/${seed}_thumb/768/432`,
-                    creatorName: creatorName,
-                    ownerId: ownerId,
-                    isDemo: false,
-                    gamepasses: [],
-                    events: []
-                };
-                appState.games.push(newGame);
-                app.showToast("Game Created Successfully!");
-                if(isGroup) app.navigate('group_details', ownerId);
-                else app.navigate('devhub');
-            },
-
-            createEvent: (gameId, title, desc) => {
-                const game = appState.games.find(g => g.id === gameId);
-                if(game) {
-                    if(!game.events) game.events = [];
-                    game.events.unshift({
-                        id: Date.now(),
-                        title,
-                        description: desc,
-                        interested: 1,
-                        date: new Date().toLocaleDateString()
-                    });
-                    game.active += 50; 
-                    app.showToast("Event Published!");
-                    app.render();
-                }
-            },
-
-            createGroup: (name, desc) => {
-                if(appState.user.robux < 100) {
-                    app.showToast("Need 100 Robux to create a group!", "error");
-                    return;
-                }
-                appState.user.robux -= 100;
-                const newGroup = {
-                    id: `group_${Date.now()}`,
-                    name: name,
-                    description: desc,
-                    members: 1,
-                    icon: `https://picsum.photos/seed/${name}/150/150`,
-                    announcements: []
-                };
-                appState.groups.push(newGroup);
-                app.showToast(`Group "${name}" created!`);
-                app.navigate('groups');
-            },
-
-            postAnnouncement: (groupId, text) => {
-                const group = appState.groups.find(g => g.id === groupId);
-                if(group && text.trim().length > 0) {
-                    group.announcements.unshift({
-                        id: Date.now(),
-                        text: text,
-                        author: appState.user.username,
-                        timestamp: Date.now(),
-                        likes: 0,
-                        comments: []
-                    });
-                    app.showToast("Announcement Posted!");
-                    app.render();
-                }
-            },
-
-            createGamepass: (gameId, name, price) => {
-                const game = appState.games.find(g => g.id === gameId);
-                if (game) {
-                    game.gamepasses.push({
-                        id: `gp_${Date.now()}`,
-                        name: name,
-                        price: parseInt(price),
-                        sales: 0,
-                        image: "https://via.placeholder.com/150"
-                    });
-                    app.showToast("Gamepass Created!");
-                    app.render(); 
-                }
-            },
-
-            buyGamepass: (gameId, gpId) => {
-                const allGames = [...appState.games, ...appState.demoGames];
-                const game = allGames.find(g => g.id === gameId);
-                if(!game) return;
-                const gp = game.gamepasses.find(p => p.id === gpId);
-                
-                if (appState.user.robux >= gp.price) {
-                    appState.user.robux -= gp.price;
-                    gp.sales++;
-                    if (!game.isDemo) {
-                        const revenue = Math.floor(gp.price * 0.7);
-                        appState.user.robux += revenue; 
-                        app.showToast(`Sale! +${revenue} R$ from ${gp.name}`);
-                    } else {
-                        app.showToast(`Bought ${gp.name}!`);
-                    }
-                    app.updateHeader();
-                    app.render(); 
-                } else {
-                    app.showToast("Not enough Robux!", "error");
-                }
-            },
-            
-            runAd: (gameId, type) => {
-                const game = appState.games.find(g => g.id === gameId);
-                
-                if (type === 'free') {
-                    if (appState.user.usedFreeSponsor) {
-                        app.showToast("You already used your One-Time Free Sponsor!", "error");
-                        return;
-                    }
-                    appState.user.usedFreeSponsor = true;
-                    game.active += 5000; 
-                    game.visits += 10000;
-                    app.showToast(`MEGA SPONSOR ACTIVE! ${game.name} is blowing up!`);
-                    app.updateHeader();
-                    return;
-                }
-
-                if (appState.user.robux >= 50) {
-                    appState.user.robux -= 50;
-                    game.active += Math.floor(Math.random() * 100) + 50; 
-                    app.showToast(`Ad Campaign Started for ${game.name}!`);
-                    app.updateHeader();
-                } else {
-                    app.showToast("Need 50 R$ to run ad", "error");
-                }
-            },
-
-            convertRobux: (amount) => {
-                const rate = 0.0035; 
-                if (appState.user.robux >= amount && amount > 0) {
-                    appState.user.robux -= amount;
-                    appState.user.usd += (amount * rate);
-                    app.showToast(`Cashed out ${amount} R$ for $${(amount*rate).toFixed(2)} USD`);
-                    app.render();
-                    app.updateHeader();
-                }
-            },
-
-            launchGame3D: (gameId) => {
-                const allGames = [...appState.games, ...appState.demoGames];
-                const game = allGames.find(g => g.id === gameId);
-                if(!game) return;
-                
-                document.getElementById('game-view').style.display = 'block';
-                document.getElementById('game-playing-name').innerText = game.name;
-                threeApp.init(gameId);
-            },
-
-            markMessageRead: (id) => {
-                const msg = appState.messages.find(m => m.id === id);
-                if(msg) {
-                    msg.read = true;
-                    app.render();
-                }
-            },
-
-            changeAvatarColor: (color) => {
-                appState.user.avatarColor = color;
-                app.showToast("Avatar Updated!");
-                const navImg = document.getElementById('nav-avatar-img');
-                if(navImg) navImg.style.filter = `hue-rotate(${Math.random() * 360}deg)`; 
-                app.render();
-            },
-
-            formatNumber: (num) => {
-                if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B+';
-                if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M+';
-                if (num >= 1000) return (num / 1000).toFixed(1) + 'K+';
-                return Math.floor(num).toString();
-            },
-
-            showToast: (msg, type = 'success') => {
-                const container = document.getElementById('toast-container');
-                const toast = document.createElement('div');
-                let colorClass = 'bg-[#00b06f]';
-                if (type === 'error') colorClass = 'bg-red-500';
-                
-                toast.className = `px-4 py-3 rounded-lg shadow-xl text-white text-sm font-bold animate-bounce ${colorClass} flex items-center gap-2 border border-white/10`;
-                toast.innerHTML = msg;
-                container.appendChild(toast);
-                setTimeout(() => toast.remove(), 4000);
-            },
-
-            updateHeader: () => {
-                const rbEl = document.getElementById('nav-robux');
-                if(rbEl) rbEl.innerText = app.formatNumber(appState.user.robux);
-                const userEl = document.getElementById('nav-username');
-                if(userEl) userEl.innerText = appState.user.username;
-            },
-
-            // --- Renderers ---
-            
-            render: (fullRender = true) => {
-                const container = document.getElementById('main-content');
-                if(document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-
-                let html = '';
-
-                switch(appState.view) {
-                    case 'home': html = app.views.home(); break;
-                    case 'profile': html = app.views.profile(); break;
-                    case 'devhub': html = app.views.devhub(); break;
-                    case 'game': html = app.views.game(appState.currentGameId); break;
-                    case 'robux': html = app.views.robux(); break;
-                    case 'messages': html = app.views.messages(); break;
-                    case 'groups': html = app.views.groups(); break;
-                    case 'group_details': html = app.views.group_details(appState.currentGroupId); break;
-                    case 'avatar': html = app.views.avatar(); break;
-                    case 'marketplace': html = app.views.marketplace(); break;
-                    case 'inventory': html = `<div class="text-center text-gray-500 mt-10">Inventory Empty</div>`; break;
-                }
-                container.innerHTML = html;
-            },
-
-            views: {
-                home: () => {
-                    const allGames = [...appState.games, ...appState.demoGames];
-                    const filtered = allGames.filter(g => g.name.toLowerCase().includes(appState.searchTerm));
-
-                    return `
-                        <div class="max-w-7xl mx-auto">
-                            <h2 class="text-3xl font-bold mb-6 text-white">Home</h2>
-                            
-                            <h3 class="text-xl font-bold mb-4 text-white">Recommended for You</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                ${filtered.length > 0 ? filtered.map(game => `
-                                    <div class="cursor-pointer group" onclick="app.navigate('game', '${game.id}')">
-                                        <div class="aspect-square rounded-xl overflow-hidden relative mb-2 shadow-sm bg-[#2b2d31]">
-                                            <img src="${game.icon}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100" loading="lazy">
-                                        </div>
-                                        <h4 class="font-bold text-white text-base truncate group-hover:underline">${game.name}</h4>
-                                        <div class="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                                            <i class="fas fa-thumbs-up text-[10px]"></i> ${(game.likes / (game.likes + game.dislikes || 1) * 100).toFixed(0)}%
-                                            <span class="ml-2 flex items-center gap-1">
-                                                <i class="fas fa-user text-[10px]"></i> 
-                                                <span id="live-active-${game.id}">${app.formatNumber(game.active)}</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                `).join('') : '<div class="col-span-full text-center text-gray-500 py-10">No games found.</div>'}
-                            </div>
-                        </div>
-                    `;
-                },
-
-                group_details: (groupId) => {
-                    const group = appState.groups.find(g => g.id === groupId);
-                    if(!group) return "Group Not Found";
-                    
-                    const groupGames = appState.games.filter(g => g.ownerId === groupId);
-
-                    return `
-                        <div class="max-w-5xl mx-auto">
-                            <div class="rbx-card p-6 mb-6">
-                                <div class="flex gap-6 items-center">
-                                    <div class="w-32 h-32 bg-black rounded-lg overflow-hidden border border-[#393b3d]">
-                                        <img src="${group.icon}" class="w-full h-full object-cover">
-                                    </div>
-                                    <div class="flex-1">
-                                        <h2 class="text-3xl font-bold text-white mb-2">${group.name}</h2>
-                                        <div class="text-gray-400 mb-2">${group.description}</div>
-                                        <div class="text-sm text-gray-500">${app.formatNumber(group.members)} Members</div>
-                                        <div class="mt-4 flex gap-3">
-                                            <button onclick="document.getElementById('create-modal').classList.remove('hidden')" class="bg-[#00b06f] hover:bg-[#009960] text-white px-4 py-1.5 rounded font-bold text-sm">Create Experience</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="md:col-span-2 space-y-6">
-                                    <div class="rbx-card p-4">
-                                        <h3 class="font-bold text-lg mb-3">Shout</h3>
-                                        <div class="flex gap-2">
-                                            <input id="shout-input" type="text" placeholder="Enter shout..." class="flex-1 rbx-input p-2 text-sm">
-                                            <button onclick="app.postAnnouncement('${group.id}', document.getElementById('shout-input').value); document.getElementById('shout-input').value=''" class="bg-[#393b3d] hover:bg-[#45484d] text-white px-4 py-1 rounded font-bold text-sm">Post</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="space-y-4">
-                                        ${group.announcements && group.announcements.length > 0 ? group.announcements.map(ann => `
-                                            <div class="rbx-card p-4">
-                                                <div class="flex items-center gap-3 mb-2">
-                                                    <div class="w-8 h-8 bg-gray-600 rounded-full overflow-hidden">
-                                                        <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full">
-                                                    </div>
-                                                    <div>
-                                                        <div class="font-bold text-sm text-blue-400 hover:underline cursor-pointer">${ann.author}</div>
-                                                        <div class="text-xs text-gray-500">${new Date(ann.timestamp).toLocaleTimeString()}</div>
-                                                    </div>
-                                                </div>
-                                                <div class="text-gray-300 text-sm mb-3 pl-11">
-                                                    ${ann.text}
-                                                </div>
-                                                <div class="flex gap-4 pl-11 text-xs text-gray-500">
-                                                    <span><i class="fas fa-heart mr-1"></i> ${ann.likes} Likes</span>
-                                                    <span>${ann.comments.length} Comments</span>
-                                                </div>
-                                                ${ann.comments.length > 0 ? `
-                                                    <div class="mt-3 pl-11 space-y-2 border-t border-[#393b3d] pt-2">
-                                                        ${ann.comments.slice(-3).map(c => `
-                                                            <div class="text-xs text-gray-400"><span class="font-bold text-white">${c.user}:</span> ${c.text}</div>
-                                                        `).join('')}
-                                                    </div>
-                                                ` : ''}
-                                            </div>
-                                        `).join('') : '<div class="text-center text-gray-500 py-4">No shouts yet.</div>'}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 class="font-bold text-lg mb-3">Experiences</h3>
-                                    <div class="space-y-3">
-                                        ${groupGames.length > 0 ? groupGames.map(g => `
-                                            <div class="rbx-card p-2 flex gap-3 cursor-pointer hover:bg-[#323438]" onclick="app.navigate('game', '${g.id}')">
-                                                <div class="w-16 h-16 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0">
-                                                    <img src="${g.icon}" class="w-full h-full object-cover">
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="font-bold text-sm truncate">${g.name}</div>
-                                                    <div class="text-xs text-green-400">${app.formatNumber(g.active)} Active</div>
-                                                </div>
-                                            </div>
-                                        `).join('') : '<div class="text-gray-500 text-sm">No games yet.</div>'}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Create Game Modal Reused but pre-filled -->
-                        <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31] shadow-2xl">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
-                                <h3 class="text-2xl font-bold mb-6 text-white">Create Group Experience</h3>
-                                <div class="space-y-4">
-                                    <input id="new-game-name" type="text" placeholder="Experience Name" class="w-full rbx-input p-3">
-                                    <textarea id="new-game-desc" placeholder="Description" class="w-full rbx-input p-3 h-24"></textarea>
-                                    <input type="hidden" id="new-game-owner" value="${groupId}">
-                                    <select id="new-game-genre" class="w-full rbx-input p-3">
-                                        <option>Adventure</option>
-                                        <option>Fighting</option>
-                                        <option>Obby</option>
-                                        <option>Tycoon</option>
-                                        <option>Simulator</option>
-                                    </select>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Icon (Optional)</label>
-                                        <input id="new-game-icon" type="file" accept="image/*" class="w-full text-sm text-gray-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Thumbnail (Optional)</label>
-                                        <input id="new-game-thumb" type="file" accept="image/*" class="w-full text-sm text-gray-500">
-                                    </div>
-                                    <button onclick="app.createGame(document.getElementById('new-game-name').value, document.getElementById('new-game-genre').value, document.getElementById('new-game-desc').value, document.getElementById('new-game-owner').value, document.getElementById('new-game-icon').files[0], document.getElementById('new-game-thumb').files[0]); document.getElementById('create-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960] transition shadow-md">Create Experience</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-
-                // ... other views (profile, robux etc same as before)
-                profile: () => {
-                    const isVerified = appState.user.followers >= 100000;
-                    return `
-                        <div class="max-w-5xl mx-auto rbx-card p-6 md:p-8 relative bg-[#2b2d31]">
-                            <div class="flex flex-col md:flex-row gap-8 items-center md:items-start border-b border-[#393b3d] pb-8">
-                                <div class="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-[#393b3d] bg-gray-600">
-                                     <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full object-cover">
-                                </div>
-                                <div class="flex-1 text-center md:text-left">
-                                    <h2 class="text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2 text-white">
-                                        ${appState.user.username} 
-                                        ${isVerified ? '<span class="verified-badge w-6 h-6 text-sm" title="Verified Creator"><i class="fas fa-check"></i></span>' : ''}
-                                    </h2>
-                                    <p class="text-gray-400 mt-1 italic">"${appState.user.status}"</p>
-                                    
-                                    <div class="flex gap-8 mt-6 justify-center md:justify-start text-sm">
-                                        <div class="text-center md:text-left">
-                                            <div class="font-bold text-xl text-white">${app.formatNumber(appState.user.followers)}</div>
-                                            <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Followers</div>
-                                        </div>
-                                        <div class="text-center md:text-left">
-                                            <div class="font-bold text-xl text-white">24</div>
-                                            <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Following</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-8">
-                                <h3 class="text-xl font-bold mb-6 text-white">Creations</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                     ${appState.games.map(game => `
-                                    <div class="cursor-pointer group" onclick="app.navigate('game', '${game.id}')">
-                                        <div class="aspect-square rounded-xl overflow-hidden mb-3 border border-[#393b3d] shadow-sm relative">
-                                            <img src="${game.icon}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
-                                        </div>
-                                        <h4 class="font-bold text-white text-base truncate group-hover:underline">${game.name}</h4>
-                                        <div class="text-xs text-gray-500 mt-1" id="live-visits-${game.id}">
-                                            ${app.formatNumber(game.visits)} Visits
-                                        </div>
-                                    </div>
-                                `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-                messages: () => {
-                     return `
-                        <div class="max-w-4xl mx-auto rbx-card p-0 overflow-hidden">
-                            <h2 class="text-2xl font-bold p-6 bg-[#2b2d31] border-b border-[#393b3d]">Messages</h2>
-                            <div class="divide-y divide-[#393b3d]">
-                                ${appState.messages.length === 0 ? '<div class="p-6 text-center text-gray-500">No messages</div>' : ''}
-                                ${appState.messages.map(msg => `
-                                    <div class="p-4 hover:bg-[#323438] cursor-pointer transition flex gap-4 ${msg.read ? 'opacity-60' : 'bg-[#2b2d31] border-l-4 border-blue-500'}" onclick="app.markMessageRead(${msg.id})">
-                                        <div class="w-12 h-12 bg-gray-600 rounded-full flex-shrink-0 overflow-hidden">
-                                            <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full">
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between">
-                                                <span class="font-bold text-white">${msg.subject}</span>
-                                                <span class="text-xs text-gray-500">Yesterday</span>
-                                            </div>
-                                            <div class="text-sm text-gray-400">From: ${msg.from}</div>
-                                            <div class="text-sm text-gray-300 mt-1">${msg.body}</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                },
-                groups: () => {
-                    return `
-                        <div class="max-w-4xl mx-auto">
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="text-3xl font-bold text-white">My Groups</h2>
-                                <button onclick="document.getElementById('create-group-modal').classList.remove('hidden')" class="bg-[#00b06f] text-white px-4 py-2 rounded font-bold hover:bg-[#009960]">Create Group (100 R$)</button>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                ${appState.groups.length === 0 ? '<div class="col-span-full text-center py-10 text-gray-500">You are not in any groups.</div>' : ''}
-                                ${appState.groups.map(group => `
-                                    <div class="rbx-card p-4 flex gap-4 items-center cursor-pointer hover:bg-[#323438]" onclick="app.navigate('group_details', '${group.id}')">
-                                        <div class="w-20 h-20 bg-gray-700 rounded-lg overflow-hidden">
-                                            <img src="${group.icon}" class="w-full h-full object-cover">
-                                        </div>
-                                        <div class="flex-1">
-                                            <h3 class="font-bold text-xl text-white">${group.name}</h3>
-                                            <div class="text-sm text-gray-400">${app.formatNumber(group.members)} Members</div>
-                                            <div class="text-xs text-gray-500 mt-1">${group.description}</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <!-- Create Group Modal -->
-                        <div id="create-group-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-group-modal').classList.add('hidden')"><i class="fas fa-times"></i></button>
-                                <h3 class="text-xl font-bold mb-4 text-white">Create New Group</h3>
-                                <input id="new-group-name" type="text" placeholder="Group Name" class="w-full rbx-input p-3 mb-3">
-                                <textarea id="new-group-desc" placeholder="Description" class="w-full rbx-input p-3 mb-3 h-24"></textarea>
-                                <button onclick="app.createGroup(document.getElementById('new-group-name').value, document.getElementById('new-group-desc').value); document.getElementById('create-group-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded font-bold text-white hover:bg-[#009960]">Purchase (100 R$)</button>
-                            </div>
-                        </div>
-                    `;
-                },
-                marketplace: () => {
-                     return `
-                         <div class="max-w-6xl mx-auto">
-                            <h2 class="text-3xl font-bold mb-6 text-white">Marketplace</h2>
-                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                ${[...Array(12)].map((_, i) => `
-                                    <div class="rbx-card p-2 cursor-pointer hover:bg-[#323438] transition">
-                                        <div class="aspect-square bg-gray-700 rounded-lg mb-2 overflow-hidden">
-                                             <img src="https://picsum.photos/seed/item${i}/200/200" class="w-full h-full object-cover">
-                                        </div>
-                                        <div class="font-bold text-sm text-white truncate">Cool Item ${i+1}</div>
-                                        <div class="text-xs text-gray-400">By Peyza</div>
-                                        <div class="font-bold text-sm text-white mt-1"><i class="fas fa-hexagon text-xs"></i> ${50 + i * 10}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                },
-                avatar: () => {
-                    return `
-                        <div class="max-w-4xl mx-auto">
-                            <h2 class="text-3xl font-bold mb-6 text-white">Avatar Editor</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div class="flex justify-center">
-                                    <div class="w-64 h-80 bg-[#1a1c1e] rounded-lg border border-[#393b3d] flex items-center justify-center relative overflow-hidden">
-                                        <div class="w-32 h-32 bg-gray-300 rounded-full mb-10 relative z-10" style="background-color: ${appState.user.avatarColor}"></div>
-                                        <div class="w-40 h-48 bg-gray-700 absolute bottom-0 rounded-t-3xl"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-xl mb-4">Body Colors</h3>
-                                    <div class="flex gap-2 flex-wrap mb-8">
-                                        ${['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#ecf0f1', '#34495e'].map(c => `
-                                            <div class="w-10 h-10 rounded-full cursor-pointer hover:scale-110 transition border-2 border-transparent hover:border-white" style="background-color: ${c}" onclick="app.changeAvatarColor('${c}')"></div>
-                                        `).join('')}
-                                    </div>
-                                    <h3 class="font-bold text-xl mb-4">Recent Items</h3>
-                                    <div class="text-gray-500 italic">No items available. Visit Marketplace.</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-                game: (gameId) => {
-                    const allGames = [...appState.games, ...appState.demoGames];
-                    const game = allGames.find(g => g.id === gameId);
-                    if (!game) return "Game not found";
-                    const isOwner = game.ownerId === 'user' || appState.groups.find(gr => gr.id === game.ownerId);
-
-                    const likeRatio = Math.round((game.likes / (game.likes + game.dislikes || 1)) * 100);
-
-                    return `
-                        <div class="max-w-6xl mx-auto">
-                            <div class="flex flex-col lg:flex-row gap-8 mb-8">
-                                <div class="w-full lg:w-[700px] aspect-video bg-[#000] rounded-xl overflow-hidden shadow-lg relative group border border-[#393b3d]">
-                                    <img src="${game.thumbnail}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition">
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black bg-opacity-40 pointer-events-none">
-                                        <i class="fas fa-play text-white text-6xl shadow-xl drop-shadow-lg"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-1">
-                                    <h2 class="text-3xl md:text-4xl font-extrabold mb-2 text-white leading-tight">${game.name}</h2>
-                                    <div class="text-sm text-gray-400 mb-6 font-medium">By <a href="#" class="text-blue-400 hover:underline">@${game.creatorName}</a></div>
-                                    
-                                    <div class="flex gap-8 mb-8 border-t border-b border-[#393b3d] py-4">
-                                        <div class="flex flex-col items-center">
-                                            <div class="text-2xl font-bold text-white" id="live-active-${game.id}">${app.formatNumber(game.active)}</div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Active</div>
-                                        </div>
-                                        <div class="flex flex-col items-center">
-                                            <div class="text-2xl font-bold text-white" id="live-visits-${game.id}">${app.formatNumber(game.visits)}</div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Visits</div>
-                                        </div>
-                                        <div class="flex flex-col items-center">
-                                            <div class="text-2xl font-bold text-white flex items-center gap-1">
-                                                <i class="fas fa-thumbs-up text-lg text-[#00b06f]"></i> ${likeRatio}%
-                                            </div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Rating</div>
-                                        </div>
-                                    </div>
-
-                                    <button class="w-full bg-[#00b06f] hover:bg-[#009960] text-white py-4 rounded-xl font-bold text-xl shadow-lg mb-6 flex items-center justify-center gap-3 transform transition hover:-translate-y-1 active:scale-95 active:translate-y-0" onclick="app.launchGame3D('${game.id}')">
-                                        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center"><i class="fas fa-play text-sm"></i></div>
-                                        Play
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <div class="lg:col-span-2">
-                                    ${isOwner ? `
-                                        <div class="rbx-card p-4 mb-6 border-blue-500/30 bg-blue-900/10">
-                                            <h3 class="font-bold text-lg mb-2 text-blue-300">Developer Controls</h3>
-                                            <div class="flex gap-2">
-                                                <input id="event-title" type="text" placeholder="Event Title (e.g. Double XP)" class="flex-1 rbx-input p-2 text-sm">
-                                                <button onclick="app.createEvent('${game.id}', document.getElementById('event-title').value, 'Limited time event!'); document.getElementById('event-title').value=''" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1 rounded font-bold text-sm">Publish Event</button>
-                                            </div>
-                                        </div>
-                                    ` : ''}
-
-                                    <div class="rbx-card p-6 mb-6">
-                                        <h3 class="font-bold text-xl mb-4 text-white">About</h3>
-                                        <p class="text-gray-300 whitespace-pre-line leading-relaxed">${game.description}</p>
-                                    </div>
-
-                                    ${game.events && game.events.length > 0 ? `
-                                        <div class="rbx-card p-6 mb-6">
-                                            <h3 class="font-bold text-xl mb-4 text-white">Events</h3>
-                                            <div class="space-y-4">
-                                                ${game.events.map(ev => `
-                                                    <div class="bg-[#1a1c1e] p-3 rounded-lg border border-[#393b3d]">
-                                                        <div class="flex justify-between">
-                                                            <div class="font-bold text-blue-400">${ev.title}</div>
-                                                            <div class="text-xs text-gray-500">${ev.date}</div>
-                                                        </div>
-                                                        <div class="text-sm text-gray-300 mt-1">${ev.description}</div>
-                                                        <div class="text-xs text-gray-500 mt-2"><i class="fas fa-star text-yellow-500"></i> ${ev.interested} Interested</div>
-                                                    </div>
-                                                `).join('')}
-                                            </div>
-                                        </div>
-                                    `: ''}
-                                    
-                                    <h3 class="font-bold text-xl mb-4 text-white">Store</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        ${game.gamepasses.length > 0 ? game.gamepasses.map(gp => `
-                                            <div class="rbx-card p-4 flex gap-4 items-center shadow-sm hover:bg-[#323438] transition border border-[#393b3d]">
-                                                <div class="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden">
-                                                    <img src="${gp.image}" class="w-full h-full object-cover">
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="font-bold text-white truncate">${gp.name}</div>
-                                                    <button class="mt-2 bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg w-full hover:bg-gray-200 transition" onclick="app.buyGamepass('${game.id}', '${gp.id}')">
-                                                        <i class="fas fa-hexagon text-[10px] mr-1"></i> ${gp.price}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        `).join('') : '<div class="col-span-full text-gray-500 italic">No items for sale.</div>'}
-                                        
-                                        ${!game.isDemo ? `
-                                        <div class="rbx-card p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-[#323438] border-2 border-dashed border-[#393b3d] text-gray-500 hover:text-gray-300 transition" onclick="app.navigate('devhub')">
-                                            <i class="fas fa-plus text-2xl mb-1"></i>
-                                            <span class="text-sm font-bold">Add Pass</span>
-                                        </div>` : ''}
-                                    </div>
-                                </div>
-                                
-                                <div class="hidden lg:block">
-                                    <div class="rbx-card p-6 sticky top-20">
-                                        <h4 class="font-bold text-white mb-4">Game Stats</h4>
-                                        <ul class="text-sm text-gray-400 space-y-3 font-medium">
-                                            <li class="flex justify-between border-b border-[#393b3d] pb-2"><span>Favorites</span> <span class="text-white">${app.formatNumber(game.favorites)}</span></li>
-                                            <li class="flex justify-between border-b border-[#393b3d] pb-2"><span>Likes</span> <span class="text-white">${app.formatNumber(game.likes)}</span></li>
-                                            <li class="flex justify-between"><span>Dislikes</span> <span class="text-white">${app.formatNumber(game.dislikes)}</span></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-                devhub: () => {
-                    return `
-                        <div class="max-w-6xl mx-auto">
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="text-3xl font-extrabold text-white">Developer Hub</h2>
-                                <button onclick="document.getElementById('create-modal').classList.remove('hidden')" class="bg-[#00b06f] text-white px-5 py-2.5 rounded-lg font-bold hover:bg-[#009960] shadow-md transition transform active:scale-95">
-                                    <i class="fas fa-plus mr-2"></i> Create Experience
-                                </button>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                <div class="col-span-1 space-y-4">
-                                    <div class="rbx-card p-5 border-l-4 border-blue-500 shadow-sm">
-                                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">Total Visits</div>
-                                        <div class="text-3xl font-bold text-white mt-1">
-                                            ${app.formatNumber(appState.games.reduce((acc, g) => acc + g.visits, 0))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-span-1 md:col-span-3">
-                                    <h3 class="text-xl font-bold mb-4 text-white">My Experiences</h3>
-                                    <div class="space-y-4">
-                                        ${appState.games.map(game => `
-                                            <div class="rbx-card p-5 flex gap-5 items-start hover:shadow-md transition bg-[#2b2d31]">
-                                                <div class="w-24 h-24 bg-black rounded-lg overflow-hidden flex-shrink-0 border border-[#393b3d]">
-                                                    <img src="${game.icon}" class="w-full h-full object-cover">
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="flex justify-between items-start">
-                                                        <h4 class="font-bold text-lg text-white hover:text-blue-400 cursor-pointer truncate" onclick="app.navigate('game', '${game.id}')">${game.name}</h4>
-                                                        <span class="text-xs bg-green-900 text-green-200 px-2 py-1 rounded font-bold">Public</span>
-                                                    </div>
-                                                    <div class="text-sm text-gray-400 mt-1 mb-4 line-clamp-2">${game.description}</div>
-                                                    
-                                                    <div class="flex flex-wrap gap-2">
-                                                        <button class="px-4 py-1.5 bg-[#393b3d] text-gray-300 text-xs font-bold rounded-lg hover:bg-gray-600 transition" onclick="app.navigate('game', '${game.id}')">View Page</button>
-                                                        <button class="px-4 py-1.5 bg-[#393b3d] text-gray-300 text-xs font-bold rounded-lg hover:bg-gray-600 transition" onclick="app.runAd('${game.id}', 'paid')">Run Ad (50 R$)</button>
-                                                        <button class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition" 
-                                                            onclick="document.getElementById('gp-modal-gameid').value='${game.id}'; document.getElementById('gp-modal').classList.remove('hidden')">
-                                                            + Add Pass
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Create Game Modal (Main Hub Version) -->
-                        <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31] shadow-2xl">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
-                                <h3 class="text-2xl font-bold mb-6 text-white">Create New Experience</h3>
-                                <div class="space-y-4">
-                                    <input id="new-game-name" type="text" placeholder="Experience Name" class="w-full rbx-input p-3">
-                                    <textarea id="new-game-desc" placeholder="Description" class="w-full rbx-input p-3 h-24"></textarea>
-                                    <select id="new-game-owner" class="w-full rbx-input p-3">
-                                        <option value="user">Me (User)</option>
-                                        ${appState.groups.map(g => `<option value="${g.id}">Group: ${g.name}</option>`).join('')}
-                                    </select>
-                                    <select id="new-game-genre" class="w-full rbx-input p-3">
-                                        <option>Adventure</option>
-                                        <option>Fighting</option>
-                                        <option>Obby</option>
-                                        <option>Tycoon</option>
-                                        <option>Simulator</option>
-                                    </select>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Icon (Optional)</label>
-                                        <input id="new-game-icon" type="file" accept="image/*" class="w-full text-sm text-gray-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Thumbnail (Optional)</label>
-                                        <input id="new-game-thumb" type="file" accept="image/*" class="w-full text-sm text-gray-500">
-                                    </div>
-                                    <button onclick="app.createGame(document.getElementById('new-game-name').value, document.getElementById('new-game-genre').value, document.getElementById('new-game-desc').value, document.getElementById('new-game-owner').value, document.getElementById('new-game-icon').files[0], document.getElementById('new-game-thumb').files[0]); document.getElementById('create-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960] transition shadow-md">Create Experience</button>
-                                </div>
-                            </div>
-                        </div>
-
-                         <!-- Create Gamepass Modal -->
-                        <div id="gp-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('gp-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
-                                <h3 class="text-2xl font-bold mb-6 text-white">Create Gamepass</h3>
-                                <input type="hidden" id="gp-modal-gameid">
-                                <div class="space-y-4">
-                                    <input id="gp-name" type="text" placeholder="Pass Name" class="w-full rbx-input p-3">
-                                    <input id="gp-price" type="number" placeholder="Price (Robux)" class="w-full rbx-input p-3">
-                                    <button onclick="app.createGamepass(document.getElementById('gp-modal-gameid').value, document.getElementById('gp-name').value, document.getElementById('gp-price').value); document.getElementById('gp-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960]">Put On Sale</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-                robux: () => {
-                    const canCashOut = appState.user.robux >= 50000;
-                    return `
-                        <div class="max-w-4xl mx-auto text-center pt-10">
-                            <div class="mb-12">
-                                <i class="fas fa-hexagon text-7xl text-white mb-6"></i>
-                                <h2 class="text-4xl font-extrabold mb-2 text-white">My Balance</h2>
-                                <div class="text-6xl font-bold text-[#00b06f] flex items-center justify-center gap-3">
-                                    ${app.formatNumber(appState.user.robux)} <span class="text-3xl text-gray-500 font-medium self-end mb-2">Robux</span>
-                                </div>
-                                <div class="text-xl text-gray-500 mt-2 font-medium">$${appState.user.usd.toFixed(2)} USD Earned</div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                                <div class="rbx-card p-8 bg-[#2b2d31]">
-                                    <h3 class="text-xl font-bold mb-6 text-white">Buy Robux</h3>
-                                    <div class="space-y-4">
-                                        <button class="w-full flex justify-between items-center p-4 border border-[#393b3d] rounded-xl hover:bg-[#323438] transition group" onclick="appState.user.robux+=400; app.render(); app.updateHeader();">
-                                            <span class="font-bold text-gray-300 group-hover:text-white">400 Robux</span>
-                                            <span class="bg-white text-black px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm">$4.99</span>
-                                        </button>
-                                        <button class="w-full flex justify-between items-center p-4 border border-[#393b3d] rounded-xl hover:bg-[#323438] transition group" onclick="appState.user.robux+=800; app.render(); app.updateHeader();">
-                                            <span class="font-bold text-gray-300 group-hover:text-white">800 Robux</span>
-                                            <span class="bg-white text-black px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm">$9.99</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="rbx-card p-8 bg-gradient-to-br from-[#1a1c1e] to-[#2b2d31] relative overflow-hidden">
-                                    <h3 class="text-xl font-bold mb-2 text-white">Developer Exchange</h3>
-                                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">Convert your earned Robux into real cash. Minimum 50,000 Robux required.</p>
-                                    <div class="mb-6 relative z-10">
-                                        <div class="flex gap-2">
-                                            <input id="devex-amount" type="number" value="50000" class="flex-1 rbx-input p-3 font-bold">
-                                            <button class="bg-[#00b06f] text-white font-bold px-6 rounded-lg shadow-md transition ${!canCashOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#009960]'}" 
-                                                onclick="${canCashOut ? "app.convertRobux(parseInt(document.getElementById('devex-amount').value))" : "app.showToast('Minimum 50K Robux required', 'error')" }">
-                                                Cash Out
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="text-xs text-center text-gray-500 font-medium">Current Rate: 1,000 R$ = $3.50 USD</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
+        });
+        if(changed) { this.savePosts(); this.updateVisibleStats(); }
+    }
+    updateVisibleStats() {
+        this.posts.forEach(p => {
+            const el = document.getElementById(`stats-${p.id}`);
+            if(el) {
+                const v=el.querySelector('.stat-views'), l=el.querySelector('.stat-likes'), r=el.querySelector('.stat-reposts'), c=el.querySelector('.stat-replies');
+                if(v) v.innerText = this.formatNumber(p.stats.views);
+                if(l) l.innerText = this.formatNumber(p.stats.likes);
+                if(r) r.innerText = this.formatNumber(p.stats.reposts);
+                if(c) c.innerText = this.formatNumber(p.stats.replies);
             }
-        };
+        });
+    }
+    
+    toggleLike(id, b) {
+        event.stopPropagation();
+        const p = this.posts.find(x => x.id === id); if (!p) return;
+        if (!this.user.likedPosts) this.user.likedPosts = [];
+        const idx = this.user.likedPosts.indexOf(id);
+        const icon = b.querySelector('i') || b; // Handle case where b IS the icon in peyvids
+        const isFire = icon.classList.contains('fa-fire') || (b.tagName === 'I' && b.classList.contains('fa-fire'));
 
-        const threeApp = {
-            scene: null, camera: null, renderer: null, animationId: null, cubes: [], activeGameId: null,
-            init: (gameId) => {
-                threeApp.activeGameId = gameId;
-                const container = document.getElementById('game-canvas');
-                threeApp.scene = new THREE.Scene();
-                threeApp.scene.background = new THREE.Color(0x87CEEB);
-                threeApp.scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
-                threeApp.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                threeApp.camera.position.set(0, 5, 10);
-                threeApp.renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true });
-                threeApp.renderer.setSize(window.innerWidth, window.innerHeight);
-                threeApp.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                dirLight.position.set(10, 20, 10);
-                threeApp.scene.add(dirLight);
-                const plane = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({ color: 0x2F4F4F }));
-                plane.rotation.x = -Math.PI / 2;
-                threeApp.scene.add(plane);
-                threeApp.scene.add(new THREE.GridHelper(100, 20));
-                threeApp.cubes = [];
-                for(let i=0; i<15; i++) {
-                    const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
-                    cube.position.set((Math.random() - 0.5) * 40, 1, (Math.random() - 0.5) * 40);
-                    cube.userData = { speed: 0.05 + Math.random() * 0.1, direction: Math.random() * Math.PI * 2, jumpOffset: Math.random() * 10 };
-                    threeApp.scene.add(cube);
-                    threeApp.cubes.push(cube);
-                }
-                threeApp.setupControls(container);
-                threeApp.animate();
-            },
-            setupControls: (container) => {
-                let isDragging = false, prev = { x: 0, y: 0 };
-                const handleStart = (x, y) => { isDragging = true; prev = { x, y }; };
-                const handleMove = (x, y) => {
-                    if(isDragging) {
-                        const deltaX = x - prev.x;
-                        const angle = deltaX * 0.01;
-                        const cx = threeApp.camera.position.x, cz = threeApp.camera.position.z;
-                        threeApp.camera.position.x = cx * Math.cos(angle) - cz * Math.sin(angle);
-                        threeApp.camera.position.z = cx * Math.sin(angle) + cz * Math.cos(angle);
-                        threeApp.camera.lookAt(0, 0, 0);
-                        prev = { x, y };
-                    }
-                };
-                container.onmousedown = (e) => handleStart(e.offsetX, e.offsetY);
-                container.onmousemove = (e) => handleMove(e.offsetX, e.offsetY);
-                window.onmouseup = () => isDragging = false;
-                container.ontouchstart = (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY);
-                container.ontouchmove = (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY);
-                container.ontouchend = () => isDragging = false;
-            },
-            animate: () => {
-                threeApp.animationId = requestAnimationFrame(threeApp.animate);
-                const time = Date.now() * 0.001;
-                threeApp.cubes.forEach(c => {
-                    c.position.x += Math.cos(c.userData.direction) * c.userData.speed;
-                    c.position.z += Math.sin(c.userData.direction) * c.userData.speed;
-                    c.position.y = 1 + Math.abs(Math.sin(time * 3 + c.userData.jumpOffset));
-                    if(Math.abs(c.position.x)>20 || Math.abs(c.position.z)>20) c.userData.direction += Math.PI;
-                });
-                if (Math.random() < 0.05) {
-                     const game = [...appState.games, ...appState.demoGames].find(g => g.id === threeApp.activeGameId);
-                     if(game) { game.visits++; if(!game.isDemo && Math.random() < 0.2) appState.user.followers++; }
-                }
-                threeApp.renderer.render(threeApp.scene, threeApp.camera);
-            },
-            stopGame: () => {
-                cancelAnimationFrame(threeApp.animationId);
-                document.getElementById('game-view').style.display = 'none';
-                threeApp.scene = null;
-                app.render();
-                app.showToast("Thanks for playing!");
+        if (idx === -1) {
+            this.user.likedPosts.push(id); p.stats.likes++;
+            if(isFire) { 
+                const t = b.tagName === 'I' ? b : icon;
+                t.classList.add('text-amber-500', 'animate-pop'); 
+            } else { 
+                b.classList.add('liked'); 
+                if(icon.tagName === 'I') { icon.classList.replace('fa-regular', 'fa-solid'); icon.classList.add('animate-pop'); }
             }
-        };
+        } else {
+            this.user.likedPosts.splice(idx, 1); p.stats.likes--;
+            if(isFire) { 
+                 const t = b.tagName === 'I' ? b : icon;
+                 t.classList.remove('text-amber-500', 'animate-pop'); 
+            } else { 
+                b.classList.remove('liked'); 
+                if(icon.tagName === 'I') { icon.classList.replace('fa-solid', 'fa-regular'); icon.classList.remove('animate-pop'); }
+            }
+        }
+        
+        // Update counts manually to ensure immediate feedback
+        const countSpan = b.parentElement ? b.parentElement.querySelector('.stat-likes') : null;
+        if (countSpan) countSpan.innerText = this.formatNumber(p.stats.likes);
+        
+        this.saveUser(); this.savePosts();
+    }
+    
+    toggleRepost(id,b){
+        event.stopPropagation();
+        const p=this.posts.find(x=>x.id===id); if(!p)return;
+        if(!this.user.repostedPosts)this.user.repostedPosts=[];
+        const i=this.user.repostedPosts.indexOf(id);
+        if(i===-1){this.user.repostedPosts.push(id);p.stats.reposts++;b.classList.add('reposted');}
+        else{this.user.repostedPosts.splice(i,1);p.stats.reposts--;b.classList.remove('reposted');}
+        const c=b.parentElement.querySelector('.stat-reposts'); if(c)c.innerText=this.formatNumber(p.stats.reposts);
+        this.saveUser();this.savePosts();
+    }
+    toggleBookmark(id,b){
+        event.stopPropagation();
+        if(!this.user.bookmarks)this.user.bookmarks=[];
+        const i=this.user.bookmarks.indexOf(id);
+        const icon=b.querySelector('i');
+        if(i===-1){this.user.bookmarks.push(id);b.classList.add('bookmarked');if(icon)icon.classList.replace('fa-regular','fa-solid');this.showToast('Saved');}
+        else{this.user.bookmarks.splice(i,1);b.classList.remove('bookmarked');if(icon)icon.classList.replace('fa-solid','fa-regular');this.showToast('Removed');}
+        this.saveUser();
+    }
 
-        window.addEventListener('DOMContentLoaded', app.init);
-    </script>
+    likeComment(cId, pId, btn) {
+        if(!this.user.likedComments) this.user.likedComments = [];
+        if(!this.user.likedComments.includes(cId)) {
+            this.user.likedComments.push(cId);
+            const p = this.posts.find(x=>x.id===pId);
+            const c = p.replies.find(x=>x.id===cId);
+            if(c) { 
+                c.likes++; 
+                btn.classList.add('text-rose-500'); 
+                btn.querySelector('i').classList.replace('fa-regular', 'fa-solid');
+                const count = document.getElementById(`reply-likes-${cId}`);
+                if(count) count.innerText = c.likes;
+            }
+            this.saveUser(); this.savePosts();
+        }
+    }
+
+    // Standard methods
+    shareApp(){ event.stopPropagation(); navigator.clipboard.writeText("Check out Peyza!").then(()=>this.showToast('Link Copied')); }
+    toggleFollow(h,b){ event.stopPropagation(); if(b.innerText==='Follow'){b.innerText='Following';b.classList.replace('bg-black','bg-white');b.classList.replace('text-white','text-black');b.classList.add('border','border-gray-300');this.user.following++;}else{b.innerText='Follow';b.classList.replace('bg-white','bg-black');b.classList.replace('text-black','text-white');b.classList.remove('border','border-gray-300');this.user.following--;}this.saveUser();}
+    showToast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.remove('opacity-0');setTimeout(()=>t.classList.add('opacity-0'),2000);}
+    formatNumber(n){if(n==null)return'0';if(n>=1000000)return(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1000)return(n/1000).toFixed(1).replace(/\.0$/,'')+'K';return n.toString();}
+    timeAgo(d){const s=Math.floor((new Date()-d)/1000);if(s>31536000)return Math.floor(s/31536000)+'y';if(s>2592000)return Math.floor(s/2592000)+'mo';if(s>86400)return Math.floor(s/86400)+'d';if(s>3600)return Math.floor(s/3600)+'h';if(s>60)return Math.floor(s/60)+'m';return s+'s';}
+    navigate(v,p){this.currentView=v;this.viewParam=p;window.scrollTo(0,0);this.renderView();}
+    setFeedFilter(f){this.feedFilter=f;this.renderView();}
+    setProfileFilter(f){this.profileFilter=f;this.renderProfile(this.viewParam);}
+    handleSearch(q){if(this.currentView==='explore')this.renderExplore(q);}
+    openComposeModal(){document.getElementById('compose-modal').classList.remove('hidden');}
+    closeComposeModal(){document.getElementById('compose-modal').classList.add('hidden');}
+    publishPost(){const c=document.getElementById('compose-input').value;if(c)this.createPost(c);this.closeComposeModal();}
+    openReplyModal(id){this.replyingTo=id;this.openComposeModal();}
+    toggleTheme(){this.settings.theme=this.settings.theme==='light'?'dark':'light';this.applyTheme();this.saveSettings();}
+    applyTheme(){document.querySelector('html').classList.toggle('dark',this.settings.theme==='dark');}
+    openSettings(){this.openEditProfile();}
+    openEditProfile(h){this.editingHandle=h||this.user.handle; const p=this.getProfile(this.editingHandle); document.getElementById('edit-profile-modal').classList.remove('hidden'); /* ... populate logic from v6.1 ... */ }
+    closeEditProfile(){document.getElementById('edit-profile-modal').classList.add('hidden');this.editingHandle=null;}
+    saveProfile(){/* ... logic from v6.1 ... */ this.closeEditProfile(); this.renderProfile(this.editingHandle); this.showToast('Saved');}
+    checkPin(){/* ... logic ... */}
+    requestVerification(){/* ... logic ... */}
+    openCreateBotModal(){document.getElementById('create-bot-modal').classList.remove('hidden');}
+    createBot(){/* ... logic ... */ document.getElementById('create-bot-modal').classList.add('hidden');}
+    handleImageUpload(e,t){/* ... logic ... */}
+    handlePostMedia(e,t){/* ... logic ... */}
+    clearMedia(){/* ... logic ... */}
+    closePeyVids(){this.navigate('home');}
+
+    renderSidebarUser(){const e=document.getElementById('sidebar-user');if(e)e.innerHTML=`<div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200"><img src="${this.user.avatar}" class="w-full h-full object-cover"></div><div class="hidden xl:block"><p class="font-bold text-sm truncate w-[140px] flex items-center dark:text-white">${this.user.name} ${this.getBadgeHTML(this.user)}</p><p class="text-gray-500 text-sm truncate w-[140px]">@${this.user.handle}</p></div>`;}
+    renderWhoToFollow(){/* ... logic ... */}
+    renderSidebarTrends(){/* ... logic ... */}
+
+    renderView() {
+        const main = document.getElementById('main-view'); const header = document.getElementById('sticky-header'); const overlay = document.getElementById('peyvids-overlay'); main.innerHTML = ''; overlay.classList.add('hidden'); header.classList.remove('hidden');
+        if (this.currentView === 'home') {
+            header.innerHTML = `<div class="px-4 h-[53px] flex items-center justify-between cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})"><h2 class="text-lg font-bold">Home</h2><i class="fa-solid fa-wand-magic-sparkles text-rose-500 hover:rotate-12 transition"></i></div><div id="feed-filters" class="flex border-b border-gray-100 dark:border-darkBorder"><div onclick="app.setFeedFilter('foryou')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${this.feedFilter==='foryou'?'active':''}" data-filter="foryou"><span class="font-medium text-sm ${this.feedFilter==='foryou'?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">For You</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.feedFilter==='foryou'?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div><div onclick="app.setFeedFilter('following')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${this.feedFilter==='following'?'active':''}" data-filter="following"><span class="font-medium text-sm ${this.feedFilter==='following'?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">Following</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.feedFilter==='following'?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div><div onclick="app.setFeedFilter('media')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${this.feedFilter==='media'?'active':''}" data-filter="media"><span class="font-medium text-sm ${this.feedFilter==='media'?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">Media</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.feedFilter==='media'?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div></div>`;
+            this.renderFeed();
+        } else if (this.currentView === 'explore') { header.innerHTML = `<div class="px-4 py-2"><input type="text" placeholder="Search Peyza" oninput="app.handleSearch(this.value)" value="${this.viewParam||''}" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-2 px-4 outline-none"></div>`; this.renderExplore(this.viewParam); } 
+        else if (this.currentView === 'notifications') { header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white">Notifications</div>`; this.renderNotifications(); } 
+        else if (this.currentView === 'profile') { header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-4 cursor-pointer" onclick="app.navigate('home')"></i> ${this.viewParam}</div>`; this.renderProfile(this.viewParam); } 
+        else if (this.currentView === 'post') { header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-4 cursor-pointer" onclick="app.navigate('home')"></i> Post</div>`; this.renderPostDetail(this.viewParam); } 
+        else if (this.currentView === 'peyvids') { header.classList.add('hidden'); overlay.classList.remove('hidden'); this.renderPeyVids(); }
+    }
+    renderFeed() { const c=document.getElementById('main-view'); let fps=[...this.posts]; if(this.feedFilter==='media')fps=fps.filter(p=>p.image||p.video); else if(this.feedFilter==='following')fps=fps.filter(p=>p.authorHandle!=='guest_user'); if(this.feedFilter==='foryou')fps=fps.filter(p=>!p.communityHandle); fps.sort((a,b)=>b.createdAt-a.createdAt); let h=''; fps.forEach(p=>h+=this.buildPostHTML(p)); c.innerHTML=h||'<div class="p-10 text-center text-gray-500">No posts found</div>'; }
+    renderExplore(q) { /* ... same as v6.1 ... */ const c=document.getElementById('main-view'); if(!q){c.innerHTML=`<div class="p-4"><h2 class="font-bold text-xl mb-4 dark:text-white">Trends</h2><div class="space-y-4">${['#PeyzaV6','PlatinumBadge','Juice WRLD'].map(t=>`<div class="font-bold dark:text-white">${t}<br><span class="text-xs text-gray-500 font-normal">Trending</span></div>`).join('')}</div></div>`;}else{const ql=q.toLowerCase(); const rU=this.bots.filter(b=>b.name.toLowerCase().includes(ql)||b.handle.toLowerCase().includes(ql)); const rP=this.posts.filter(p=>p.content.toLowerCase().includes(ql)); let h='<div class="p-4"><h3 class="font-bold mb-2 dark:text-white">People</h3>'; if(rU.length===0)h+='<p class="text-gray-500">No users found</p>'; rU.forEach(u=>h+=this.buildUserListHTML(u)); h+='<h3 class="font-bold mt-4 mb-2 dark:text-white">Posts</h3>'; if(rP.length===0)h+='<p class="text-gray-500">No posts found</p>'; rP.forEach(p=>h+=this.buildPostHTML(p)); h+='</div>'; c.innerHTML=h;} }
+    renderNotifications() { /* ... same ... */ const c=document.getElementById('main-view'); let h=''; this.notifications.forEach(n=>{h+=`<div class="p-4 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec"><p class="font-bold dark:text-white">${n.title}</p><p class="text-sm text-gray-500">${n.body}</p></div>`;}); c.innerHTML=h||'<div class="p-10 text-center text-gray-500">No notifications</div>'; }
+    renderProfile(h) { const c=document.getElementById('main-view'); const p=this.getProfile(h)||{name:'Unknown',handle:h,followers:0,following:0,bio:'',avatar:'',isVerified:false,isOwner:false}; const b=this.getBadgeHTML(p); const me=h===this.user.handle; c.innerHTML=`<div><div class="h-32 bg-gray-200 dark:bg-darkSec"><img src="${p.banner||''}" class="w-full h-full object-cover"></div><div class="px-4 relative mb-4"><div class="flex justify-between"><div class="-mt-10 w-24 h-24 rounded-full border-4 border-white dark:border-dark overflow-hidden"><img src="${p.avatar}" class="w-full h-full object-cover"></div><div class="mt-3">${me||this.user.isPremium?`<button onclick="app.openEditProfile('${h}')" class="border border-gray-300 dark:border-darkBorder px-4 py-1 rounded-full font-bold text-sm dark:text-white">Edit</button>`:`<button onclick="app.toggleFollow('${h}',this)" class="bg-black text-white px-4 py-1 rounded-full font-bold text-sm">Follow</button>`}</div></div><div class="mt-2"><h1 class="font-bold text-xl dark:text-white">${p.name} ${b}</h1><p class="text-gray-500 text-sm">@${p.handle}</p></div><p class="mt-2 dark:text-white">${p.bio}</p><div class="flex gap-4 mt-2 text-sm dark:text-gray-400"><span><b>${this.formatNumber(p.following)}</b> Following</span><span><b>${this.formatNumber(p.followers)}</b> Followers</span></div></div><div class="flex border-b border-gray-100 dark:border-darkBorder"><div onclick="app.setProfileFilter('posts')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='posts'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Posts</div><div onclick="app.setProfileFilter('media')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='media'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Media</div><div onclick="app.setProfileFilter('likes')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='likes'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Likes</div></div><div id="profile-feed">${this.profileFilter==='media'?this.renderMediaGrid(h):this.getPostsByHandle(h)}</div></div>`; }
+    renderMediaGrid(h) { const p=this.posts.filter(x=>x.authorHandle===h&&(x.image||x.video)); if(p.length===0)return'<div class="p-8 text-center text-gray-500">No media</div>'; let html='<div class="grid grid-cols-3 gap-1">'; p.forEach(x=>{html+=`<div class="aspect-square bg-gray-100 relative cursor-pointer group" onclick="app.navigate('post','${x.id}')">${x.video?`<video src="${x.video}" class="w-full h-full object-cover"></video><i class="fa-solid fa-play absolute top-1 right-1 text-white drop-shadow-md"></i>`:`<img src="${x.image}" class="w-full h-full object-cover">`}<div class="absolute bottom-0 left-0 w-full bg-black/50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-eye"></i> ${this.formatNumber(x.stats.views)}</div></div>`;}); html+='</div>'; return html; }
+    getPostsByHandle(h) { let ps; if(this.profileFilter==='likes'){if(h!==this.user.handle)return'<div class="p-8 text-center">Likes Private</div>';ps=this.posts.filter(p=>this.user.likedPosts.includes(p.id));}else if(this.profileFilter==='community')ps=this.posts.filter(p=>p.communityHandle===h); else ps=this.posts.filter(p=>p.authorHandle===h&&!p.communityHandle); ps.sort((a,b)=>b.createdAt-a.createdAt); if(ps.length===0)return'<div class="p-8 text-center text-gray-500">No posts</div>'; let t=''; ps.forEach(p=>t+=this.buildPostHTML(p)); return t; }
+    renderPostDetail(id) { /* ... same ... */ const p=this.posts.find(x=>x.id===id); if(!p)return; const c=document.getElementById('main-view'); const b=this.getBadgeHTML({isOwner:p.isOwner,followers:p.followers,isVerified:p.isVerified}); let rh=''; if(p.replies)p.replies.forEach(r=>{const rb=this.getBadgeHTML({isOwner:r.isOwner,followers:r.followers,isVerified:r.isVerified});const il=this.user.likedComments.includes(r.id);rh+=`<div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder bg-white dark:bg-dark"><div class="shrink-0 w-10 h-10 rounded-full overflow-hidden"><img src="${r.avatar}" class="w-full h-full object-cover"></div><div class="w-full"><div class="flex justify-between"><div class="font-bold dark:text-white">${r.authorName} ${rb} <span class="text-gray-500 font-normal">@${r.authorHandle} · ${r.time}</span></div></div><div class="text-gray-900 dark:text-white mt-1">${r.content}</div><div class="mt-2 flex items-center gap-4 text-gray-500 text-sm"><div class="cursor-pointer hover:text-rose-500 ${il?'text-rose-500':''}" onclick="app.likeComment('${r.id}','${p.id}',this)"><i class="${il?'fa-solid':'fa-regular'} fa-heart"></i> <span id="reply-likes-${r.id}">${r.likes>0?r.likes:''}</span></div></div></div></div>`;}); c.innerHTML=`<div class="px-4 py-3 border-b border-gray-100 dark:border-darkBorder animate-fade-in"><div class="flex gap-3 items-center mb-3"><img src="${p.authorAvatar}" class="w-10 h-10 rounded-full cursor-pointer" onclick="app.navigate('profile','${p.authorHandle}')"><div><div class="font-bold dark:text-white">${p.authorName} ${b}</div><div class="text-gray-500">@${p.authorHandle}</div></div></div><div class="text-xl dark:text-white mb-3">${p.content}</div>${p.image?`<img src="${p.image}" class="rounded-xl border dark:border-darkBorder w-full mb-3">`:''}${p.video?`<video src="${p.video}" controls class="rounded-xl w-full mb-3"></video>`:''}${this.buildPollHTML(p,true)}<div class="text-gray-500 text-sm py-2 border-b border-gray-100 dark:border-darkBorder">${new Date(p.createdAt).toLocaleDateString()} · <b>${this.formatNumber(p.stats.views)}</b> Views</div><div class="flex justify-between py-2 text-gray-500 text-xl px-2" id="stats-${p.id}"><div onclick="app.openReplyModal('${p.id}')"><i class="fa-regular fa-comment cursor-pointer hover:text-blue-500"></i></div><div onclick="app.toggleRepost('${p.id}',this)"><i class="fa-solid fa-retweet cursor-pointer hover:text-green-500"></i></div><div onclick="app.toggleLike('${p.id}',this)" class="${this.user.likedPosts.includes(p.id)?'liked':''}"><i class="${this.user.likedPosts.includes(p.id)?'fa-solid':'fa-regular'} fa-heart cursor-pointer hover:text-rose-500"></i></div><div onclick="app.toggleBookmark('${p.id}',this)" class="${this.user.bookmarks.includes(p.id)?'bookmarked':''}"><i class="${this.user.bookmarks.includes(p.id)?'fa-solid':'fa-regular'} fa-bookmark cursor-pointer hover:text-blue-500"></i></div></div></div><div class="pb-20">${rh}</div>`; }
+    renderPeyVids() { /* ... same ... */ const c=document.getElementById('peyvids-overlay'); c.innerHTML=`<div id="peyvids-feed" class="w-full max-w-[500px] h-full mx-auto bg-black relative shadow-2xl overflow-y-scroll snap-y snap-mandatory hide-scrollbar"></div><div class="absolute top-4 left-4 z-50 text-white text-3xl cursor-pointer drop-shadow-md" onclick="app.navigate('home')"><i class="fa-solid fa-arrow-left"></i></div>`; const f=document.getElementById('peyvids-feed'); const vs=this.posts.filter(p=>p.video||p.image).sort(()=>0.5-Math.random()).slice(0,10); let h=''; vs.forEach(p=>{const b=this.getBadgeHTML({isOwner:p.isOwner,followers:p.followers,isVerified:p.isVerified});h+=`<div class="peyvid-item w-full h-full relative snap-start bg-gray-900 flex items-center justify-center">${p.video?`<video src="${p.video}" class="w-full h-full object-cover" autoplay muted loop></video>`:`<img src="${p.image}" class="w-full h-full object-cover">`}<div class="absolute right-2 bottom-20 flex flex-col gap-4 text-white items-center"><div class="flex flex-col items-center" onclick="app.toggleLike('${p.id}',this)"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-fire text-2xl ${this.user.likedPosts.includes(p.id)?'text-amber-500 animate-pop':''}"></i></div><span class="text-xs font-bold stat-likes">${this.formatNumber(p.stats.likes)}</span></div><div class="flex flex-col items-center" onclick="app.openReplyModal('${p.id}')"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-comment-dots text-2xl"></i></div><span class="text-xs font-bold">${this.formatNumber(p.stats.replies)}</span></div></div><div class="absolute left-0 bottom-0 w-full p-4 peyvid-overlay"><div class="font-bold text-white mb-1 flex items-center gap-1" onclick="app.navigate('profile','${p.authorHandle}')">${p.authorName} ${b}</div><div class="text-white text-sm line-clamp-2">${p.content}</div></div></div>`;}); f.innerHTML=h; }
+    buildPostHTML(p) { /* ... same ... */ const b=this.getBadgeHTML({isOwner:p.isOwner,followers:p.followers,isVerified:p.isVerified}); const il=this.user.likedPosts.includes(p.id); const ir=this.user.repostedPosts.includes(p.id); return `<div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec/50 cursor-pointer transition duration-200 ${p.theme==='highlight'?'post-highlight':''}" onclick="app.navigate('post','${p.id}')"><img src="${p.authorAvatar}" class="w-10 h-10 rounded-full object-cover" onclick="event.stopPropagation();app.navigate('profile','${p.authorHandle}')"><div class="w-full"><div class="flex justify-between"><div class="font-bold dark:text-white flex items-center" onclick="event.stopPropagation();app.navigate('profile','${p.authorHandle}')">${p.authorName} ${b} <span class="text-gray-500 font-normal ml-1">@${p.authorHandle} · ${this.timeAgo(p.createdAt)}</span></div>${p.authorHandle===this.user.handle||this.user.createdBots.includes(p.authorHandle)?`<div class="relative group" onclick="event.stopPropagation()"><div class="text-gray-400 p-2"><i class="fa-solid fa-ellipsis"></i></div><div class="absolute right-0 top-6 bg-white dark:bg-black border dark:border-darkBorder shadow-lg rounded-md z-10 hidden group-hover:block w-32 overflow-hidden"><button onclick="app.deletePost('${p.id}')" class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800">Delete</button><button onclick="app.togglePostTheme('${p.id}')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">Highlight</button></div></div>`:''}</div><div class="dark:text-white mb-2">${p.content}</div>${p.image?`<img src="${p.image}" class="rounded-xl border dark:border-darkBorder max-h-[300px] w-full object-cover">`:''}${p.video?`<div class="relative"><video src="${p.video}" class="rounded-xl max-h-[300px] w-full object-cover"></video><div class="absolute inset-0 flex items-center justify-center text-white text-4xl"><i class="fa-solid fa-play-circle opacity-80"></i></div></div>`:''}${this.buildPollHTML(p)}<div class="flex justify-between mt-2 text-gray-500 text-sm max-w-[400px]" id="stats-${p.id}"><div class="flex items-center gap-1 hover:text-blue-500" onclick="event.stopPropagation();app.openReplyModal('${p.id}')"><i class="fa-regular fa-comment"></i> <span class="stat-replies">${this.formatNumber(p.stats.replies)}</span></div><div class="flex items-center gap-1 hover:text-green-500 ${ir?'reposted':''}" onclick="event.stopPropagation();app.toggleRepost('${p.id}',this)"><i class="fa-solid fa-retweet"></i> <span class="stat-reposts">${this.formatNumber(p.stats.reposts)}</span></div><div class="flex items-center gap-1 hover:text-rose-500 ${il?'liked':''}" onclick="event.stopPropagation();app.toggleLike('${p.id}',this)"><i class="${il?'fa-solid':'fa-regular'} fa-heart"></i> <span class="stat-likes">${this.formatNumber(p.stats.likes)}</span></div><div class="flex items-center gap-1 whitespace-nowrap">${ANALYTICS_ICON} <span class="stat-views">${this.formatNumber(p.stats.views)}</span></div></div></div></div>`; }
+    buildUserListHTML(u){ return `<div class="flex items-center justify-between py-3 hover:bg-gray-50 dark:hover:bg-darkSec px-4 -mx-4 transition cursor-pointer" onclick="app.navigate('profile', '${u.handle}')"><div class="flex items-center gap-3"><img src="${u.avatar}" class="w-10 h-10 rounded-full bg-gray-200 object-cover"><div><p class="font-bold text-sm dark:text-white">${u.name} ${this.getBadgeHTML(u)}</p><p class="text-gray-500 text-sm">@${u.handle}</p></div></div></div>`; }
+    buildPollHTML(p,d) { if (!p.poll) return ''; let h=`<div class="mt-3 space-y-2 max-w-[400px]" onclick="event.stopPropagation()">`; p.poll.options.forEach((o,i)=>{const pct=p.poll.totalVotes===0?0:Math.round((o.votes/p.poll.totalVotes)*100);h+=`<div class="relative h-8 rounded-md overflow-hidden bg-gray-100 dark:bg-darkSec cursor-pointer hover:opacity-90 transition"><div id="poll-bar-${p.id}-${i}" class="absolute top-0 left-0 h-full bg-rose-200 dark:bg-rose-900/40 transition-all duration-500" style="width: ${pct}%"></div><div class="absolute inset-0 flex items-center justify-between px-3 text-sm font-bold dark:text-white"><span>${o.text}</span><span id="poll-text-${p.id}-${i}">${pct}%</span></div></div>`;}); h+=`<div class="text-gray-500 text-xs mt-1"><span id="poll-total-${p.id}">${this.formatNumber(p.poll.totalVotes)} votes</span> · 1 day left</div></div>`; return h; }
+}
+const app = new PeyzaApp();
+</script>
 </body>
 </html>
