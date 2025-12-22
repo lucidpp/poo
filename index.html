@@ -11,11 +11,13 @@
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes bounce-in { 0% { transform: translateY(-20px); opacity: 0; } 50% { transform: translateY(5px); } 100% { transform: translateY(0); opacity: 1; } }
         @keyframes slide-up { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
+        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
         body { background-color: black; color: white; font-family: "Circular Std", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; -webkit-tap-highlight-color: transparent; }
         input:focus, textarea:focus, select:focus { outline: none; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         .glass-panel { background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.05); }
         .chart-row:hover { background-color: rgba(255,255,255,0.1); }
+        .animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
         
         /* Spotify Specific Utilities */
         .text-spotify { color: #1db954; }
@@ -119,11 +121,20 @@
         reader.readAsText(file);
     };
 
+    // Mock Data Generators for "Where people listen"
+    const COUNTRIES = ['USA', 'UK', 'Brazil', 'Japan', 'Germany', 'Mexico', 'France', 'Canada', 'Australia'];
+    const CITIES = ['Los Angeles, USA', 'London, UK', 'Sao Paulo, BR', 'Tokyo, JP', 'Berlin, DE', 'Mexico City, MX', 'Paris, FR', 'Toronto, CA', 'Sydney, AU', 'New York, USA', 'Chicago, IL', 'Atlanta, GA', 'Jakarta, ID', 'Santiago, CL'];
+    const generateGeoStats = () => ({
+        countries: COUNTRIES.map(c => ({ name: c, listeners: Math.floor(Math.random() * 50000) })).sort((a,b) => b.listeners - a.listeners).slice(0, 5),
+        cities: CITIES.map(c => ({ name: c, listeners: Math.floor(Math.random() * 20000) })).sort((a,b) => b.listeners - a.listeners).slice(0, 5)
+    });
+
     const INITIAL_STATE = {
         view: 'home', activeArtistId: null, activeAlbumId: null, activePlaylistId: null, dashboardArtistId: null, dashboardReleaseId: null, searchQuery: '', activeTrackIdx: null,
+        aboutArtistId: null,
         artists: [
-            { id: 'a1', name: 'Neon Horizon', bio: 'Synthwave legends.', followers: 125000, monthlyListeners: 450000, momentum: 80, lastReleaseDay: -20, lastReleaseType: 'Album', image: null, banner: null, verified: true, color: 'from-purple-900', geoStats: {countries:[], cities:[]}, managerInsight: null },
-            { id: 'a2', name: 'Luna Drift', bio: 'Ethereal vocals.', followers: 3200, monthlyListeners: 8900, momentum: 95, lastReleaseDay: -5, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-blue-900', geoStats: {countries:[], cities:[]}, managerInsight: null }
+            { id: 'a1', name: 'Neon Horizon', bio: 'Synthwave legends from the future.', followers: 125000, monthlyListeners: 450000, momentum: 80, lastReleaseDay: -20, lastReleaseType: 'Album', image: null, banner: null, verified: true, color: 'from-purple-900', geoStats: generateGeoStats(), managerInsight: null },
+            { id: 'a2', name: 'Luna Drift', bio: 'Ethereal vocals meeting heavy bass.', followers: 3200, monthlyListeners: 8900, momentum: 95, lastReleaseDay: -5, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-blue-900', geoStats: generateGeoStats(), managerInsight: null }
         ],
         albums: [
             { id: 'al1', artistId: 'a1', title: 'Nightcall', year: 2024, cover: null, type: 'Album' },
@@ -280,7 +291,7 @@
         if (!name) return;
         const newArtist = {
             id: generateId(), name: name, bio: 'New artist.', followers: 0, monthlyListeners: 0, momentum: 100,
-            lastReleaseDay: state.day, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-gray-900', geoStats: {countries:[], cities:[]}
+            lastReleaseDay: state.day, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-gray-900', geoStats: generateGeoStats()
         };
         state.artists.push(newArtist); saveState(); setView('artist', newArtist.id);
     }
@@ -321,9 +332,17 @@
 
     // --- Modal Logic ---
     function openEditArtist(id) { state.editForm = { ...state.artists.find(a => a.id === id) }; state.modal = 'edit-artist'; render(); }
+    function openAboutModal(id) { state.aboutArtistId = id; state.modal = 'about-artist'; render(); }
+    
     function saveArtistEdit() {
         const idx = state.artists.findIndex(a => a.id === state.editForm.id);
-        if (idx !== -1) state.artists[idx] = { ...state.artists[idx], ...state.editForm };
+        if (idx !== -1) {
+            // Checkbox value needs manual handling if not wired directly
+            const verifiedInput = document.getElementById('edit-verified');
+            if (verifiedInput) state.editForm.verified = verifiedInput.checked;
+            
+            state.artists[idx] = { ...state.artists[idx], ...state.editForm };
+        }
         state.modal = null; saveState(); render();
     }
     function openReleaseModal() { state.releaseForm = { title: '', type: 'Single', cover: '', tracks: [] }; state.modal = 'release'; render(); }
@@ -597,7 +616,17 @@
                             
                             <div class="mb-12"><h2 class="text-2xl font-bold text-white mb-6">Discography</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">${artistAlbums.map(a => `<div onclick="setView('album', '${a.id}')" class="group bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors cursor-pointer"><div class="relative mb-3 shadow-lg"><img src="${getImgSrc(a.cover)}" class="w-full aspect-square object-cover rounded shadow-black"><div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:scale-105 text-black"><i data-lucide="play" class="ml-1 fill-current w-6 h-6"></i></div></div><h3 class="text-white font-bold truncate text-sm">${a.title}</h3><p class="text-xs text-gray-400 mt-1">${a.year} • ${a.type}</p></div>`).join('')}</div></div>
                         </div>
-                        <div class="space-y-8"><h2 class="text-2xl font-bold text-white">About</h2><div class="relative h-80 rounded-lg overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform shadow-xl"><img src="${getImgSrc(artist.image)}" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div><div class="absolute bottom-0 left-0 p-6 w-full"><div class="font-bold text-white text-2xl mb-2">${formatNumber(artist.monthlyListeners)} Monthly Listeners</div><p class="text-white text-sm line-clamp-4 leading-relaxed opacity-90">${artist.bio}</p></div></div></div>
+                        <div class="space-y-8" onclick="openAboutModal('${artist.id}')">
+                            <h2 class="text-2xl font-bold text-white hover:underline cursor-pointer">About</h2>
+                            <div class="relative h-80 rounded-lg overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform shadow-xl">
+                                <img src="${getImgSrc(artist.image)}" class="absolute inset-0 w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
+                                <div class="absolute bottom-0 left-0 p-6 w-full">
+                                    <div class="font-bold text-white text-2xl mb-2">${formatNumber(artist.monthlyListeners)} Monthly Listeners</div>
+                                    <p class="text-white text-sm line-clamp-4 leading-relaxed opacity-90">${artist.bio}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>`;
         }
@@ -654,7 +683,48 @@
 
     function RenderModals() {
         if (!state.modal) return '';
-        if (state.modal === 'edit-artist') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-4"><h3 class="text-xl font-bold text-white">Edit Profile</h3><div class="grid grid-cols-2 gap-4"><div onclick="triggerFileUpload('image')" class="aspect-square bg-black/50 rounded flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.editForm.image)}" class="absolute inset-0 w-full h-full object-cover"><span class="relative z-10 bg-black/50 px-2 py-1 rounded">Photo</span></div><div onclick="triggerFileUpload('banner')" class="aspect-square bg-black/50 rounded flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.editForm.banner)}" class="absolute inset-0 w-full h-full object-cover opacity-50"><span class="relative z-10 bg-black/50 px-2 py-1 rounded">Banner</span></div></div><input oninput="state.editForm.name=this.value" value="${state.editForm.name}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" placeholder="Name"><div class="flex justify-between"><label class="text-xs text-gray-400">Bio</label><button id="btn-gen-bio" onclick="generateBio()" class="text-[10px] bg-purple-600 px-2 rounded text-white flex items-center gap-1">AI Write</button></div><textarea oninput="state.editForm.bio=this.value" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" rows="3">${state.editForm.bio}</textarea><div><label class="text-xs text-gray-400 block mb-1">Pick</label><select onchange="state.editForm.artistPickPlaylistId = this.value" class="w-full bg-[#3e3e3e] text-white text-sm p-2 rounded"><option value="">None</option>${state.playlists.map(p => `<option value="${p.id}" ${state.editForm.artistPickPlaylistId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}</select></div><div class="grid grid-cols-2 gap-4"><div><label class="text-xs text-gray-400">Listeners</label><input type="number" oninput="state.editForm.monthlyListeners=parseInt(this.value)" value="${state.editForm.monthlyListeners}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white"></div><div><label class="text-xs text-gray-400">Followers</label><input type="number" oninput="state.editForm.followers=parseInt(this.value)" value="${state.editForm.followers}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white"></div></div><div class="flex justify-end gap-2 pt-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="saveArtistEdit()" class="bg-white text-black px-4 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
+        
+        if (state.modal === 'about-artist') {
+            const a = state.artists.find(art => art.id === state.aboutArtistId);
+            return `
+            <div class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 md:p-8 animate-fade-in" onclick="state.modal=null; render()">
+                <div class="bg-[#181818] w-full max-w-4xl h-[85vh] rounded-xl overflow-hidden flex flex-col md:flex-row relative shadow-2xl" onclick="event.stopPropagation()">
+                    <button class="absolute top-4 right-4 z-20 bg-black/50 rounded-full p-2 hover:bg-black transition-colors" onclick="state.modal=null; render()"><i data-lucide="x" class="w-6 h-6 text-white"></i></button>
+                    
+                    <!-- Cover Image / Bio Header -->
+                    <div class="w-full md:w-[45%] relative h-64 md:h-full flex-shrink-0">
+                        <img src="${getImgSrc(a.image)}" class="absolute inset-0 w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#181818]"></div>
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <div class="font-bold text-white text-4xl mb-2">${formatNumber(a.monthlyListeners)}</div>
+                            <div class="text-xs font-bold text-gray-300 uppercase tracking-widest mb-4">Monthly Listeners</div>
+                        </div>
+                    </div>
+
+                    <!-- Content Side (Bio + Cities) -->
+                    <div class="flex-1 p-6 md:p-10 overflow-y-auto bg-[#181818]">
+                        <h2 class="text-3xl font-bold text-white mb-6 hidden md:block">About</h2>
+                        <p class="text-gray-300 text-base leading-relaxed mb-10 whitespace-pre-wrap">${a.bio}</p>
+                        
+                        <!-- Cities Stats -->
+                        <div class="space-y-6">
+                            <h3 class="text-white font-bold text-lg">Where people listen</h3>
+                            ${a.geoStats.cities.slice(0, 5).map(c => `
+                                <div class="flex justify-between items-center group cursor-default p-2 rounded hover:bg-white/5 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-[#333] flex items-center justify-center text-gray-400 group-hover:bg-white group-hover:text-black transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+                                        <span class="text-sm font-bold text-gray-200">${c.name}</span>
+                                    </div>
+                                    <span class="text-sm text-gray-400 font-mono font-bold">${formatNumber(c.listeners)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        if (state.modal === 'edit-artist') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-4"><h3 class="text-xl font-bold text-white">Edit Profile</h3><div class="grid grid-cols-2 gap-4"><div onclick="triggerFileUpload('image')" class="aspect-square bg-black/50 rounded flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.editForm.image)}" class="absolute inset-0 w-full h-full object-cover"><span class="relative z-10 bg-black/50 px-2 py-1 rounded">Photo</span></div><div onclick="triggerFileUpload('banner')" class="aspect-square bg-black/50 rounded flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.editForm.banner)}" class="absolute inset-0 w-full h-full object-cover opacity-50"><span class="relative z-10 bg-black/50 px-2 py-1 rounded">Banner</span></div></div><input oninput="state.editForm.name=this.value" value="${state.editForm.name}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" placeholder="Name"><div class="flex justify-between"><label class="text-xs text-gray-400">Bio</label><button id="btn-gen-bio" onclick="generateBio()" class="text-[10px] bg-purple-600 px-2 rounded text-white flex items-center gap-1">AI Write</button></div><textarea oninput="state.editForm.bio=this.value" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" rows="3">${state.editForm.bio}</textarea><div class="flex items-center gap-2 mt-2"><input type="checkbox" id="edit-verified" ${state.editForm.verified ? 'checked' : ''} onchange="state.editForm.verified = this.checked" class="w-4 h-4 accent-[#1db954]"><label for="edit-verified" class="text-sm font-bold text-white cursor-pointer">Verified Artist</label></div><div><label class="text-xs text-gray-400 block mb-1">Pick</label><select onchange="state.editForm.artistPickPlaylistId = this.value" class="w-full bg-[#3e3e3e] text-white text-sm p-2 rounded"><option value="">None</option>${state.playlists.map(p => `<option value="${p.id}" ${state.editForm.artistPickPlaylistId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}</select></div><div class="grid grid-cols-2 gap-4"><div><label class="text-xs text-gray-400">Listeners</label><input type="number" oninput="state.editForm.monthlyListeners=parseInt(this.value)" value="${state.editForm.monthlyListeners}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white"></div><div><label class="text-xs text-gray-400">Followers</label><input type="number" oninput="state.editForm.followers=parseInt(this.value)" value="${state.editForm.followers}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white"></div></div><div class="flex justify-end gap-2 pt-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="saveArtistEdit()" class="bg-white text-black px-4 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
         if (state.modal === 'release') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6"><h3 class="text-xl font-bold text-white mb-4">New Release</h3><div class="flex gap-4 mb-4"><div onclick="triggerFileUpload('image')" class="w-24 h-24 bg-black/50 shrink-0 cursor-pointer flex items-center justify-center relative overflow-hidden">${state.releaseForm.cover ? `<img src="${getImgSrc(state.releaseForm.cover)}" class="w-full h-full object-cover">` : '<i data-lucide="upload" class="w-6 h-6 text-gray-400"></i>'}</div><div class="flex-1 space-y-2"><input oninput="state.releaseForm.title=this.value" value="${state.releaseForm.title}" class="w-full bg-[#3e3e3e] p-2 rounded text-white" placeholder="Title"><div class="flex gap-4 text-sm text-white"><label><input type="radio" name="type" checked onclick="state.releaseForm.type='Single'"> Single</label><label><input type="radio" name="type" onclick="state.releaseForm.type='Album'"> Album</label></div></div></div><div class="space-y-2 mb-4"><div class="flex justify-between items-center text-xs text-gray-400 font-bold"><span>Tracks</span> <div class="flex gap-2"><button id="btn-gen-tracks" onclick="generateTracklist()" class="text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded text-[10px]">AI Auto-Fill</button><button onclick="addTrack()" class="bg-gray-800 px-2 py-0.5 rounded text-white">+ Add</button></div></div>${state.releaseForm.tracks.map((t,i) => `<div class="flex gap-2 items-center"><span class="text-gray-500 text-xs w-4">${i+1}</span><input oninput="state.releaseForm.tracks[${i}].title=this.value" value="${t.title}" class="bg-[#3e3e3e] p-1.5 rounded text-sm text-white flex-1" placeholder="Name"><select onchange="state.releaseForm.tracks[${i}].featArtistId=this.value" class="bg-[#3e3e3e] text-white text-xs rounded p-1.5 w-20"><option value="">No Feat</option>${state.artists.filter(a => a.id !== state.activeArtistId).map(a => `<option value="${a.id}" ${t.featArtistId===a.id?'selected':''}>${a.name}</option>`).join('')}</select><button onclick="state.activeTrackIdx=${i}; triggerFileUpload('audio')" class="bg-gray-700 text-white text-xs px-2 py-1.5 rounded">${t.file ? 'MP3' : 'Upload'}</button><button onclick="state.releaseForm.tracks.splice(${i},1); render()"><i data-lucide="x" class="w-4 h-4 text-gray-500"></i></button></div>`).join('')}</div><div class="flex justify-end gap-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="finalizeRelease()" class="bg-[#1db954] text-black px-6 py-2 rounded-full text-sm font-bold">Release</button></div></div></div>`;
         return '';
     }
@@ -663,6 +733,13 @@
     function addTrack() { 
         state.releaseForm.tracks.push({title:'', featArtistId:'', file:null}); 
         render(); 
+    }
+    
+    // Helper to open About Modal
+    function openAboutModal(id) {
+        state.aboutArtistId = id;
+        state.modal = 'about-artist';
+        render();
     }
 
     function render() {
