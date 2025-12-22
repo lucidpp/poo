@@ -11,14 +11,21 @@
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes bounce-in { 0% { transform: translateY(-20px); opacity: 0; } 50% { transform: translateY(5px); } 100% { transform: translateY(0); opacity: 1; } }
         @keyframes slide-up { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
-        body { background-color: #000; color: white; font-family: -apple-system, BlinkMacSystemFont, "Circular Std", "Segoe UI", Roboto, sans-serif; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+        body { background-color: black; color: white; font-family: "Circular Std", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; -webkit-tap-highlight-color: transparent; }
         input:focus, textarea:focus, select:focus { outline: none; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
+        .glass-panel { background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.05); }
         .chart-row:hover { background-color: rgba(255,255,255,0.1); }
+        
+        /* Spotify Specific Utilities */
+        .text-spotify { color: #1db954; }
+        .bg-spotify { background-color: #1db954; }
+        .border-spotify { border-color: #1db954; }
+        .hover-text-spotify:hover { color: #1db954; }
+        .hover-bg-spotify:hover { background-color: #1db954; }
     </style>
 </head>
-<body class="flex flex-col h-screen w-full">
+<body class="flex flex-col h-screen w-full bg-black text-white">
 
     <div id="app" class="flex flex-col h-full w-full"></div>
 
@@ -31,7 +38,7 @@
     const apiKey = ""; 
 
     // --- INDEXED DB ---
-    const DB_NAME = 'PeyzaDB_V6';
+    const DB_NAME = 'PeyzaDB_V8_Spotify';
     const STORE_NAME = 'images';
     let db;
     const IMAGE_CACHE = {}; 
@@ -57,7 +64,7 @@
         };
     });
 
-    const getImgSrc = (key, fallback) => IMAGE_CACHE[key] || fallback || 'https://via.placeholder.com/150/333/fff?text=No+Img';
+    const getImgSrc = (key, fallback) => IMAGE_CACHE[key] || fallback || 'https://via.placeholder.com/150/121212/333?text=No+Img';
 
     // --- AI Helper ---
     async function callGemini(prompt) {
@@ -99,7 +106,7 @@
     const formatNumber = n => n.toLocaleString('en-US');
     const formatDate = d => { const date = new Date(2025, 0, 1); date.setDate(date.getDate() + d); return date.toLocaleDateString('en-US', {month:'short', day:'numeric'}); };
 
-    const saveState = () => localStorage.setItem('peyza_v6', JSON.stringify(state));
+    const saveState = () => localStorage.setItem('peyza_v8_spotify', JSON.stringify(state));
     const exportData = () => {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
         const node = document.createElement('a');
@@ -127,14 +134,18 @@
             { id: 's2', artistId: 'a1', albumId: 'al1', title: 'Cyber Heart', streams: 89000, dailyStreams: 800, history: [750, 780, 800], saves: 5000, duration: '2:50', cover: null, audioUrl: null, featArtistId: null, releaseDay: 0 },
             { id: 's3', artistId: 'a2', albumId: 'al2', title: 'Moonlight', streams: 12000, dailyStreams: 450, history: [400, 420, 450], saves: 1200, duration: '4:12', cover: null, audioUrl: null, featArtistId: null, releaseDay: 0 }
         ],
-        playlists: [{id:'p1', name:'My Top Hits', songs:['s1'], cover:null}],
+        playlists: [{id:'p1', name:'My Mix', songs:['s1'], cover:null}],
         charts: [],
         currentSong: null, currentSongReview: null, isPlaying: false, day: 0, dailyLog: [], showDailyLog: false, modal: null, fullScreenPlayer: false,
         editForm: {}, releaseForm: { title: '', type: 'Single', cover: '', tracks: [] }
     };
 
     let state = INITIAL_STATE;
-    const loaded = localStorage.getItem('peyza_v6');
+    // Try to load current version, if not, fallback to previous version to preserve data
+    let loaded = localStorage.getItem('peyza_v8_spotify');
+    if (!loaded) loaded = localStorage.getItem('peyza_v7_tidal');
+    if (!loaded) loaded = localStorage.getItem('peyza_v6');
+    
     if (loaded) try { state = { ...INITIAL_STATE, ...JSON.parse(loaded) }; } catch(e){}
 
     const audioPlayer = new Audio();
@@ -181,11 +192,9 @@
             const daysSince = state.day - artist.lastReleaseDay;
             const threshold = artist.lastReleaseType === 'Album' ? 10 : 6;
             
-            // Momentum Decay
             if (daysSince > threshold) artist.momentum = Math.max(0, artist.momentum - 1.5);
             if (daysSince > threshold + 20) artist.momentum = Math.max(0, artist.momentum - 3);
 
-            // Listener Change
             let change = 0;
             if (artist.momentum < 40) {
                 change = -Math.floor(Math.max(10, artist.monthlyListeners * 0.02)); 
@@ -219,6 +228,16 @@
                 daily += viral;
                 newLogs.push(`"${song.title}" went viral! +${formatNumber(viral)} streams`);
                 artist.momentum = Math.min(100, artist.momentum + 15);
+            }
+
+            // BOOST FEATURED ARTIST
+            if (song.featArtistId && daily > 0) {
+                const feat = state.artists.find(a => a.id === song.featArtistId);
+                if (feat) {
+                    // Feature gets 40% conversion to monthly listeners + momentum
+                    feat.monthlyListeners += Math.floor(daily * 0.4);
+                    feat.momentum = Math.min(100, feat.momentum + 0.5);
+                }
             }
 
             song.dailyStreams = daily;
@@ -261,7 +280,7 @@
         if (!name) return;
         const newArtist = {
             id: generateId(), name: name, bio: 'New artist.', followers: 0, monthlyListeners: 0, momentum: 100,
-            lastReleaseDay: state.day, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-gray-800', geoStats: {countries:[], cities:[]}
+            lastReleaseDay: state.day, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-gray-900', geoStats: {countries:[], cities:[]}
         };
         state.artists.push(newArtist); saveState(); setView('artist', newArtist.id);
     }
@@ -331,7 +350,7 @@
 
     // --- RENDERERS ---
 
-    function renderGraph(dataPoints, width=300, height=100, color="#22c55e") {
+    function renderGraph(dataPoints, width=300, height=100, color="#1db954") {
         if (!dataPoints || dataPoints.length < 2) return `<div class="h-[100px] flex items-center justify-center text-gray-600 text-xs">Not enough data</div>`;
         const max = Math.max(...dataPoints) || 1;
         const min = Math.min(...dataPoints) || 0;
@@ -339,7 +358,7 @@
         const step = width / (dataPoints.length - 1);
         let path = `M 0 ${height - ((dataPoints[0] - min) / range * height)}`;
         dataPoints.forEach((pt, i) => { path += ` L ${i * step} ${height - ((pt - min) / range * height)}`; });
-        return `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="overflow-visible"><path d="${path}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" /><circle cx="${width}" cy="${height - ((dataPoints[dataPoints.length-1]-min)/range*height)}" r="3" fill="${color}" /></svg>`;
+        return `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="overflow-visible"><path d="${path}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" /><circle cx="${width}" cy="${height - ((dataPoints[dataPoints.length-1]-min)/range*height)}" r="4" fill="${color}" /></svg>`;
     }
 
     function SongRow(song, index, showArtist, showStreams) {
@@ -352,24 +371,24 @@
         const dailyChange = song.dailyStreams > 0 ? `+${formatNumber(song.dailyStreams)}` : '';
 
         return `
-            <div onclick="playSong('${song.id}')" class="group flex items-center p-2 rounded-md hover:bg-white/10 cursor-pointer transition-colors text-sm ${isCurrent ? 'text-green-500' : 'text-gray-400 hover:text-white'}">
+            <div onclick="playSong('${song.id}')" class="group flex items-center p-2 rounded hover:bg-white/10 cursor-pointer transition-colors text-sm ${isCurrent ? 'text-spotify' : 'text-gray-400 hover:text-white'}">
                 <div class="w-6 md:w-8 text-center mr-3 flex items-center justify-center">
-                    ${isCurrent && state.isPlaying ? '<img src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif" class="h-3">' : `<span class="text-xs md:text-sm group-hover:hidden">${index + 1}</span><i data-lucide="play" class="hidden group-hover:block w-3 h-3 fill-current"></i>`}
+                    ${isCurrent && state.isPlaying ? '<i data-lucide="bar-chart-2" class="h-4 w-4 animate-pulse text-spotify"></i>' : `<span class="text-xs md:text-sm group-hover:hidden font-mono">${index + 1}</span><i data-lucide="play" class="hidden group-hover:block w-3 h-3 fill-current text-white"></i>`}
                 </div>
                 <div class="flex-1 flex items-center overflow-hidden">
-                    <img src="${coverSrc}" class="w-10 h-10 md:w-10 md:h-10 mr-3 rounded-sm bg-gray-800 object-cover shrink-0">
+                    <img src="${coverSrc}" class="w-10 h-10 md:w-10 md:h-10 mr-3 rounded-sm bg-[#282828] object-cover shrink-0">
                     <div class="flex flex-col truncate">
-                        <div class="font-medium text-sm truncate ${isCurrent ? 'text-green-500' : 'text-white'}">
+                        <div class="font-medium text-sm truncate ${isCurrent ? 'text-spotify' : 'text-white'}">
                             ${song.title} ${feat ? `<span class="text-gray-400 font-normal text-xs">ft. ${feat.name}</span>` : ''}
-                            ${isNew ? '<span class="ml-2 text-[9px] bg-blue-600 text-white px-1 rounded font-bold">NEW</span>' : ''}
+                            ${isNew ? '<span class="ml-2 text-[9px] bg-blue-500 text-white px-1.5 rounded-sm font-bold uppercase">New</span>' : ''}
                         </div>
                         <div class="text-xs text-gray-400 truncate flex gap-2"><span>${artist ? artist.name : 'Unknown'}</span></div>
                     </div>
                 </div>
                 ${showStreams ? `
                     <div class="hidden md:flex flex-col items-end w-32 mr-8">
-                        <span class="text-xs font-mono text-white">${formatNumber(song.streams)}</span>
-                        ${song.dailyStreams > 0 ? `<span class="text-[10px] text-green-500 font-bold flex items-center gap-0.5"><i data-lucide="trending-up" class="w-3 h-3"></i> ${dailyChange}</span>` : ''}
+                        <span class="text-xs font-mono text-gray-300">${formatNumber(song.streams)}</span>
+                        ${song.dailyStreams > 0 ? `<span class="text-[10px] text-gray-500 font-bold flex items-center gap-0.5"><i data-lucide="trending-up" class="w-3 h-3"></i> ${dailyChange}</span>` : ''}
                     </div>
                     <!-- Mobile Stream View -->
                     <div class="md:hidden flex flex-col items-end mr-3">
@@ -377,6 +396,7 @@
                     </div>
                 ` : ''}
                 <div class="w-12 text-right text-xs font-mono text-gray-500 hidden md:block">${song.duration}</div>
+                <i data-lucide="more-horizontal" class="w-4 h-4 ml-2 text-gray-500 hover:text-white"></i>
             </div>
         `;
     }
@@ -384,11 +404,10 @@
     function RenderCharts() {
         return `
             <div class="p-6 md:p-8 pt-12 pb-32">
-                <div class="h-48 bg-gradient-to-r from-yellow-600 to-orange-800 rounded-xl p-6 mb-8 flex items-end shadow-lg relative overflow-hidden">
-                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
-                    <div class="relative z-10"><div class="text-xs font-bold uppercase tracking-widest text-white/80 mb-2">Global Top 50</div><h1 class="text-4xl md:text-6xl font-black text-white">The Peyza 50</h1><p class="text-white/80 mt-2">Songs fall off if they lose momentum.</p></div>
+                <div class="h-48 bg-gradient-to-br from-green-800 to-black rounded-lg p-6 mb-8 flex items-end relative overflow-hidden shadow-2xl">
+                    <div class="relative z-10"><div class="text-xs font-bold uppercase tracking-widest text-white mb-2">Global Top 50</div><h1 class="text-4xl md:text-6xl font-black text-white tracking-tighter">The Peyza 50</h1><p class="text-gray-300 mt-2 text-sm">Your daily update of the most played tracks.</p></div>
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-1">
                     <div class="flex text-xs text-gray-400 uppercase font-bold border-b border-gray-800 pb-2 px-4"><div class="w-8 text-center">#</div><div class="flex-1">Title</div><div class="w-24 text-right hidden md:block">Daily Streams</div></div>
                     ${state.charts.length === 0 ? '<div class="text-gray-500 text-center py-10">Charts update tomorrow.</div>' : 
                       state.charts.map(c => {
@@ -396,17 +415,17 @@
                           const artist = state.artists.find(a => a.id === song.artistId);
                           if(!song || !artist) return '';
                           let changeIcon = '<span class="text-gray-500">-</span>';
-                          if(!c.lastRank) changeIcon = '<span class="text-blue-500 text-[10px] font-bold">NEW</span>';
+                          if(!c.lastRank) changeIcon = '<span class="text-blue-500 text-[9px] font-bold">NEW</span>';
                           else if(c.rank < c.lastRank) changeIcon = `<div class="text-green-500 flex items-center justify-center gap-0.5"><i data-lucide="triangle" class="w-2 h-2 fill-current"></i> ${c.lastRank - c.rank}</div>`;
                           else if(c.rank > c.lastRank) changeIcon = `<div class="text-red-500 flex items-center justify-center gap-0.5"><i data-lucide="triangle" class="w-2 h-2 fill-current rotate-180"></i> ${c.rank - c.lastRank}</div>`;
                           
                           return `
-                            <div onclick="playSong('${song.id}')" class="flex items-center p-3 rounded hover:bg-white/10 cursor-pointer group chart-row">
+                            <div onclick="playSong('${song.id}')" class="flex items-center p-2 hover:bg-[#2a2a2a] rounded cursor-pointer group transition-colors">
                                 <div class="w-8 text-center text-lg font-bold text-white mr-4">${c.rank}</div>
                                 <div class="w-12 text-center flex justify-center items-center mr-4 text-xs font-bold">${changeIcon}</div>
-                                <img src="${getImgSrc(song.cover)}" class="w-10 h-10 rounded mr-4 bg-gray-800 object-cover">
+                                <img src="${getImgSrc(song.cover)}" class="w-10 h-10 rounded mr-4 bg-[#282828] object-cover">
                                 <div class="flex-1 overflow-hidden">
-                                    <div class="text-white font-bold truncate ${state.currentSong?.id === song.id ? 'text-green-500' : ''}">${song.title}</div>
+                                    <div class="text-white font-bold truncate ${state.currentSong?.id === song.id ? 'text-spotify' : ''}">${song.title}</div>
                                     <div class="text-xs text-gray-400 truncate">${artist.name}</div>
                                 </div>
                                 <div class="w-24 text-right text-xs font-mono text-gray-400 hidden md:block">${formatNumber(c.daily)}</div>
@@ -419,55 +438,61 @@
         `;
     }
 
-    // Define RenderPlayer function (restored)
-    function RenderPlayer() {
+    function RenderPlayerHTML() {
         if (state.fullScreenPlayer) return RenderFullScreenPlayer();
-        if (!state.currentSong) return `<div class="h-full flex items-center px-4 justify-center md:justify-start"><div class="text-gray-500 text-xs md:text-sm">Select a song</div></div>`;
+        if (!state.currentSong) return `<div class="h-full flex items-center px-4 justify-center md:justify-start bg-[#181818] border-t border-[#282828]"><div class="text-gray-500 text-xs md:text-sm">Select a song</div></div>`;
         const artist = state.artists.find(a => a.id === state.currentSong.artistId);
         const progress = (audioPlayer.currentTime / (audioPlayer.duration || 1)) * 100;
         const coverSrc = getImgSrc(state.currentSong.cover);
 
         return `
-            <div class="flex md:hidden items-center justify-between w-full h-full px-2" onclick="state.fullScreenPlayer=true; render()">
-                <div class="flex items-center gap-2 overflow-hidden flex-1"><img src="${coverSrc}" class="h-10 w-10 rounded-md object-cover shrink-0"><div class="flex flex-col truncate"><div class="text-white text-sm font-bold truncate">${state.currentSong.title}</div><div class="text-gray-400 text-xs truncate">${artist.name}</div></div></div>
-                <div class="flex items-center gap-3 pr-2"><button onclick="event.stopPropagation(); togglePlay()" class="text-white bg-transparent p-2">${state.isPlaying ? '<i data-lucide="pause" class="w-6 h-6 fill-white"></i>' : '<i data-lucide="play" class="w-6 h-6 fill-white"></i>'}</button></div>
-                <div class="absolute bottom-0 left-0 w-full h-[2px] bg-gray-800"><div class="h-full bg-white" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div>
+            <div class="flex md:hidden items-center justify-between w-full h-full px-3 bg-[#121212] border-t border-[#282828] rounded-t-lg" onclick="state.fullScreenPlayer=true; render()">
+                <div class="flex items-center gap-3 overflow-hidden flex-1"><img src="${coverSrc}" class="h-10 w-10 rounded object-cover shrink-0"><div class="flex flex-col truncate"><div class="text-white text-sm font-bold truncate">${state.currentSong.title}</div><div class="text-gray-400 text-xs truncate">${artist.name}</div></div></div>
+                <div class="flex items-center gap-4 pr-1"><button onclick="event.stopPropagation(); togglePlay()" class="text-white">${state.isPlaying ? '<i data-lucide="pause" class="w-6 h-6 fill-white"></i>' : '<i data-lucide="play" class="w-6 h-6 fill-white"></i>'}</button></div>
+                <div class="absolute bottom-0 left-0 w-full h-[2px] bg-gray-800"><div class="h-full bg-spotify" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div>
             </div>
-            <div class="hidden md:flex w-full h-full items-center justify-between">
-                <div class="w-[30%] flex items-center gap-4"><div class="relative group cursor-pointer" onclick="state.fullScreenPlayer=true; render()"><img src="${coverSrc}" class="h-14 w-14 rounded shadow-md object-cover"><div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded"><i data-lucide="chevron-up" class="text-white"></i></div></div><div><div class="text-white text-sm font-medium hover:underline cursor-pointer">${state.currentSong.title}</div><div class="text-xs text-gray-400 hover:underline cursor-pointer">${artist.name}</div></div></div>
-                <div class="w-[40%] flex flex-col items-center max-w-2xl"><div class="flex items-center gap-6 mb-2"><i data-lucide="skip-back" class="text-gray-400 hover:text-white cursor-pointer w-5 h-5 fill-current"></i><button onclick="togglePlay()" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform">${state.isPlaying ? '<i data-lucide="pause" class="text-black fill-black w-5 h-5"></i>' : '<i data-lucide="play" class="text-black fill-black w-5 h-5 ml-0.5"></i>'}</button><i data-lucide="skip-forward" class="text-gray-400 hover:text-white cursor-pointer w-5 h-5 fill-current"></i></div><div class="w-full flex items-center gap-2 text-xs text-gray-400 font-mono"><span>${!state.isPlaying && !audioPlayer.currentTime ? '0:00' : '0:xx'}</span><div class="h-1 bg-gray-600 rounded-full flex-1 group cursor-pointer overflow-hidden"><div class="h-full bg-white group-hover:bg-[#1db954] rounded-full relative" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div><span>${state.currentSong.duration}</span></div></div>
-                <div class="w-[30%] flex justify-end items-center gap-3 text-gray-400"><i data-lucide="volume-2" class="hover:text-white cursor-pointer w-4 h-4"></i></div>
+            <div class="hidden md:flex w-full h-full items-center justify-between bg-[#181818] border-t border-[#282828] px-4">
+                <div class="w-[30%] flex items-center gap-4"><div class="relative group cursor-pointer" onclick="state.fullScreenPlayer=true; render()"><img src="${coverSrc}" class="h-14 w-14 rounded shadow-md object-cover"><div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded"><i data-lucide="chevron-up" class="text-white"></i></div></div><div><div class="text-white text-sm font-medium hover:underline cursor-pointer flex items-center gap-2">${state.currentSong.title}</div><div class="text-xs text-gray-400 hover:text-white cursor-pointer hover:underline">${artist.name}</div></div><i data-lucide="heart" class="text-gray-400 hover:text-spotify cursor-pointer w-4 h-4"></i></div>
+                <div class="w-[40%] flex flex-col items-center max-w-2xl"><div class="flex items-center gap-6 mb-2"><i data-lucide="shuffle" class="text-gray-400 hover:text-white cursor-pointer w-4 h-4"></i><i data-lucide="skip-back" class="text-gray-400 hover:text-white cursor-pointer w-5 h-5 fill-current"></i><button onclick="togglePlay()" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform">${state.isPlaying ? '<i data-lucide="pause" class="text-black fill-black w-5 h-5"></i>' : '<i data-lucide="play" class="text-black fill-black w-5 h-5 ml-0.5"></i>'}</button><i data-lucide="skip-forward" class="text-gray-400 hover:text-white cursor-pointer w-5 h-5 fill-current"></i><i data-lucide="repeat" class="text-gray-400 hover:text-white cursor-pointer w-4 h-4"></i></div><div class="w-full flex items-center gap-2 text-xs text-gray-400 font-mono"><span>${!state.isPlaying && !audioPlayer.currentTime ? '0:00' : '0:xx'}</span><div class="h-1 bg-gray-600 rounded-full flex-1 group cursor-pointer overflow-hidden"><div class="h-full bg-white group-hover:bg-spotify relative" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div><span>${state.currentSong.duration}</span></div></div>
+                <div class="w-[30%] flex justify-end items-center gap-4 text-gray-400"><i data-lucide="mic-2" class="hover:text-white cursor-pointer w-4 h-4"></i><i data-lucide="list-music" class="hover:text-white cursor-pointer w-4 h-4"></i><i data-lucide="volume-2" class="hover:text-white cursor-pointer w-4 h-4"></i><div class="w-24 h-1 bg-gray-600 rounded-full"><div class="h-full w-2/3 bg-white hover:bg-spotify"></div></div></div>
             </div>
         `;
     }
 
-    // Define RenderFullScreenPlayer
+    function renderPlayer() {
+        const el = document.getElementById('player-bar');
+        if(el) {
+            el.innerHTML = RenderPlayerHTML();
+            lucide.createIcons({ root: el });
+        }
+    }
+
     function RenderFullScreenPlayer() {
         const artist = state.artists.find(a => a.id === state.currentSong.artistId);
         const progress = (audioPlayer.currentTime / (audioPlayer.duration || 1)) * 100;
         const coverSrc = getImgSrc(state.currentSong.cover);
         return `
-            <div class="fixed inset-0 z-[100] bg-black flex flex-col animate-slide-up h-full w-full">
-                <div class="flex justify-between items-center p-6 text-white"><button onclick="state.fullScreenPlayer=false; render()"><i data-lucide="chevron-down" class="w-8 h-8"></i></button><span class="text-xs font-bold tracking-widest uppercase opacity-70">Now Playing</span><i data-lucide="more-horizontal" class="w-6 h-6"></i></div>
-                <div class="flex-1 flex items-center justify-center p-6 relative"><img src="${coverSrc}" class="absolute inset-0 w-full h-full object-cover opacity-20 blur-3xl scale-125 pointer-events-none"><div class="w-full max-w-md aspect-square relative shadow-2xl rounded-lg overflow-hidden border border-white/10"><img src="${coverSrc}" class="w-full h-full object-cover"></div></div>
-                <div class="p-8 pb-12 w-full max-w-2xl mx-auto space-y-6">
-                    <div class="flex justify-between items-end"><div><h2 class="text-3xl font-bold text-white mb-2">${state.currentSong.title}</h2><p class="text-lg text-gray-400">${artist.name}</p></div><div class="flex gap-4"><i data-lucide="heart" class="w-8 h-8 text-white"></i></div></div>
-                    <div class="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-white" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div>
-                    <div class="flex justify-between items-center px-4"><i data-lucide="shuffle" class="w-6 h-6 text-gray-400"></i><i data-lucide="skip-back" class="w-8 h-8 text-white fill-white"></i><button onclick="togglePlay()" class="w-20 h-20 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform">${state.isPlaying ? '<i data-lucide="pause" class="text-black fill-black w-8 h-8"></i>' : '<i data-lucide="play" class="text-black fill-black w-8 h-8 ml-1"></i>'}</button><i data-lucide="skip-forward" class="w-8 h-8 text-white fill-white"></i><i data-lucide="repeat" class="w-6 h-6 text-gray-400"></i></div>
+            <div class="fixed inset-0 z-[100] bg-gradient-to-b from-gray-900 to-black flex flex-col animate-slide-up h-full w-full">
+                <div class="flex justify-between items-center p-6 text-white"><button onclick="state.fullScreenPlayer=false; render()"><i data-lucide="chevron-down" class="w-8 h-8"></i></button><span class="text-xs font-bold tracking-widest uppercase opacity-70">Playing from Artist</span><i data-lucide="more-horizontal" class="w-6 h-6"></i></div>
+                <div class="flex-1 flex items-center justify-center p-6 relative"><div class="w-full max-w-md aspect-square relative shadow-2xl overflow-hidden"><img src="${coverSrc}" class="w-full h-full object-cover"></div></div>
+                <div class="p-8 pb-12 w-full max-w-2xl mx-auto space-y-8">
+                    ${state.currentSongReview ? `<div class="bg-gray-800/80 p-4 rounded border-l-4 border-spotify text-sm text-gray-300"><h4 class="font-bold text-white text-xs uppercase mb-1">Critic's Take</h4>"${state.currentSongReview}"</div>` : ''}
+                    <div class="flex justify-between items-end"><div><h2 class="text-3xl font-bold text-white mb-2 flex items-center gap-2">${state.currentSong.title}</h2><p class="text-xl text-gray-400">${artist.name}</p></div><div class="flex gap-4"><button id="btn-gen-review" onclick="generateSongReview('${state.currentSong.id}')" class="text-gray-400 hover:text-white"><i data-lucide="message-square" class="w-6 h-6"></i></button><i data-lucide="heart" class="w-8 h-8 text-spotify fill-spotify"></i></div></div>
+                    <div class="w-full h-1 bg-gray-600 rounded-full overflow-hidden"><div class="h-full bg-white" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div>
+                    <div class="flex justify-between items-center px-4"><i data-lucide="shuffle" class="w-6 h-6 text-gray-400 hover:text-white"></i><i data-lucide="skip-back" class="w-10 h-10 text-white fill-white hover:text-gray-300"></i><button onclick="togglePlay()" class="w-20 h-20 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg">${state.isPlaying ? '<i data-lucide="pause" class="text-black fill-black w-8 h-8"></i>' : '<i data-lucide="play" class="text-black fill-black w-8 h-8 ml-1"></i>'}</button><i data-lucide="skip-forward" class="w-10 h-10 text-white fill-white hover:text-gray-300"></i><i data-lucide="repeat" class="w-6 h-6 text-gray-400 hover:text-white"></i></div>
                 </div>
             </div>`;
     }
 
-    // Define MobileBottomNav
     function MobileBottomNav() {
         const isActive = (v) => state.view === v ? 'text-white' : 'text-gray-500';
         return `
-            <div class="fixed bottom-0 w-full h-16 bg-black/95 backdrop-blur border-t border-gray-900 md:hidden z-[60] flex items-center justify-around pb-safe">
-                <button onclick="setView('home')" class="flex flex-col items-center gap-1 ${isActive('home')}"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px]">Home</span></button>
-                <button onclick="setView('search')" class="flex flex-col items-center gap-1 ${isActive('search')}"><i data-lucide="search" class="w-5 h-5"></i><span class="text-[10px]">Search</span></button>
-                <button onclick="setView('charts')" class="flex flex-col items-center gap-1 ${isActive('charts')}"><i data-lucide="bar-chart-big" class="w-5 h-5"></i><span class="text-[10px]">Charts</span></button>
-                <button onclick="setView('library')" class="flex flex-col items-center gap-1 ${isActive('library')}"><i data-lucide="library" class="w-5 h-5"></i><span class="text-[10px]">Library</span></button>
-                <button onclick="setView('peyza-for-artists')" class="flex flex-col items-center gap-1 ${isActive('peyza-for-artists')}"><i data-lucide="bar-chart-2" class="w-5 h-5"></i><span class="text-[10px]">Artists</span></button>
+            <div class="fixed bottom-0 w-full h-16 bg-[#121212]/95 backdrop-blur border-t border-[#282828] md:hidden z-[60] flex items-center justify-around pb-safe">
+                <button onclick="setView('home')" class="flex flex-col items-center gap-1 ${isActive('home')}"><i data-lucide="home" class="w-6 h-6"></i><span class="text-[10px]">Home</span></button>
+                <button onclick="setView('search')" class="flex flex-col items-center gap-1 ${isActive('search')}"><i data-lucide="search" class="w-6 h-6"></i><span class="text-[10px]">Search</span></button>
+                <button onclick="setView('charts')" class="flex flex-col items-center gap-1 ${isActive('charts')}"><i data-lucide="bar-chart-2" class="w-6 h-6"></i><span class="text-[10px]">Charts</span></button>
+                <button onclick="setView('library')" class="flex flex-col items-center gap-1 ${isActive('library')}"><i data-lucide="library" class="w-6 h-6"></i><span class="text-[10px]">Library</span></button>
+                <button onclick="setView('peyza-for-artists')" class="flex flex-col items-center gap-1 ${isActive('peyza-for-artists')}"><i data-lucide="mic-2" class="w-6 h-6"></i><span class="text-[10px]">Artists</span></button>
             </div>
         `;
     }
@@ -479,7 +504,7 @@
             const q = state.searchQuery.toLowerCase();
             const fArtists = state.artists.filter(a => a.name.toLowerCase().includes(q));
             const fSongs = state.songs.filter(s => s.title.toLowerCase().includes(q));
-            return `<div class="p-6 md:p-8 pt-4 md:pt-12 pb-32"><input value="${state.searchQuery}" oninput="state.searchQuery=this.value; render()" placeholder="Search..." class="w-full bg-[#2a2a2a] p-4 rounded-full text-white font-bold mb-8 outline-none focus:ring-2 focus:ring-white">${!q ? '<div class="text-center text-gray-500 mt-20"><i data-lucide="search" class="w-16 h-16 mx-auto mb-4 opacity-50"></i><p>Search artists & songs.</p></div>' : `${fArtists.length ? `<h2 class="text-xl font-bold mb-4">Artists</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">${fArtists.map(a => `<div onclick="setView('artist','${a.id}')" class="bg-[#181818] p-4 rounded-lg cursor-pointer"><img src="${getImgSrc(a.image)}" class="w-24 h-24 rounded-full mb-2 object-cover mx-auto"><div class="text-center font-bold">${a.name}</div></div>`).join('')}</div>` : ''}${fSongs.length ? `<h2 class="text-xl font-bold mb-4">Songs</h2><div>${fSongs.map((s,i) => SongRow(s, i, true, true)).join('')}</div>` : ''}`}</div>`;
+            return `<div class="p-6 md:p-8 pt-4 md:pt-12 pb-32"><input id="search-input" value="${state.searchQuery}" oninput="state.searchQuery=this.value; render()" placeholder="What do you want to play?" class="w-full bg-[#242424] border-transparent p-4 rounded-full text-white font-bold mb-8 outline-none focus:ring-2 focus:ring-white text-lg placeholder-gray-500">${!q ? '<div class="text-center text-gray-500 mt-20"><i data-lucide="search" class="w-16 h-16 mx-auto mb-4 opacity-50"></i><p class="font-bold">Play what you love.</p></div>' : `${fArtists.length ? `<h2 class="text-xl font-bold mb-4 text-white">Artists</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">${fArtists.map(a => `<div onclick="setView('artist','${a.id}')" class="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer text-center"><img src="${getImgSrc(a.image)}" class="w-32 h-32 rounded-full mb-3 object-cover mx-auto shadow-lg"><div class="font-bold text-white text-lg">${a.name}</div><div class="text-sm text-gray-400">Artist</div></div>`).join('')}</div>` : ''}${fSongs.length ? `<h2 class="text-xl font-bold mb-4 text-white">Songs</h2><div>${fSongs.map((s,i) => SongRow(s, i, true, true)).join('')}</div>` : ''}`}</div>`;
         }
 
         if (state.view === 'album') {
@@ -489,16 +514,18 @@
             const tracks = state.songs.filter(s => s.albumId === album.id);
             return `
                 <div class="pb-32">
-                    <div class="h-[35vh] flex items-end p-6 md:p-8 bg-gradient-to-b ${artist.color} to-[#121212] gap-6">
-                        <img src="${getImgSrc(album.cover)}" class="w-32 h-32 md:w-52 md:h-52 shadow-2xl shadow-black/50 object-cover rounded-md">
-                        <div class="mb-2">
-                            <div class="text-xs uppercase font-bold text-white mb-2">${album.type}</div>
-                            <h1 class="text-3xl md:text-7xl font-black text-white mb-2 md:mb-4 tracking-tighter leading-none">${album.title}</h1>
-                            <div class="flex items-center gap-2 text-xs md:text-sm font-bold"><img src="${getImgSrc(artist.image)}" class="w-6 h-6 rounded-full object-cover"> ${artist.name} • ${album.year} • ${tracks.length} songs</div>
+                    <div class="h-[40vh] flex flex-col justify-end p-6 md:p-8 bg-gradient-to-b from-[#404040] to-[#121212] relative">
+                        <div class="flex flex-col md:flex-row items-end gap-6 relative z-10">
+                            <img src="${getImgSrc(album.cover)}" class="w-40 h-40 md:w-56 md:h-56 shadow-2xl object-cover">
+                            <div class="mb-2">
+                                <div class="text-xs uppercase font-bold text-white mb-1 tracking-widest">${album.type}</div>
+                                <h1 class="text-3xl md:text-7xl font-black text-white mb-2 leading-none tracking-tight">${album.title}</h1>
+                                <div class="flex items-center gap-2 text-sm font-bold text-white"><img src="${getImgSrc(artist.image)}" class="w-6 h-6 rounded-full object-cover"> ${artist.name} • ${album.year} • ${tracks.length} songs</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="p-6 md:p-8">
-                        <div class="flex items-center gap-4 mb-8"><button class="w-14 h-14 bg-[#1db954] rounded-full flex items-center justify-center hover:scale-105 shadow-lg"><i data-lucide="play" class="fill-black text-black w-6 h-6 ml-1"></i></button><i data-lucide="heart" class="w-8 h-8 text-gray-400"></i></div>
+                    <div class="p-6 md:p-8 bg-[#121212]">
+                        <div class="flex items-center gap-6 mb-8"><button class="w-14 h-14 bg-[#1db954] rounded-full flex items-center justify-center hover:scale-105 shadow-lg text-black"><i data-lucide="play" class="fill-current w-6 h-6 ml-1"></i></button><i data-lucide="heart" class="w-8 h-8 text-gray-400 hover:text-white"></i><i data-lucide="more-horizontal" class="w-8 h-8 text-gray-400 hover:text-white"></i></div>
                         <div>${tracks.map((s,i) => SongRow(s, i, false, true)).join('')}</div>
                     </div>
                 </div>
@@ -516,15 +543,15 @@
             return `
                 <div class="p-6 md:p-8 space-y-8 pb-32">
                     <button onclick="setView('peyza-for-artists')" class="text-gray-400 text-sm flex items-center gap-2 hover:text-white"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Roster</button>
-                    <div class="flex items-center gap-4"><img src="${getImgSrc(a.image)}" class="w-20 h-20 rounded-full shadow-lg object-cover"><h1 class="text-3xl font-bold text-white">${a.name} Analytics</h1></div>
+                    <div class="flex items-center gap-6"><img src="${getImgSrc(a.image)}" class="w-24 h-24 rounded-full shadow-lg object-cover"><h1 class="text-4xl font-bold text-white">${a.name} <span class="text-gray-500 text-lg font-normal block mt-1">Analytics</span></h1></div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Total Streams</div><div class="text-3xl font-black">${formatNumber(totalStreams)}</div></div>
-                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Listeners</div><div class="text-3xl font-black">${formatNumber(a.monthlyListeners)}</div></div>
-                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Momentum</div><div class="text-3xl font-black ${a.momentum>50?'text-green-500':'text-red-500'}">${Math.round(a.momentum)}</div></div>
+                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Total Streams</div><div class="text-4xl font-black">${formatNumber(totalStreams)}</div></div>
+                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Listeners</div><div class="text-4xl font-black">${formatNumber(a.monthlyListeners)}</div></div>
+                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Momentum</div><div class="text-4xl font-black">${Math.round(a.momentum)}</div></div>
                     </div>
-                    <div class="dashboard-card"><h3 class="text-sm font-bold text-white mb-4">Stream Velocity (Last 14 Days)</h3><div class="h-32 w-full">${renderGraph(aggHistory, 800, 100)}</div></div>
-                    <h2 class="text-xl font-bold mt-8">Release Performance</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${releases.map(r => { const rSongs = state.songs.filter(s => s.albumId === r.id); const rStreams = rSongs.reduce((acc, s) => acc + s.streams, 0); const rDaily = rSongs.reduce((acc, s) => acc + s.dailyStreams, 0); return `<div onclick="setView('dashboard-release', '${r.id}')" class="bg-[#181818] p-4 rounded flex items-center gap-4 cursor-pointer hover:bg-[#222]"><img src="${getImgSrc(r.cover)}" class="w-16 h-16 object-cover shadow"><div class="flex-1"><div class="font-bold">${r.title}</div><div class="text-xs text-gray-400">${r.type}</div></div><div class="text-right"><div class="text-sm font-bold text-white">${formatNumber(rStreams)}</div><div class="text-xs text-green-500">+${formatNumber(rDaily)}</div></div></div>`; }).join('')}</div>
+                    <div class="dashboard-card"><h3 class="text-sm font-bold text-white mb-4">Stream Velocity (Last 14 Days)</h3><div class="h-32 w-full">${renderGraph(aggHistory, 800, 100, '#1db954')}</div></div>
+                    <h2 class="text-xl font-bold mt-8">Releases</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${releases.map(r => { const rSongs = state.songs.filter(s => s.albumId === r.id); const rStreams = rSongs.reduce((acc, s) => acc + s.streams, 0); const rDaily = rSongs.reduce((acc, s) => acc + s.dailyStreams, 0); return `<div onclick="setView('dashboard-release', '${r.id}')" class="bg-[#181818] p-4 rounded flex items-center gap-4 cursor-pointer hover:bg-[#282828]"><img src="${getImgSrc(r.cover)}" class="w-16 h-16 object-cover shadow"><div class="flex-1"><div class="font-bold text-white">${r.title}</div><div class="text-xs text-gray-400">${r.type}</div></div><div class="text-right"><div class="text-sm font-bold text-white">${formatNumber(rStreams)}</div><div class="text-xs text-green-500">+${formatNumber(rDaily)}</div></div></div>`; }).join('')}</div>
                 </div>
             `;
         }
@@ -537,7 +564,7 @@
                 <div class="p-6 md:p-8 space-y-8 pb-32">
                     <button onclick="setView('dashboard-detail', '${artist.id}')" class="text-gray-400 text-sm flex items-center gap-2 hover:text-white"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Artist</button>
                     <div class="flex items-center gap-6"><img src="${getImgSrc(r.cover)}" class="w-32 h-32 shadow-xl object-cover"><div><div class="text-xs uppercase font-bold text-gray-400">${r.type} Analytics</div><h1 class="text-4xl font-black text-white mb-2">${r.title}</h1><div class="text-lg text-gray-300">by ${artist.name}</div></div></div>
-                    <div class="dashboard-card"><h3 class="text-sm font-bold text-white mb-4">Track Breakdown</h3><div class="grid grid-cols-[1fr_1fr_1fr] text-xs text-gray-500 font-bold uppercase mb-2 border-b border-gray-700 pb-2"><div>Title</div><div class="text-right">Total Streams</div><div class="text-right">Saves</div></div>${rSongs.map(s => `<div class="grid grid-cols-[1fr_1fr_1fr] py-2 border-b border-gray-800 text-sm"><div class="text-white truncate pr-2">${s.title}</div><div class="text-right font-mono text-gray-300">${formatNumber(s.streams)}</div><div class="text-right font-mono text-gray-300">${formatNumber(s.saves)}</div></div>`).join('')}</div>
+                    <div class="dashboard-card"><h3 class="text-sm font-bold text-white mb-4 border-b border-gray-800 pb-2">Track Breakdown</h3><div class="grid grid-cols-[1fr_1fr_1fr] text-xs text-gray-500 font-bold uppercase mb-2"><div>Title</div><div class="text-right">Total</div><div class="text-right">Saves</div></div>${rSongs.map(s => `<div class="grid grid-cols-[1fr_1fr_1fr] py-3 border-b border-gray-800 text-sm hover:bg-white/5 px-2 -mx-2"><div class="text-white truncate pr-2 font-medium">${s.title}</div><div class="text-right font-mono text-gray-300">${formatNumber(s.streams)}</div><div class="text-right font-mono text-gray-300">${formatNumber(s.saves)}</div></div>`).join('')}</div>
                 </div>
             `;
         }
@@ -545,10 +572,10 @@
         if (state.view === 'artist') {
             const artist = state.artists.find(a => a.id === state.activeArtistId);
             const artistSongs = state.songs.filter(s => s.artistId === artist.id);
+            const featuredSongs = state.songs.filter(s => s.featArtistId === artist.id);
+            
             const popularSongs = [...artistSongs].sort((a,b) => {
-                // Modified sort: If streams are 0, sort by daily streams or make them visible
                 if (a.streams === 0 && b.streams === 0) return 0;
-                // Boost new songs with 0 streams to top
                 if (a.streams === 0) return -1;
                 if (b.streams === 0) return 1;
                 return b.streams - a.streams;
@@ -558,47 +585,146 @@
             const pick = artist.artistPickPlaylistId ? state.playlists.find(p => p.id === artist.artistPickPlaylistId) : null;
             return `
                 <div class="pb-32">
-                    <div class="relative h-[40vh] min-h-[300px] flex flex-col justify-end p-6 bg-gradient-to-b ${artist.color} to-[#121212]"><div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay z-0" style="background-image: url('${getImgSrc(artist.banner)}')"></div><div class="relative z-10 animate-slide-up">${artist.verified ? `<div class="flex items-center gap-1 text-white mb-2"><i data-lucide="badge-check" class="text-blue-400 fill-blue-400 w-5 h-5"></i> <span class="text-sm font-medium">Verified Artist</span></div>` : ''}<h1 class="text-5xl md:text-8xl font-black text-white mb-4 tracking-tighter shadow-xl">${artist.name}</h1><p class="text-white text-sm md:text-base font-medium drop-shadow-md">${formatNumber(artist.monthlyListeners)} monthly listeners</p></div></div>
-                    <div class="p-6 sticky top-14 md:top-16 z-20 bg-[#121212]/90 backdrop-blur flex items-center gap-4 border-b border-white/5"><button class="w-14 h-14 rounded-full bg-[#1db954] hover:scale-105 transition-transform flex items-center justify-center text-black shadow-lg"><i data-lucide="play" class="fill-current w-7 h-7 ml-1"></i></button><button class="px-6 py-2 border border-gray-500 rounded-full text-xs font-bold uppercase tracking-widest hover:border-white">Follow</button><button onclick="openEditArtist('${artist.id}')" class="px-6 py-2 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/20">Edit</button><button onclick="openReleaseModal()" class="px-6 py-2 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest ml-auto shadow-lg hover:scale-105 transition-transform">Release</button></div>
-                    <div class="px-6 md:px-8 mt-6 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-12">
+                    <div class="relative h-[40vh] min-h-[300px] flex flex-col justify-end p-6 bg-gradient-to-b from-gray-900 to-[#121212]"><div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay z-0" style="background-image: url('${getImgSrc(artist.banner)}')"></div><div class="relative z-10 animate-slide-up">${artist.verified ? `<div class="flex items-center gap-1 text-white mb-2"><i data-lucide="badge-check" class="text-blue-400 fill-blue-400 w-5 h-5"></i> <span class="text-sm font-medium">Verified Artist</span></div>` : ''}<h1 class="text-5xl md:text-9xl font-black text-white mb-4 tracking-tighter shadow-xl">${artist.name}</h1><p class="text-white text-sm md:text-lg font-bold drop-shadow-md">${formatNumber(artist.monthlyListeners)} monthly listeners</p></div></div>
+                    <div class="p-6 sticky top-14 md:top-16 z-20 bg-[#121212]/90 backdrop-blur flex items-center gap-4 border-b border-gray-900"><button class="w-14 h-14 bg-[#1db954] text-black rounded-full hover:scale-105 transition-transform flex items-center justify-center shadow-lg"><i data-lucide="play" class="fill-current w-7 h-7 ml-1"></i></button><button class="px-6 py-2 border border-gray-500 rounded-full text-xs font-bold uppercase tracking-widest hover:border-white hover:text-white transition-colors">Follow</button><button onclick="openEditArtist('${artist.id}')" class="px-6 py-2 border border-gray-500 rounded-full text-xs font-bold uppercase tracking-widest hover:border-white hover:text-white">Edit</button><button onclick="openReleaseModal()" class="px-6 py-2 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest ml-auto shadow-lg hover:bg-gray-200">Release</button></div>
+                    <div class="px-6 md:px-8 mt-8 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-12 bg-[#121212]">
                         <div>
-                            ${pick ? `<div class="mb-10"><h2 class="text-sm font-bold text-gray-400 mb-4">Artist Pick</h2><div onclick="setView('playlist', '${pick.id}')" class="flex gap-4 cursor-pointer hover:bg-white/10 p-2 rounded-lg transition-colors group"><div class="w-20 h-20 bg-[#333] flex items-center justify-center text-gray-500 rounded"><i data-lucide="music" class="w-8 h-8"></i></div><div class="flex flex-col justify-center"><div class="bg-white/90 text-black text-[10px] font-bold px-2 py-0.5 rounded-full w-fit mb-1">Posted By ${artist.name}</div><div class="font-bold text-white group-hover:underline text-lg">${pick.name}</div></div></div></div>` : ''}
-                            <div class="mb-10"><h2 class="text-2xl font-bold text-white mb-4">Popular</h2><div class="flex flex-col">${popularSongs.map((s, i) => SongRow(s, i, false, true)).join('')}</div></div>
-                            <div class="mb-10"><h2 class="text-2xl font-bold text-white mb-4">Discography</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">${artistAlbums.map(a => `<div onclick="setView('album', '${a.id}')" class="group bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors cursor-pointer"><div class="relative mb-3 shadow-lg"><img src="${getImgSrc(a.cover)}" class="w-full aspect-square object-cover rounded shadow-black"><div class="absolute bottom-2 right-2 w-10 h-10 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:scale-105"><i data-lucide="play" class="ml-1 text-black fill-black w-5 h-5"></i></div></div><h3 class="text-white font-bold truncate text-sm">${a.title}</h3><p class="text-xs text-gray-400 mt-1">${a.year} • ${a.type}</p></div>`).join('')}</div></div>
+                            ${pick ? `<div class="mb-12"><h2 class="text-2xl font-bold text-white mb-4">Artist Pick</h2><div onclick="setView('playlist', '${pick.id}')" class="flex gap-4 cursor-pointer hover:bg-[#282828] p-4 rounded transition-colors group"><div class="w-20 h-20 bg-[#282828] flex items-center justify-center text-gray-500 rounded"><i data-lucide="music" class="w-8 h-8"></i></div><div class="flex flex-col justify-center"><div class="bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded-full w-fit mb-1 flex items-center gap-1"><img src="${getImgSrc(artist.image)}" class="w-3 h-3 rounded-full"> Posted By ${artist.name}</div><div class="font-bold text-white group-hover:underline text-lg">${pick.name}</div><div class="text-sm text-gray-400">Playlist</div></div></div></div>` : ''}
+                            
+                            <div class="mb-12"><h2 class="text-2xl font-bold text-white mb-6">Popular</h2><div class="flex flex-col">${popularSongs.map((s, i) => SongRow(s, i, false, true)).join('')}</div></div>
+                            
+                            ${featuredSongs.length > 0 ? `<div class="mb-12"><h2 class="text-2xl font-bold text-white mb-6">Appears On</h2><div class="flex flex-col">${featuredSongs.map((s, i) => SongRow(s, i, true, true)).join('')}</div></div>` : ''}
+                            
+                            <div class="mb-12"><h2 class="text-2xl font-bold text-white mb-6">Discography</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">${artistAlbums.map(a => `<div onclick="setView('album', '${a.id}')" class="group bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors cursor-pointer"><div class="relative mb-3 shadow-lg"><img src="${getImgSrc(a.cover)}" class="w-full aspect-square object-cover rounded shadow-black"><div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:scale-105 text-black"><i data-lucide="play" class="ml-1 fill-current w-6 h-6"></i></div></div><h3 class="text-white font-bold truncate text-sm">${a.title}</h3><p class="text-xs text-gray-400 mt-1">${a.year} • ${a.type}</p></div>`).join('')}</div></div>
                         </div>
-                        <div class="space-y-8"><h2 class="text-2xl font-bold text-white">About</h2><div class="relative rounded-xl overflow-hidden h-96 group shadow-2xl cursor-pointer hover:scale-[1.01] transition-transform"><img src="${getImgSrc(artist.image)}" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div><div class="absolute bottom-0 left-0 p-6 w-full"><div class="font-bold text-white text-xl mb-2">${formatNumber(artist.monthlyListeners)} Monthly Listeners</div><p class="text-white text-sm line-clamp-4 opacity-90 leading-relaxed">${artist.bio}</p></div></div></div>
+                        <div class="space-y-8"><h2 class="text-2xl font-bold text-white">About</h2><div class="relative h-80 rounded-lg overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform shadow-xl"><img src="${getImgSrc(artist.image)}" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div><div class="absolute bottom-0 left-0 p-6 w-full"><div class="font-bold text-white text-2xl mb-2">${formatNumber(artist.monthlyListeners)} Monthly Listeners</div><p class="text-white text-sm line-clamp-4 leading-relaxed opacity-90">${artist.bio}</p></div></div></div>
                     </div>
                 </div>`;
         }
 
         // Standard Views
-        if (state.view === 'peyza-for-artists') return `<div class="p-6 pt-12 pb-32"><div class="flex justify-between items-center mb-8"><h1 class="text-3xl font-black text-white flex items-center gap-3"><i data-lucide="bar-chart-2" class="text-blue-500"></i> Peyza for Artists</h1><button onclick="setView('create-artist')" class="md:hidden bg-white text-black px-4 py-2 rounded-full text-xs font-bold shadow">+ Create</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${state.artists.map(a => `<div onclick="setView('dashboard-detail', '${a.id}')" class="bg-[#181818] p-6 rounded-xl border border-gray-800 hover:border-blue-500 cursor-pointer group"><div class="flex items-center gap-4 mb-4"><img src="${getImgSrc(a.image)}" class="w-16 h-16 rounded-full object-cover"><div><h2 class="font-bold text-white text-xl group-hover:underline">${a.name}</h2><div class="text-sm text-gray-400">${formatNumber(a.monthlyListeners)} Listeners</div></div></div><div class="text-xs text-${a.momentum > 70 ? 'green' : 'yellow'}-500 font-bold uppercase tracking-widest">Health: ${Math.round(a.momentum)}%</div></div>`).join('')}</div></div>`;
-        if (state.view === 'home') return `<div class="pb-32"><div class="h-64 bg-gradient-to-b from-indigo-900 to-[#121212] p-6 flex flex-col justify-end"><h2 class="text-3xl font-bold text-white mb-6">Good evening</h2><div class="grid grid-cols-2 md:grid-cols-3 gap-3">${[...state.playlists, ...state.artists.slice(0, 4)].map(i => `<div onclick="${i.followers ? `setView('artist', '${i.id}')` : `setView('playlist', '${i.id}')`}" class="bg-white/10 hover:bg-white/20 transition-colors rounded flex items-center overflow-hidden h-16 cursor-pointer"><img src="${getImgSrc(i.image || i.cover)}" class="h-full aspect-square object-cover"><span class="font-bold text-white px-4 text-sm truncate">${i.name}</span></div>`).join('')}</div></div><div class="px-6 mt-8"><h2 class="text-2xl font-bold text-white mb-4">Your Artists</h2><div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">${state.artists.map(a => `<div onclick="setView('artist', '${a.id}')" class="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group"><div class="mb-4 relative"><img src="${getImgSrc(a.image)}" class="w-full aspect-square object-cover rounded-full shadow-lg shadow-black"><div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"><i data-lucide="play" class="ml-1 text-black fill-black w-6 h-6"></i></div></div><h3 class="font-bold text-white truncate">${a.name}</h3><p class="text-sm text-gray-400 mt-1">Artist</p></div>`).join('')}</div></div></div>`;
-        if (state.view === 'library') return `<div class="p-6 md:p-8 pt-12 pb-32"><h1 class="text-4xl font-bold text-white mb-8">Your Library</h1><div class="flex gap-4 mb-8 overflow-x-auto pb-2"><button class="bg-[#2a2a2a] px-4 py-1.5 rounded-full text-sm font-bold text-white whitespace-nowrap">Playlists</button><button class="bg-[#2a2a2a] px-4 py-1.5 rounded-full text-sm font-bold text-white whitespace-nowrap">Artists</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${state.playlists.map(p => `<div onclick="setView('playlist', '${p.id}')" class="flex items-center gap-4 bg-[#181818] hover:bg-[#282828] p-4 rounded-lg cursor-pointer transition-colors"><div class="w-16 h-16 bg-[#333] flex items-center justify-center rounded shadow-lg"><i data-lucide="music" class="text-gray-500"></i></div><div><div class="font-bold text-white">${p.name}</div><div class="text-xs text-gray-400">Playlist • You</div></div></div>`).join('')}</div><div class="mt-12 border-t border-gray-800 pt-8"><h2 class="text-xl font-bold text-white mb-4">Data Management</h2><div class="flex gap-4"><button onclick="exportData()" class="bg-blue-600 px-6 py-2 rounded-full font-bold text-sm hover:bg-blue-500">Download Save</button><button onclick="triggerFileUpload('import')" class="bg-gray-700 px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-600">Upload Save</button></div></div></div>`;
+        if (state.view === 'peyza-for-artists') return `<div class="p-6 pt-12 pb-32"><div class="flex justify-between items-center mb-8"><h1 class="text-3xl font-black text-white flex items-center gap-3"><i data-lucide="bar-chart-2" class="text-blue-500"></i> Peyza for Artists</h1><button onclick="setView('create-artist')" class="md:hidden bg-white text-black px-4 py-2 rounded-full text-xs font-bold shadow">+ Create</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${state.artists.map(a => `<div onclick="setView('dashboard-detail', '${a.id}')" class="bg-[#181818] p-6 rounded-xl border border-gray-800 hover:border-blue-500 cursor-pointer group"><div class="flex items-center gap-4 mb-4"><img src="${getImgSrc(a.image)}" class="w-16 h-16 rounded-full object-cover"><div><h2 class="font-bold text-white text-xl group-hover:underline">${a.name}</h2><div class="text-sm text-gray-400 font-mono">${formatNumber(a.monthlyListeners)} Listeners</div></div></div><div class="text-xs text-${a.momentum > 70 ? 'green' : 'yellow'}-500 font-bold uppercase tracking-widest mt-2">Momentum: ${Math.round(a.momentum)}%</div></div>`).join('')}</div></div>`;
+        
+        if (state.view === 'home') return `<div class="pb-32"><div class="h-64 bg-gradient-to-b from-indigo-900 to-[#121212] p-6 flex flex-col justify-end"><h2 class="text-3xl font-bold text-white mb-6">Good evening</h2><div class="grid grid-cols-2 md:grid-cols-3 gap-3">${[...state.playlists, ...state.artists.slice(0, 4)].map(i => `<div onclick="${i.followers ? `setView('artist', '${i.id}')` : `setView('playlist', '${i.id}')`}" class="bg-[#222] hover:bg-[#333] transition-colors flex items-center overflow-hidden h-20 cursor-pointer border border-transparent hover:border-tidal/20"><img src="${getImgSrc(i.image || i.cover)}" class="h-full aspect-square object-cover"><span class="font-bold text-white px-4 text-sm truncate">${i.name}</span></div>`).join('')}</div></div><div class="px-6 mt-8"><h2 class="text-xl font-bold text-white mb-4">Your Artists</h2><div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">${state.artists.map(a => `<div onclick="setView('artist', '${a.id}')" class="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group"><div class="mb-4 relative"><img src="${getImgSrc(a.image)}" class="w-full aspect-square object-cover rounded-full shadow-lg shadow-black"><div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"><i data-lucide="play" class="ml-1 text-black fill-black w-6 h-6"></i></div></div><h3 class="font-bold text-white truncate">${a.name}</h3><p class="text-sm text-gray-400 mt-1">Artist</p></div>`).join('')}</div></div></div>`;
+        
+        if (state.view === 'library') return `<div class="p-6 md:p-8 pt-12 pb-32"><h1 class="text-4xl font-bold text-white mb-8">Your Library</h1><div class="flex gap-4 mb-8 overflow-x-auto pb-2"><button class="bg-[#2a2a2a] px-4 py-1.5 rounded-full text-sm font-bold text-white whitespace-nowrap">Playlists</button><button class="bg-[#2a2a2a] px-4 py-1.5 rounded-full text-sm font-bold text-white whitespace-nowrap">Artists</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${state.playlists.map(p => `<div onclick="setView('playlist', '${p.id}')" class="flex items-center gap-4 bg-[#181818] hover:bg-[#282828] p-4 rounded-lg cursor-pointer transition-colors"><div class="w-16 h-16 bg-[#2a2a2a] flex items-center justify-center rounded shadow-lg"><i data-lucide="music" class="text-gray-500"></i></div><div><div class="font-bold text-white">${p.name}</div><div class="text-xs text-gray-400">Playlist • You</div></div></div>`).join('')}</div><div class="mt-12 border-t border-gray-800 pt-8"><h2 class="text-xl font-bold text-white mb-4">Data Management</h2><div class="flex gap-4"><button onclick="exportData()" class="bg-blue-600 px-6 py-2 rounded-full font-bold text-sm hover:bg-blue-500">Download Save</button><button onclick="triggerFileUpload('import')" class="bg-gray-700 px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-600">Upload Save</button></div></div></div>`;
+        
         if (state.view === 'playlist') { const p = state.playlists.find(pl => pl.id === state.activePlaylistId); return `<div class="pb-32 pt-20 px-4 md:px-8 bg-gradient-to-b from-gray-900 to-[#121212] min-h-full"><h1 class="text-3xl md:text-6xl font-black text-white mb-4">${p.name}</h1><div class="bg-black/20 rounded-lg p-2 md:p-4">${p.songs.length === 0 ? '<div class="text-gray-500 p-4 text-center">No songs</div>' : p.songs.map((sid, i) => { const s = state.songs.find(x => x.id === sid); return s ? SongRow(s, i, true, false) : ''; }).join('')}</div></div>`; }
+        
         if (state.view === 'create-artist') return `<div class="p-8 max-w-2xl mx-auto mt-20 pb-32"><h2 class="text-3xl md:text-5xl font-black text-white mb-10 text-center">Start a Legacy</h2><div class="bg-[#181818] p-6 md:p-10 rounded-xl shadow-2xl space-y-6 md:space-y-8 border border-gray-800"><div><label class="text-white font-bold block mb-3 text-lg">Artist Name</label><input id="new-artist-name-input" class="w-full bg-[#2a2a2a] text-white p-4 rounded-lg text-lg md:text-2xl" placeholder="e.g. The Weeknd"></div><button onclick="createArtist(document.getElementById('new-artist-name-input').value)" class="w-full bg-[#1db954] text-black font-black py-4 md:py-5 rounded-full text-lg uppercase">Launch Career</button></div></div>`;
+        
         return '';
     }
 
-    function render() {
-        const app = document.getElementById('app');
-        app.innerHTML = `
-            <div class="flex flex-1 overflow-hidden">
-                <div class="hidden md:flex w-[240px] bg-black flex-col h-full flex-shrink-0 relative z-30 border-r border-[#282828]"><div class="p-6 pb-2"><div onclick="setView('home')" class="flex items-center gap-2 mb-8 cursor-pointer text-white"><i data-lucide="disc" class="w-8 h-8"></i> <span class="font-bold text-xl tracking-tight">Peyza</span></div><nav class="space-y-2"><button onclick="setView('home')" class="w-full flex items-center gap-4 px-4 py-2 rounded font-bold transition-colors ${state.view === 'home' ? 'text-white' : 'text-gray-400 hover:text-white'}"><i data-lucide="home" class="w-6 h-6"></i> Home</button><button onclick="setView('search')" class="w-full flex items-center gap-4 px-4 py-2 rounded font-bold transition-colors ${state.view === 'search' ? 'text-white' : 'text-gray-400 hover:text-white'}"><i data-lucide="search" class="w-6 h-6"></i> Search</button><button onclick="setView('charts')" class="w-full flex items-center gap-4 px-4 py-2 rounded font-bold transition-colors ${state.view === 'charts' ? 'text-white' : 'text-gray-400 hover:text-white'}"><i data-lucide="bar-chart-big" class="w-6 h-6"></i> Charts</button><button onclick="setView('library')" class="w-full flex items-center gap-4 px-4 py-2 rounded font-bold transition-colors ${state.view === 'library' ? 'text-white' : 'text-gray-400 hover:text-white'}"><i data-lucide="library" class="w-6 h-6"></i> Library</button><button onclick="setView('peyza-for-artists')" class="w-full flex items-center gap-4 px-4 py-2 rounded font-bold transition-colors ${state.view === 'peyza-for-artists' ? 'text-blue-400' : 'text-gray-400 hover:text-white'}"><i data-lucide="bar-chart-2" class="w-6 h-6"></i> Artists</button></nav><div class="mt-8 space-y-2"><button onclick="createPlaylist()" class="w-full flex items-center gap-4 px-4 py-2 text-gray-400 hover:text-white font-bold text-sm"><div class="w-6 h-6 bg-white flex items-center justify-center rounded-sm"><i data-lucide="plus" class="w-4 h-4 text-black"></i></div> Create Playlist</button></div></div></div>
-                <div class="flex-1 bg-[#121212] m-0 md:m-2 rounded-none md:rounded-lg overflow-hidden flex flex-col relative"><div class="h-16 bg-gradient-to-b from-black/80 to-transparent absolute top-0 w-full z-20 px-4 md:px-8 flex items-center justify-between"><div class="text-xs font-mono text-white bg-black/40 px-3 py-1 rounded-full border border-gray-800 flex items-center gap-2"><i data-lucide="calendar" class="text-green-500 w-3 h-3"></i> ${formatDate(state.day)}</div><button onclick="handleNextDay()" class="bg-white text-black px-4 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform flex items-center gap-1">Next Day <i data-lucide="trending-up" class="w-3 h-3"></i></button></div><div class="flex-1 overflow-y-auto scrollbar-hide pt-16">${state.showDailyLog && state.dailyLog.length > 0 ? `<div class="fixed top-20 right-8 z-[60] bg-[#1db954] text-black p-4 rounded shadow-2xl max-w-xs animate-bounce-in text-xs font-bold border-2 border-white"><ul class="list-disc pl-4">${state.dailyLog.slice(0,3).map(l=>`<li>${l}</li>`).join('')}</ul></div>` : ''}${RenderMainContent()}</div></div>
+    function Sidebar() {
+        const navItem = (id, icon, label) => `
+            <button onclick="setView('${id}')" class="w-full flex items-center gap-4 px-4 py-2 rounded font-bold transition-colors ${state.view === id ? 'text-white' : 'text-gray-400 hover:text-white'}">
+                <i data-lucide="${icon}" class="w-6 h-6"></i> ${label}
+            </button>`;
+            
+        return `
+            <div class="hidden md:flex w-[240px] bg-black flex-col h-full flex-shrink-0 relative z-30 border-r border-[#121212]">
+                <div class="p-6 pb-2">
+                    <div onclick="setView('home')" class="flex items-center gap-2 mb-8 cursor-pointer text-white">
+                        <i data-lucide="disc" class="w-8 h-8"></i> <span class="font-bold text-xl tracking-tight">Peyza</span>
+                    </div>
+                    <nav class="space-y-2">
+                        ${navItem('home', 'home', 'Home')}
+                        ${navItem('search', 'search', 'Search')}
+                        ${navItem('charts', 'bar-chart-big', 'Charts')}
+                        ${navItem('library', 'library', 'Library')}
+                        ${navItem('peyza-for-artists', 'mic-2', 'For Artists')}
+                    </nav>
+                </div>
+                <div class="px-6 mt-4 mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest">Playlists</div>
+                <div class="flex-1 overflow-y-auto px-4 scrollbar-hide space-y-1">
+                    <button onclick="createPlaylist()" class="w-full flex items-center gap-3 px-2 py-2 text-gray-400 hover:text-white font-bold text-sm transition-colors group">
+                        <div class="w-6 h-6 bg-white flex items-center justify-center rounded-sm"><i data-lucide="plus" class="w-4 h-4 text-black"></i></div> 
+                        Create Playlist
+                    </button>
+                    ${state.playlists.map(p => `
+                        <div onclick="setView('playlist', '${p.id}')" class="text-gray-400 hover:text-white px-2 py-2 cursor-pointer truncate text-sm font-medium transition-colors ${state.activePlaylistId === p.id ? 'text-white' : ''}">
+                            ${p.name}
+                        </div>
+                    `).join('')}
+                </div>
             </div>
-            <div id="player-bar" class="fixed bottom-16 md:bottom-0 w-full h-14 md:h-[90px] bg-[#181818] border-t border-[#282828] z-50 transition-all duration-300">${RenderPlayer()}</div>
-            <div class="fixed bottom-0 w-full h-16 bg-black/95 backdrop-blur border-t border-gray-900 md:hidden z-[60] flex items-center justify-around pb-safe"><button onclick="setView('home')" class="flex flex-col items-center gap-1 ${state.view==='home'?'text-white':'text-gray-500'}"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px]">Home</span></button><button onclick="setView('search')" class="flex flex-col items-center gap-1 ${state.view==='search'?'text-white':'text-gray-500'}"><i data-lucide="search" class="w-5 h-5"></i><span class="text-[10px]">Search</span></button><button onclick="setView('charts')" class="flex flex-col items-center gap-1 ${state.view==='charts'?'text-white':'text-gray-500'}"><i data-lucide="bar-chart-big" class="w-5 h-5"></i><span class="text-[10px]">Charts</span></button><button onclick="setView('library')" class="flex flex-col items-center gap-1 ${state.view==='library'?'text-white':'text-gray-500'}"><i data-lucide="library" class="w-5 h-5"></i><span class="text-[10px]">Library</span></button><button onclick="setView('peyza-for-artists')" class="flex flex-col items-center gap-1 ${state.view==='peyza-for-artists'?'text-white':'text-gray-500'}"><i data-lucide="bar-chart-2" class="w-5 h-5"></i><span class="text-[10px]">Artists</span></button></div>
-            ${RenderModals()}
         `;
-        lucide.createIcons();
     }
 
     function RenderModals() {
         if (!state.modal) return '';
         if (state.modal === 'edit-artist') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-4"><h3 class="text-xl font-bold text-white">Edit Profile</h3><div class="grid grid-cols-2 gap-4"><div onclick="triggerFileUpload('image')" class="aspect-square bg-black/50 rounded flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.editForm.image)}" class="absolute inset-0 w-full h-full object-cover"><span class="relative z-10 bg-black/50 px-2 py-1 rounded">Photo</span></div><div onclick="triggerFileUpload('banner')" class="aspect-square bg-black/50 rounded flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.editForm.banner)}" class="absolute inset-0 w-full h-full object-cover opacity-50"><span class="relative z-10 bg-black/50 px-2 py-1 rounded">Banner</span></div></div><input oninput="state.editForm.name=this.value" value="${state.editForm.name}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" placeholder="Name"><div class="flex justify-between"><label class="text-xs text-gray-400">Bio</label><button id="btn-gen-bio" onclick="generateBio()" class="text-[10px] bg-purple-600 px-2 rounded text-white flex items-center gap-1">AI Write</button></div><textarea oninput="state.editForm.bio=this.value" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" rows="3">${state.editForm.bio}</textarea><div><label class="text-xs text-gray-400 block mb-1">Pick</label><select onchange="state.editForm.artistPickPlaylistId = this.value" class="w-full bg-[#3e3e3e] text-white text-sm p-2 rounded"><option value="">None</option>${state.playlists.map(p => `<option value="${p.id}" ${state.editForm.artistPickPlaylistId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}</select></div><div class="grid grid-cols-2 gap-4"><div><label class="text-xs text-gray-400">Listeners</label><input type="number" oninput="state.editForm.monthlyListeners=parseInt(this.value)" value="${state.editForm.monthlyListeners}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white"></div><div><label class="text-xs text-gray-400">Followers</label><input type="number" oninput="state.editForm.followers=parseInt(this.value)" value="${state.editForm.followers}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white"></div></div><div class="flex justify-end gap-2 pt-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="saveArtistEdit()" class="bg-white text-black px-4 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
-        if (state.modal === 'release') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6"><h3 class="text-xl font-bold text-white mb-4">New Release</h3><div class="flex gap-4 mb-4"><div onclick="triggerFileUpload('image')" class="w-24 h-24 bg-black/50 shrink-0 cursor-pointer flex items-center justify-center relative overflow-hidden">${state.releaseForm.cover ? `<img src="${getImgSrc(state.releaseForm.cover)}" class="w-full h-full object-cover">` : '<i data-lucide="upload" class="w-6 h-6 text-gray-400"></i>'}</div><div class="flex-1 space-y-2"><input oninput="state.releaseForm.title=this.value" value="${state.releaseForm.title}" class="w-full bg-[#3e3e3e] p-2 rounded text-white" placeholder="Title"><div class="flex gap-4 text-sm text-white"><label><input type="radio" name="type" checked onclick="state.releaseForm.type='Single'"> Single</label><label><input type="radio" name="type" onclick="state.releaseForm.type='Album'"> Album</label></div></div></div><div class="space-y-2 mb-4"><div class="flex justify-between items-center text-xs text-gray-400 font-bold"><span>Tracks</span> <div class="flex gap-2"><button id="btn-gen-tracks" onclick="generateTracklist()" class="text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded text-[10px]">AI Auto-Fill</button><button onclick="state.releaseForm.tracks.push({title:'', featArtistId:'', file:null}); render()" class="bg-gray-800 px-2 py-0.5 rounded text-white">+ Add</button></div></div>${state.releaseForm.tracks.map((t,i) => `<div class="flex gap-2 items-center"><span class="text-gray-500 text-xs w-4">${i+1}</span><input oninput="state.releaseForm.tracks[${i}].title=this.value" value="${t.title}" class="bg-[#3e3e3e] p-1.5 rounded text-sm text-white flex-1" placeholder="Name"><select onchange="state.releaseForm.tracks[${i}].featArtistId=this.value" class="bg-[#3e3e3e] text-white text-xs rounded p-1.5 w-20"><option value="">No Feat</option>${state.artists.filter(a => a.id !== state.activeArtistId).map(a => `<option value="${a.id}" ${t.featArtistId===a.id?'selected':''}>${a.name}</option>`).join('')}</select><button onclick="state.activeTrackIdx=${i}; triggerFileUpload('audio')" class="bg-gray-700 text-white text-xs px-2 py-1.5 rounded">${t.file ? 'MP3' : 'Upload'}</button><button onclick="state.releaseForm.tracks.splice(${i},1); render()"><i data-lucide="x" class="w-4 h-4 text-gray-500"></i></button></div>`).join('')}</div><div class="flex justify-end gap-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="finalizeRelease()" class="bg-[#1db954] text-black px-6 py-2 rounded-full text-sm font-bold">Release</button></div></div></div>`;
+        if (state.modal === 'release') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6"><h3 class="text-xl font-bold text-white mb-4">New Release</h3><div class="flex gap-4 mb-4"><div onclick="triggerFileUpload('image')" class="w-24 h-24 bg-black/50 shrink-0 cursor-pointer flex items-center justify-center relative overflow-hidden">${state.releaseForm.cover ? `<img src="${getImgSrc(state.releaseForm.cover)}" class="w-full h-full object-cover">` : '<i data-lucide="upload" class="w-6 h-6 text-gray-400"></i>'}</div><div class="flex-1 space-y-2"><input oninput="state.releaseForm.title=this.value" value="${state.releaseForm.title}" class="w-full bg-[#3e3e3e] p-2 rounded text-white" placeholder="Title"><div class="flex gap-4 text-sm text-white"><label><input type="radio" name="type" checked onclick="state.releaseForm.type='Single'"> Single</label><label><input type="radio" name="type" onclick="state.releaseForm.type='Album'"> Album</label></div></div></div><div class="space-y-2 mb-4"><div class="flex justify-between items-center text-xs text-gray-400 font-bold"><span>Tracks</span> <div class="flex gap-2"><button id="btn-gen-tracks" onclick="generateTracklist()" class="text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded text-[10px]">AI Auto-Fill</button><button onclick="addTrack()" class="bg-gray-800 px-2 py-0.5 rounded text-white">+ Add</button></div></div>${state.releaseForm.tracks.map((t,i) => `<div class="flex gap-2 items-center"><span class="text-gray-500 text-xs w-4">${i+1}</span><input oninput="state.releaseForm.tracks[${i}].title=this.value" value="${t.title}" class="bg-[#3e3e3e] p-1.5 rounded text-sm text-white flex-1" placeholder="Name"><select onchange="state.releaseForm.tracks[${i}].featArtistId=this.value" class="bg-[#3e3e3e] text-white text-xs rounded p-1.5 w-20"><option value="">No Feat</option>${state.artists.filter(a => a.id !== state.activeArtistId).map(a => `<option value="${a.id}" ${t.featArtistId===a.id?'selected':''}>${a.name}</option>`).join('')}</select><button onclick="state.activeTrackIdx=${i}; triggerFileUpload('audio')" class="bg-gray-700 text-white text-xs px-2 py-1.5 rounded">${t.file ? 'MP3' : 'Upload'}</button><button onclick="state.releaseForm.tracks.splice(${i},1); render()"><i data-lucide="x" class="w-4 h-4 text-gray-500"></i></button></div>`).join('')}</div><div class="flex justify-end gap-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="finalizeRelease()" class="bg-[#1db954] text-black px-6 py-2 rounded-full text-sm font-bold">Release</button></div></div></div>`;
         return '';
+    }
+
+    // Missing Helper function
+    function addTrack() { 
+        state.releaseForm.tracks.push({title:'', featArtistId:'', file:null}); 
+        render(); 
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+        if (!app) return;
+
+        // Maintain Focus for Search
+        const focusedId = document.activeElement ? document.activeElement.id : null;
+        const selectionStart = document.activeElement ? document.activeElement.selectionStart : null;
+
+        app.innerHTML = `
+            <div class="flex flex-1 overflow-hidden">
+                ${Sidebar()} 
+                <div class="flex-1 bg-black m-0 md:m-2 rounded-none md:rounded-lg overflow-hidden flex flex-col relative">
+                    <!-- Header -->
+                    <div class="h-16 bg-gradient-to-b from-black/80 to-transparent absolute top-0 w-full z-20 px-4 md:px-8 flex items-center justify-between pointer-events-none">
+                         <div class="flex gap-4 pointer-events-auto">
+                            <button onclick="setView('home')" class="w-8 h-8 bg-black/70 rounded-full flex items-center justify-center text-gray-300 hover:text-white"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                            <button class="w-8 h-8 bg-black/70 rounded-full flex items-center justify-center text-gray-300 hover:text-white"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                         </div>
+                         <div class="flex items-center gap-4 pointer-events-auto">
+                             <div class="text-xs font-mono text-white bg-black/40 px-3 py-1 rounded-full border border-gray-800 flex items-center gap-2">
+                                <i data-lucide="calendar" class="w-3 h-3 text-spotify"></i> ${formatDate(state.day)}
+                             </div>
+                             <button onclick="handleNextDay()" class="bg-white text-black px-4 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform flex items-center gap-1">Next Day <i data-lucide="trending-up" class="w-3 h-3"></i></button>
+                             <div class="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center"><i data-lucide="user" class="w-4 h-4 text-gray-400"></i></div>
+                         </div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div class="flex-1 overflow-y-auto scrollbar-hide pt-16">
+                        ${state.showDailyLog && state.dailyLog.length > 0 ? `
+                            <div class="fixed top-20 right-8 z-[60] bg-[#1db954] text-black p-4 rounded shadow-2xl max-w-xs animate-bounce-in text-xs font-bold border-2 border-white">
+                                <ul class="list-disc pl-4">${state.dailyLog.slice(0,3).map(l=>`<li>${l}</li>`).join('')}</ul>
+                            </div>` : ''}
+                        ${RenderMainContent()}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Bar -->
+            <div id="player-bar" class="fixed bottom-16 md:bottom-0 w-full h-14 md:h-[90px] bg-[#181818] border-t border-[#282828] z-50 transition-all duration-300">
+                ${RenderPlayerHTML()}
+            </div>
+            
+            <!-- Mobile Nav -->
+            ${MobileBottomNav()}
+            
+            <!-- Modals -->
+            ${RenderModals()}
+        `;
+        
+        // Restore Focus
+        if (focusedId) {
+            const el = document.getElementById(focusedId);
+            if(el) {
+                el.focus();
+                if (selectionStart !== null && el.setSelectionRange) el.setSelectionRange(selectionStart, selectionStart);
+            }
+        }
+        
+        lucide.createIcons();
     }
 
     initDB().then(() => render());
