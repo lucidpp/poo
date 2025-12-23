@@ -3,1448 +3,853 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peyza Developer Simulator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Peyza Chronicles - RPG Adventure</title>
     <style>
-        /* Modern Dark/Grey Theme */
-        :root {
-            --rbx-bg: #191b1d;
-            --rbx-panel: #2b2d31;
-            --rbx-header: #232527;
-            --rbx-text: #ffffff;
-            --rbx-text-sec: #adadad;
-            --rbx-blue: #00b06f;
-            --rbx-divider: #393b3d;
-            --rbx-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap');
+
         body {
-            background-color: var(--rbx-bg);
-            color: var(--rbx-text);
-            font-family: 'Gotham SSm', 'Segoe UI', Helvetica, Arial, sans-serif;
-            overflow-x: hidden;
-        }
-        .rbx-card {
-            background-color: var(--rbx-panel);
-            border-radius: 12px;
-            box-shadow: var(--rbx-shadow);
-            border: 1px solid #383a40;
-        }
-        .rbx-input {
-            background-color: #1a1c1e;
-            border: 1px solid #393b3d;
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Lato', sans-serif;
             color: white;
-            border-radius: 8px;
-        }
-        .rbx-input:focus {
-            border-color: #00b06f;
-            outline: none;
-        }
-        .rbx-btn-primary {
-            background-color: white;
-            color: black;
-            font-weight: 700;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        .rbx-btn-green {
-            background-color: #00b06f;
-            color: white;
-            font-weight: 700;
-            border-radius: 8px;
-            transition: background-color 0.2s;
-        }
-        .rbx-btn-green:hover {
-            background-color: #009960;
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--rbx-bg); 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #4a4d52; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #606368; 
+            user-select: none;
         }
 
-        .verified-badge {
-            color: #fff;
-            background-color: #00b06f;
-            border-radius: 50%;
-            padding: 2px;
-            font-size: 0.7em;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            margin-left: 4px;
-            vertical-align: middle;
-        }
-        
-        .creator-badge {
-            color: #fff;
-            background: linear-gradient(135deg, #f1c40f, #d35400);
-            border-radius: 50%;
-            padding: 2px;
-            font-size: 0.7em;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            margin-left: 4px;
-            vertical-align: middle;
-            border: 1px solid #fff;
-            box-shadow: 0 0 5px #f1c40f;
-        }
-
-        /* 3D View Container */
-        #game-view {
-            position: fixed;
+        #canvas-container {
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 100;
-            background: #000;
-            display: none;
-        }
-        
-        /* Mobile Bottom Nav */
-        .mobile-nav {
-            display: none;
-        }
-        @media (max-width: 768px) {
-            .mobile-nav {
-                display: flex;
-            }
-            .sidebar {
-                display: none !important;
-            }
-            main {
-                margin-left: 0 !important;
-                padding-bottom: 80px;
-            }
-        }
-        
-        /* Awards Banner */
-        .awards-banner {
-            background: linear-gradient(90deg, #8e44ad, #c0392b);
-            color: white;
-            text-align: center;
-            padding: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            position: fixed;
-            top: 56px; /* Below nav */
             width: 100%;
-            z-index: 30;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            height: 100%;
+            z-index: 1;
         }
+
+        /* UI Overlay */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        /* Top HUD */
+        #hud {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .stat-box {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Main Dialogue Area */
+        #dialogue-container {
+            pointer-events: auto;
+            margin: 0 auto 40px auto;
+            width: 90%;
+            max-width: 800px;
+            background: rgba(20, 20, 30, 0.95);
+            border: 2px solid #4a5568;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 50px rgba(0,0,0,0.5);
+            transition: opacity 0.5s;
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #speaker-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: #fbbf24;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #dialogue-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            min-height: 80px;
+        }
+
+        #choices {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        button.choice-btn {
+            background: linear-gradient(45deg, #2d3748, #1a202c);
+            border: 1px solid #4a5568;
+            color: #e2e8f0;
+            padding: 15px;
+            font-family: 'Lato', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        button.choice-btn:hover {
+            background: linear-gradient(45deg, #4a5568, #2d3748);
+            border-color: #fbbf24;
+            transform: translateX(5px);
+            box-shadow: -2px 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Title Screen */
+        #title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 5rem;
+            color: #fff;
+            text-shadow: 0 0 20px #fbbf24, 0 0 40px #d97706;
+            margin-bottom: 10px;
+            animation: pulse 3s infinite;
+        }
+
+        h2 {
+            font-family: 'Lato', sans-serif;
+            font-weight: 300;
+            color: #cbd5e0;
+            margin-bottom: 40px;
+        }
+
+        .version-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .v-btn {
+            padding: 20px 30px;
+            background: rgba(20, 20, 30, 0.8);
+            border: 2px solid #fbbf24;
+            color: #fbbf24;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-width: 220px;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .v-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+        
+        /* Christmas Lights Animation for V2 */
+        @keyframes lights {
+            0% { box-shadow: 0 0 10px red; border-color: red; }
+            25% { box-shadow: 0 0 15px gold; border-color: gold; }
+            50% { box-shadow: 0 0 10px green; border-color: green; }
+            75% { box-shadow: 0 0 15px blue; border-color: blue; }
+            100% { box-shadow: 0 0 10px red; border-color: red; }
+        }
+
+        #v2-btn {
+            animation: lights 2s infinite linear;
+            background: rgba(10, 30, 40, 0.9);
+            color: #fff;
+        }
+        
+        #v2-btn h3 {
+            text-shadow: 0 0 5px white;
+        }
+
+        .v-btn h3 { margin: 0; font-size: 1.5rem; }
+        .v-btn p { margin: 8px 0 0 0; font-family: 'Lato', sans-serif; font-size: 0.9rem; letter-spacing: 1px;}
+
+        /* Footer Info */
+        #footer-info {
+            margin-top: 50px;
+            color: #a0aec0;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        #play-count { color: #fbbf24; font-weight: bold; }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { text-shadow: 0 0 20px #fbbf24; }
+            50% { text-shadow: 0 0 40px #fbbf24, 0 0 80px #d97706; }
+            100% { text-shadow: 0 0 20px #fbbf24; }
+        }
+
+        /* Ending Screen */
+        #ending-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            z-index: 20;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            pointer-events: auto;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        #ending-title { font-family: 'Cinzel', serif; font-size: 3rem; color: #fbbf24; margin-bottom: 20px;}
+        #ending-desc { max-width: 600px; font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px;}
+
     </style>
+    <!-- Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body class="flex flex-col h-screen">
+<body>
+    <!-- Audio Elements (Placeholders) -->
+    <!-- Replace src with your actual audio files -->
+    <audio id="bgm-v1" loop>
+        <source src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Folk_Irish_Music.ogg" type="audio/ogg"> 
+    </audio>
+    <audio id="bgm-v2" loop>
+        <source src="https://upload.wikimedia.org/wikipedia/commons/5/5b/Winter_Wind.ogg" type="audio/ogg">
+    </audio>
 
-    <!-- Top Navigation (Desktop) -->
-    <nav class="h-14 bg-[#232527] border-b border-[#393b3d] flex items-center justify-between px-4 fixed w-full z-50 shadow-md">
-        <div class="flex items-center gap-6">
-            <h1 class="text-2xl font-extrabold cursor-pointer text-white tracking-tight hover:text-gray-300 transition" onclick="app.navigate('home')">Peyza</h1>
-            <ul class="hidden md:flex gap-6 text-base font-medium text-gray-400">
-                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('home')">Discover</li>
-                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('marketplace')">Marketplace</li>
-                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('devhub')">Create</li>
-                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('robux')">Robux</li>
-            </ul>
-        </div>
-        <div class="flex-1 max-w-xl mx-4 hidden md:block">
-            <div class="relative">
-                <input id="nav-search" type="text" placeholder="Search experiences..." class="w-full bg-[#1a1c1e] border border-[#393b3d] rounded-full py-2 px-4 text-sm text-white focus:outline-none focus:border-gray-500">
-                <i class="fas fa-search absolute right-4 top-2.5 text-gray-500 text-xs"></i>
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div id="hud">
+            <div class="stat-box">
+                <div class="stat"><span>❤</span> <span id="hp-val">100</span></div>
+                <div class="stat"><span>🪙</span> <span id="gold-val">0</span></div>
+                <div class="stat"><span>✨</span> <span id="karma-val">0</span></div>
+            </div>
+            <div class="stat-box">
+                <div id="location-name">Unknown Lands</div>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-1 bg-[#2b2d31] px-3 py-1 rounded-full cursor-pointer hover:bg-[#393b3d] transition border border-[#393b3d]" onclick="app.navigate('robux')">
-                <i class="fas fa-hexagon text-white text-xs"></i>
-                <span id="nav-robux" class="font-bold text-sm text-white">0</span>
-            </div>
-            <div class="flex items-center gap-2 cursor-pointer" onclick="app.navigate('profile')">
-                <div class="w-9 h-9 rounded-full bg-gray-600 overflow-hidden border border-[#393b3d]">
-                    <img id="nav-avatar-img" src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" alt="Avatar" class="w-full h-full object-cover">
-                </div>
-                <span id="nav-username" class="text-sm font-semibold text-white hidden sm:block">User</span>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Awards Countdown Banner -->
-    <div id="awards-banner" class="awards-banner hidden">
-        🏆 PEYZA GAMES AWARDS: <span id="awards-timer">10:00</span> LEFT! Reach 10M Total Visits to Win!
-    </div>
-
-    <!-- Sidebar (Desktop) -->
-    <aside class="sidebar fixed left-0 top-14 w-60 h-full bg-[#191b1d] border-r border-[#393b3d] pt-8 hidden lg:block z-40 overflow-y-auto">
-        <div class="flex flex-col gap-1 px-3">
-            <a onclick="app.navigate('home')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-home w-5"></i> Home</a>
-            <a onclick="app.navigate('profile')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-user w-5"></i> Profile</a>
-            <a onclick="app.navigate('messages')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white">
-                <i class="fas fa-comment-dots w-5"></i> Messages 
-                <span id="msg-badge" class="hidden bg-red-500 text-white text-[10px] px-1.5 rounded-full ml-auto">0</span>
-            </a>
-            <a onclick="app.navigate('groups')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-user-friends w-5"></i> Groups</a>
-            <a onclick="app.navigate('avatar')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-tshirt w-5"></i> Avatar</a>
-            <a onclick="app.navigate('inventory')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-box w-5"></i> Inventory</a>
+        <div id="title-screen">
+            <h1>PEYZA CHRONICLES</h1>
+            <h2>Choose Your Adventure</h2>
             
-            <div class="mt-4 border-t border-[#393b3d] pt-4 px-4">
-                <h3 class="text-xs font-bold text-gray-500 uppercase mb-2 tracking-wide">My Events</h3>
-                <a onclick="app.navigate('devhub')" class="py-2 hover:bg-[#2b2d31] rounded-lg px-2 -ml-2 cursor-pointer flex items-center gap-3 text-gray-300 font-semibold hover:text-white"><i class="fas fa-pencil-ruler w-5"></i> Developer Hub</a>
+            <div class="version-container">
+                <button id="v1-btn" class="v-btn">
+                    <h3>PEYZA V1</h3>
+                    <p>The Original Journey</p>
+                </button>
+                <button id="v2-btn" class="v-btn">
+                    <h3>PEYZA V2</h3>
+                    <p>Winter's Legacy</p>
+                </button>
+            </div>
+            
+            <div id="footer-info">
+                <span id="play-count">Total Plays: 3.2K</span>
+                <span>&copy; Peyza.org</span>
             </div>
         </div>
-    </aside>
 
-    <!-- Mobile Bottom Navigation -->
-    <div class="mobile-nav fixed bottom-0 w-full bg-[#232527] border-t border-[#393b3d] h-16 z-50 flex justify-around items-center px-2">
-        <div onclick="app.navigate('home')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
-            <i class="fas fa-home text-xl mb-1"></i>
-            <span class="text-[10px] font-bold">Home</span>
+        <div id="dialogue-container">
+            <div id="speaker-name">Narrator</div>
+            <div id="dialogue-text">...</div>
+            <div id="choices"></div>
         </div>
-        <div onclick="app.navigate('devhub')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
-            <i class="fas fa-gamepad text-xl mb-1"></i>
-            <span class="text-[10px] font-bold">Create</span>
-        </div>
-        <div onclick="app.navigate('profile')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
-            <div class="w-8 h-8 rounded-full overflow-hidden border border-gray-500 mb-1">
-                 <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full object-cover">
-            </div>
-        </div>
-        <div onclick="app.navigate('robux')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
-             <i class="fas fa-hexagon text-xl mb-1"></i>
-             <span class="text-[10px] font-bold">Robux</span>
+
+        <div id="ending-screen">
+            <div id="ending-title">ENDING UNLOCKED</div>
+            <div id="ending-desc"></div>
+            <button id="restart-btn" class="choice-btn" style="width: auto; padding: 10px 40px;">Return to Menu</button>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main id="main-content" class="lg:ml-60 mt-14 pt-10 p-4 md:p-8 flex-1 overflow-y-auto pb-24">
-        <!-- Dynamic Content Injected Here -->
-    </main>
-
-    <!-- 3D Game Overlay -->
-    <div id="game-view" class="relative">
-        <div class="absolute top-4 left-4 z-50 flex gap-4">
-             <button onclick="threeApp.stopGame()" class="bg-red-600 text-white px-4 py-2 rounded font-bold shadow-lg hover:bg-red-700">Leave Game</button>
-             <div class="bg-black bg-opacity-50 text-white px-4 py-2 rounded font-bold backdrop-blur-sm">
-                Playing: <span id="game-playing-name">Game</span>
-             </div>
-        </div>
-        <div class="absolute bottom-10 left-10 z-50 text-white pointer-events-none select-none">
-            <p class="text-2xl font-bold mb-1">Controls</p>
-            <p class="text-sm opacity-80">Click/Drag to look around</p>
-            <p class="text-sm opacity-80">You earn +1 visit/sec while here</p>
-        </div>
-        <canvas id="game-canvas" class="w-full h-full block"></canvas>
-    </div>
-
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed bottom-20 md:bottom-5 right-5 flex flex-col gap-2 z-[60]"></div>
-
-    <script>
-        // --- Persistence Helpers ---
-        const storage = {
-            save: () => {
-                const data = {
-                    state: appState,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem('peyza_save_v8', JSON.stringify(data));
-            },
-            load: () => {
-                const data = localStorage.getItem('peyza_save_v8');
-                if (data) return JSON.parse(data);
-                return null;
-            }
-        };
-
-        // --- Data Generators ---
-        const generateDemoGames = () => {
-            const adjectives = ["Super", "Mega", "Ultimate", "Royal", "Dark", "Crazy", "Happy", "Speed", "Ninja", "Pixel", "Blox", "Build", "Escape"];
-            const nouns = ["City", "Tycoon", "Simulator", "Obby", "Wars", "Survival", "Life", "World", "Tower", "Legends", "Mystery", "School", "Island"];
-            const bots = ["Builderman", "Roblox", "NoobMaster", "ProGamer", "DevKing", "ScriptNinja", "PolyHex", "BlockSmith", "PixelArt"];
-            
-            const games = [];
-            for (let i = 0; i < 40; i++) {
-                const seed = Math.floor(Math.random() * 10000);
-                games.push({
-                    id: `demo_${i}`,
-                    name: `${adjectives[Math.floor(Math.random()*adjectives.length)]} ${nouns[Math.floor(Math.random()*nouns.length)]}`,
-                    description: "Experience the thrill in this amazing world! Play with friends, unlock items, and explore vast landscapes.",
-                    visits: Math.floor(Math.random() * 5000000) + 10000,
-                    active: Math.floor(Math.random() * 15000) + 50,
-                    favorites: Math.floor(Math.random() * 100000),
-                    likes: Math.floor(Math.random() * 50000),
-                    dislikes: Math.floor(Math.random() * 5000),
-                    created: "1/12/2024",
-                    genre: ["Adventure", "Tycoon", "Simulator", "Obby"][Math.floor(Math.random()*4)],
-                    icon: `https://picsum.photos/seed/${seed}/300/300`,
-                    thumbnail: `https://picsum.photos/seed/${seed}/768/432`,
-                    creatorName: bots[Math.floor(Math.random()*bots.length)],
-                    isDemo: true,
-                    gamepasses: [],
-                    events: []
-                });
-            }
-            return games;
-        };
-
-        // --- Game State & Data ---
-        const initialGame = {
-            id: 'game_1',
-            name: "Mega Fun Obby!",
-            description: "Welcome to the most fun obstacle course on Peyza! Can you beat all 100 stages? Updates every Friday!",
-            visits: 15420,
-            active: 42,
-            favorites: 1200,
-            likes: 450,
-            dislikes: 12,
-            created: new Date().toLocaleDateString(),
-            genre: "Adventure",
-            icon: "https://picsum.photos/seed/icon1/300/300",
-            thumbnail: "https://picsum.photos/seed/thumb1/768/432",
-            creatorName: "PeyzaDev_2025",
-            ownerId: 'user', // 'user' or groupID
-            isDemo: false,
-            gamepasses: [
-                { id: 'gp_1', name: "Speed Coil", price: 99, sales: 12, image: "https://via.placeholder.com/150" }
-            ],
-            events: [] 
-        };
-
-        const defaultState = {
-            view: 'home',
-            user: {
-                username: "PeyzaDev_2025",
-                followers: 0,
-                robux: 450,
-                usd: 0.00,
-                status: "Developing the next big hit!",
-                joinDate: "2/14/2021",
-                usedFreeSponsor: false,
-                avatarColor: '#1e1e1e',
-                pfp: "https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png",
-                hasCreatorAward: false
-            },
-            groups: [],
-            messages: [
-                { id: 1, from: "Builderman", subject: "Welcome to Peyza!", body: "Welcome to the future of imagination. Start building today!", read: false },
-                { id: 2, from: "System", subject: "Premium Payout", body: "You earned 45 Robux from Premium Payouts yesterday.", read: true }
-            ],
-            games: [initialGame],
-            demoGames: [],
-            currentGameId: null,
-            currentGroupId: null,
-            eventsLog: [],
-            searchTerm: "",
-            inventory: [],
-            awardsEndTime: Date.now() + 600000 // 10 mins from start
-        };
-
-        let appState = defaultState;
-
-        // --- Core Application Logic ---
-
-        const app = {
-            init: () => {
-                const saved = storage.load();
-                if (saved) {
-                    appState = saved.state;
-                    // Migrations/Defaults
-                    if (!appState.groups) appState.groups = [];
-                    if (!appState.messages) appState.messages = defaultState.messages;
-                    if (!appState.user.pfp) appState.user.pfp = defaultState.user.pfp;
-                    if (!appState.awardsEndTime || appState.awardsEndTime < Date.now()) appState.awardsEndTime = Date.now() + 600000;
-                    
-                    appState.games.forEach(g => { if(!g.events) g.events = []; });
-                    appState.groups.forEach(g => { if(!g.announcements) g.announcements = []; });
-
-                    if (!appState.demoGames || appState.demoGames.length === 0) appState.demoGames = generateDemoGames();
-                    app.calculateOfflineProgress(saved.timestamp);
-                } else {
-                    appState.demoGames = generateDemoGames();
-                }
-                
-                app.startSimulation();
-                app.render();
-                app.updateHeader();
-
-                // Listeners
-                document.getElementById('nav-search').addEventListener('input', (e) => {
-                    appState.searchTerm = e.target.value.toLowerCase();
-                    if(appState.view === 'home') app.render(); 
-                });
-                
-                // Auto-save
-                setInterval(storage.save, 5000);
-                window.addEventListener('beforeunload', storage.save);
-            },
-
-            calculateOfflineProgress: (lastTime) => {
-                const now = Date.now();
-                const diffSeconds = (now - lastTime) / 1000;
-                
-                if (diffSeconds > 10) {
-                    let totalVisits = 0;
-                    let totalMembersGained = 0;
-
-                    appState.games.forEach(game => {
-                        const oldActive = game.active;
-                        const decay = Math.pow(0.999, diffSeconds); 
-                        game.active = Math.floor(game.active * decay);
-                        
-                        // Offline visits (Active + Follower traffic)
-                        const followerTraffic = Math.floor(appState.user.followers * 0.002); 
-                        
-                        const avgActive = (oldActive + game.active) / 2;
-                        let offlineVisits = Math.floor((avgActive + followerTraffic) * 0.5 * diffSeconds);
-                        
-                        if (game.ownerId !== 'user') {
-                            const group = appState.groups.find(g => g.id === game.ownerId);
-                            if (group) {
-                                const memberVisits = Math.floor(group.members * (0.015 * diffSeconds)); 
-                                offlineVisits += memberVisits;
-                                // Offline Group Growth
-                                const newMembers = Math.floor(offlineVisits / 10);
-                                group.members += newMembers;
-                                totalMembersGained += newMembers;
-                            }
-                        }
-
-                        game.visits += offlineVisits;
-                        totalVisits += offlineVisits;
-
-                        if (offlineVisits > 0 && !game.isDemo) {
-                            appState.user.followers += Math.floor(offlineVisits / 100);
-                            appState.user.robux += Math.floor(offlineVisits / 20); // Passive income
-                        }
-                    });
-                    
-                    if (totalVisits > 0) {
-                        setTimeout(() => {
-                            let msg = `Welcome back! +${app.formatNumber(totalVisits)} Visits`;
-                            if(totalMembersGained > 0) msg += `, +${totalMembersGained} Group Members`;
-                            app.showToast(msg);
-                        }, 1000);
-                    }
-                }
-            },
-
-            navigate: (page, param = null) => {
-                appState.view = page;
-                if (page === 'game') appState.currentGameId = param;
-                if (page === 'group_details') appState.currentGroupId = param;
-                window.scrollTo(0,0);
-                app.render();
-            },
-
-            startSimulation: () => {
-                setInterval(() => {
-                    const allGames = [...appState.games, ...appState.demoGames];
-                    let unreadMsg = appState.messages.filter(m => !m.read).length;
-                    const badge = document.getElementById('msg-badge');
-                    if(badge) {
-                        badge.innerText = unreadMsg;
-                        badge.style.display = unreadMsg > 0 ? 'inline-block' : 'none';
-                    }
-
-                    // Awards Logic
-                    const timeLeft = appState.awardsEndTime - Date.now();
-                    const timerEl = document.getElementById('awards-timer');
-                    const bannerEl = document.getElementById('awards-banner');
-                    
-                    if(timeLeft > 0) {
-                        if(bannerEl) bannerEl.classList.remove('hidden');
-                        const mins = Math.floor(timeLeft / 60000);
-                        const secs = Math.floor((timeLeft % 60000) / 1000);
-                        if(timerEl) timerEl.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
-                    } else {
-                        // Check for win condition
-                        const totalVisits = appState.games.reduce((acc, g) => acc + g.visits, 0);
-                        if(totalVisits >= 10000000) { // 10M
-                             if(!appState.user.hasCreatorAward) {
-                                 appState.user.hasCreatorAward = true;
-                                 const earnedFollowers = Math.floor(Math.random() * 6000000) + 1000000; // 1-7M
-                                 const earnedMembers = Math.floor(Math.random() * 9000000) + 6000000; // 6-15M
-                                 
-                                 appState.user.followers += earnedFollowers;
-                                 if(appState.groups.length > 0) {
-                                     appState.groups[0].members += earnedMembers;
-                                 }
-                                 
-                                 app.showToast(`🏆 AWARD WON! +${app.formatNumber(earnedFollowers)} Followers!`, "info");
-                                 app.postMessage("System", "Peyza Awards Winner!", "Congratulations! You won the Creator Award. Your fame has skyrocketed!");
-                             }
-                        }
-                        // Reset timer for next day
-                        appState.awardsEndTime = Date.now() + 86400000; // 24 hours
-                        if(bannerEl) bannerEl.classList.add('hidden');
-                    }
-
-                    allGames.forEach(game => {
-                        // 1. Natural Fluctuation
-                        const drift = (Math.random() - 0.49) * 2; 
-                        
-                        // 2. Active Players Logic (Follower + Group Floor)
-                        const followerFloor = Math.floor(appState.user.followers / 200);
-                        let groupFloor = 0;
-                        if (game.ownerId !== 'user') {
-                            const group = appState.groups.find(g => g.id === game.ownerId);
-                            if (group) {
-                                groupFloor = Math.floor(group.members / 500);
-                                // Turbo Group Growth from active game
-                                const potentialMembers = Math.ceil(game.active * 0.2); // 20% conversion per tick is huge
-                                if(potentialMembers > 0) group.members += potentialMembers;
-                            }
-                        }
-
-                        const totalFloor = followerFloor + groupFloor;
-
-                        if (game.active < totalFloor) {
-                             game.active += Math.ceil((totalFloor - game.active) * 0.1) + 1;
-                        } else if (game.active === 0) {
-                             if(Math.random() < 0.001) game.active = Math.floor(Math.random() * 20); 
-                        } else {
-                            const maxChange = Math.max(1, game.active * 0.03); 
-                            const actualChange = drift * maxChange;
-                            game.active = Math.floor(Math.max(0, game.active + actualChange));
-                        }
-                        
-                        // 3. Visits
-                        const newVisits = Math.ceil(game.active * 0.5);
-                        game.visits += newVisits;
-
-                        // 4. SUPERCHARGED Stats Growth 
-                        if (newVisits > 0) {
-                            // Way more likes: ~1 like per 10 visits
-                            if (Math.random() < 0.15) game.likes++;
-                            // Dislikes
-                            if (Math.random() < 0.02) game.dislikes++;
-                            // Favorites
-                            if (Math.random() < 0.05) game.favorites++;
-                        }
-
-                        // 5. Followers from Visits
-                        if (!game.isDemo && newVisits > 0) { 
-                             const gained = Math.floor(newVisits / 40); // 1 per 40 visits
-                             if(gained > 0) appState.user.followers += gained;
-                        }
-
-                        // 6. Events
-                        if (game.events && game.events.length > 0) {
-                            game.events.forEach(ev => {
-                                if(Math.random() < 0.05) {
-                                    ev.interested += Math.floor(Math.random() * 5) + 1;
-                                    if(game.ownerId !== 'user') {
-                                        const grp = appState.groups.find(g => g.id === game.ownerId);
-                                        if(grp) grp.members += 25; 
-                                    }
-                                }
-                            });
-                        }
-
-                        // 7. Visits -> Robux (Boosted)
-                        // 1 Robux per ~10 visits
-                        if (!game.isDemo && newVisits > 0) {
-                            const robuxGain = Math.floor(newVisits / 10);
-                            if(robuxGain > 0) appState.user.robux += robuxGain;
-                        }
-
-                        // LIVE DOM UPDATE
-                        const activeEl = document.getElementById(`live-active-${game.id}`);
-                        if (activeEl) activeEl.innerText = app.formatNumber(game.active);
-                        const visitEl = document.getElementById(`live-visits-${game.id}`);
-                        if (visitEl) visitEl.innerText = `${app.formatNumber(game.visits)} Visits`;
-                    });
-
-                    appState.groups.forEach(group => {
-                        if(Math.random() < 0.01) group.members++;
-                    });
-
-                    app.updateHeader();
-                }, 1000);
-            },
-
-            // Actions
-            createGame: (name, genre, description, ownerId, iconFile, thumbFile) => {
-                const isGroup = ownerId !== 'user';
-                let creatorName = appState.user.username;
-                if(isGroup) {
-                    const g = appState.groups.find(gr => gr.id === ownerId);
-                    if(g) creatorName = g.name;
-                }
-
-                const seed = name.replace(/\s/g, '') + Date.now(); 
-
-                const newGame = {
-                    id: `game_${Date.now()}`,
-                    name: name || "Untitled Game",
-                    description: description || "No description provided.",
-                    genre: genre,
-                    visits: 0,
-                    active: 0,
-                    favorites: 0,
-                    likes: 0,
-                    dislikes: 0,
-                    created: new Date().toLocaleDateString(),
-                    icon: iconFile ? URL.createObjectURL(iconFile) : `https://picsum.photos/seed/${seed}/300/300`,
-                    thumbnail: thumbFile ? URL.createObjectURL(thumbFile) : `https://picsum.photos/seed/${seed}_thumb/768/432`,
-                    creatorName: creatorName,
-                    ownerId: ownerId,
-                    isDemo: false,
-                    gamepasses: [],
-                    events: []
-                };
-                appState.games.push(newGame);
-                app.showToast("Game Created Successfully!");
-                if(isGroup) app.navigate('group_details', ownerId);
-                else app.navigate('devhub');
-            },
-
-            createEvent: (gameId, title, desc) => {
-                const game = appState.games.find(g => g.id === gameId);
-                if(game) {
-                    if(!game.events) game.events = [];
-                    game.events.unshift({
-                        id: Date.now(),
-                        title,
-                        description: desc,
-                        interested: 1,
-                        date: new Date().toLocaleDateString()
-                    });
-                    game.active += 100; 
-                    app.showToast("Event Published!");
-                    app.render();
-                }
-            },
-
-            createGroup: (name, desc) => {
-                if(appState.user.robux < 100) {
-                    app.showToast("Need 100 Robux to create a group!", "error");
-                    return;
-                }
-                appState.user.robux -= 100;
-                const newGroup = {
-                    id: `group_${Date.now()}`,
-                    name: name,
-                    description: desc,
-                    members: 1,
-                    icon: `https://picsum.photos/seed/${name}/150/150`,
-                    announcements: []
-                };
-                appState.groups.push(newGroup);
-                app.showToast(`Group "${name}" created!`);
-                app.navigate('groups');
-            },
-
-            postAnnouncement: (groupId, text) => {
-                const group = appState.groups.find(g => g.id === groupId);
-                if(group && text.trim().length > 0) {
-                    group.announcements.unshift({
-                        id: Date.now(),
-                        text: text,
-                        author: appState.user.username,
-                        timestamp: Date.now(),
-                        likes: 0,
-                        comments: []
-                    });
-                    app.showToast("Announcement Posted!");
-                    app.render();
-                }
-            },
-
-            shoutoutGame: (gameId) => {
-                const game = appState.games.find(g => g.id === gameId);
-                if(game) {
-                    game.active += 1000; 
-                    app.showToast(`Shouted out ${game.name}!`);
-                    app.render();
-                }
-            },
-
-            updateProfile: (newName, newPfp) => {
-                if(newName) appState.user.username = newName;
-                if(newPfp) appState.user.pfp = newPfp;
-                app.showToast("Profile Updated!");
-                // Force update nav
-                document.getElementById('nav-avatar-img').src = appState.user.pfp;
-                document.getElementById('nav-username').innerText = appState.user.username;
-                app.render();
-            },
-
-            postMessage: (from, subject, body) => {
-                appState.messages.unshift({
-                    id: Date.now(),
-                    from,
-                    subject,
-                    body,
-                    read: false
-                });
-            },
-
-            createGamepass: (gameId, name, price) => {
-                const game = appState.games.find(g => g.id === gameId);
-                if (game) {
-                    game.gamepasses.push({
-                        id: `gp_${Date.now()}`,
-                        name: name,
-                        price: parseInt(price),
-                        sales: 0,
-                        image: "https://via.placeholder.com/150"
-                    });
-                    app.showToast("Gamepass Created!");
-                    app.render(); 
-                }
-            },
-
-            buyGamepass: (gameId, gpId) => {
-                const allGames = [...appState.games, ...appState.demoGames];
-                const game = allGames.find(g => g.id === gameId);
-                if(!game) return;
-                const gp = game.gamepasses.find(p => p.id === gpId);
-                
-                if (appState.user.robux >= gp.price) {
-                    appState.user.robux -= gp.price;
-                    gp.sales++;
-                    if (!game.isDemo) {
-                        const revenue = Math.floor(gp.price * 0.7);
-                        appState.user.robux += revenue; 
-                        app.showToast(`Sale! +${revenue} R$ from ${gp.name}`);
-                    } else {
-                        app.showToast(`Bought ${gp.name}!`);
-                    }
-                    app.updateHeader();
-                    app.render(); 
-                } else {
-                    app.showToast("Not enough Robux!", "error");
-                }
-            },
-            
-            runAd: (gameId, type) => {
-                const game = appState.games.find(g => g.id === gameId);
-                
-                if (type === 'free') {
-                    if (appState.user.usedFreeSponsor) {
-                        app.showToast("You already used your One-Time Free Sponsor!", "error");
-                        return;
-                    }
-                    appState.user.usedFreeSponsor = true;
-                    game.active += 10000; 
-                    game.visits += 50000;
-                    app.showToast(`MEGA SPONSOR ACTIVE! ${game.name} is blowing up!`);
-                    app.updateHeader();
-                    return;
-                }
-
-                if (appState.user.robux >= 50) {
-                    appState.user.robux -= 50;
-                    game.active += Math.floor(Math.random() * 100) + 50; 
-                    app.showToast(`Ad Campaign Started for ${game.name}!`);
-                    app.updateHeader();
-                } else {
-                    app.showToast("Need 50 R$ to run ad", "error");
-                }
-            },
-
-            convertRobux: (amount) => {
-                const rate = 0.0035; 
-                if (appState.user.robux >= amount && amount > 0) {
-                    appState.user.robux -= amount;
-                    appState.user.usd += (amount * rate);
-                    app.showToast(`Cashed out ${amount} R$ for $${(amount*rate).toFixed(2)} USD`);
-                    app.render();
-                    app.updateHeader();
-                }
-            },
-
-            launchGame3D: (gameId) => {
-                const allGames = [...appState.games, ...appState.demoGames];
-                const game = allGames.find(g => g.id === gameId);
-                if(!game) return;
-                
-                document.getElementById('game-view').style.display = 'block';
-                document.getElementById('game-playing-name').innerText = game.name;
-                threeApp.init(gameId);
-            },
-
-            markMessageRead: (id) => {
-                const msg = appState.messages.find(m => m.id === id);
-                if(msg) {
-                    msg.read = true;
-                    app.render();
-                }
-            },
-
-            changeAvatarColor: (color) => {
-                appState.user.avatarColor = color;
-                app.showToast("Avatar Updated!");
-                app.render();
-            },
-
-            formatNumber: (num) => {
-                if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B+';
-                if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M+';
-                if (num >= 1000) return (num / 1000).toFixed(1) + 'K+';
-                return Math.floor(num).toString();
-            },
-
-            showToast: (msg, type = 'success') => {
-                const container = document.getElementById('toast-container');
-                const toast = document.createElement('div');
-                let colorClass = 'bg-[#00b06f]';
-                if (type === 'error') colorClass = 'bg-red-500';
-                if (type === 'info') colorClass = 'bg-yellow-600';
-                
-                toast.className = `px-4 py-3 rounded-lg shadow-xl text-white text-sm font-bold animate-bounce ${colorClass} flex items-center gap-2 border border-white/10`;
-                toast.innerHTML = msg;
-                container.appendChild(toast);
-                setTimeout(() => toast.remove(), 4000);
-            },
-
-            updateHeader: () => {
-                const rbEl = document.getElementById('nav-robux');
-                if(rbEl) rbEl.innerText = app.formatNumber(appState.user.robux);
-                const userEl = document.getElementById('nav-username');
-                if(userEl) userEl.innerText = appState.user.username;
-                const imgEl = document.getElementById('nav-avatar-img');
-                if(imgEl) imgEl.src = appState.user.pfp;
-            },
-
-            // --- Renderers ---
-            
-            render: (fullRender = true) => {
-                const container = document.getElementById('main-content');
-                if(document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-
-                let html = '';
-
-                switch(appState.view) {
-                    case 'home': html = app.views.home(); break;
-                    case 'profile': html = app.views.profile(); break;
-                    case 'devhub': html = app.views.devhub(); break;
-                    case 'game': html = app.views.game(appState.currentGameId); break;
-                    case 'robux': html = app.views.robux(); break;
-                    case 'messages': html = app.views.messages(); break;
-                    case 'groups': html = app.views.groups(); break;
-                    case 'group_details': html = app.views.group_details(appState.currentGroupId); break;
-                    case 'avatar': html = app.views.avatar(); break;
-                    case 'marketplace': html = app.views.marketplace(); break;
-                    case 'inventory': html = `<div class="text-center text-gray-500 mt-10">Inventory Empty</div>`; break;
-                }
-                container.innerHTML = html;
-            },
-
-            views: {
-                home: () => {
-                    const allGames = [...appState.games, ...appState.demoGames];
-                    const filtered = allGames.filter(g => g.name.toLowerCase().includes(appState.searchTerm));
-
-                    return `
-                        <div class="max-w-7xl mx-auto">
-                            <h2 class="text-3xl font-bold mb-6 text-white">Home</h2>
-                            
-                            <h3 class="text-xl font-bold mb-4 text-white">Recommended for You</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                ${filtered.length > 0 ? filtered.map(game => `
-                                    <div class="cursor-pointer group" onclick="app.navigate('game', '${game.id}')">
-                                        <div class="aspect-square rounded-xl overflow-hidden relative mb-2 shadow-sm bg-[#2b2d31]">
-                                            <img src="${game.icon}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100" loading="lazy">
-                                        </div>
-                                        <h4 class="font-bold text-white text-base truncate group-hover:underline">${game.name}</h4>
-                                        <div class="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                                            <i class="fas fa-thumbs-up text-[10px]"></i> ${(game.likes / (game.likes + game.dislikes || 1) * 100).toFixed(0)}%
-                                            <span class="ml-2 flex items-center gap-1">
-                                                <i class="fas fa-user text-[10px]"></i> 
-                                                <span id="live-active-${game.id}">${app.formatNumber(game.active)}</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                `).join('') : '<div class="col-span-full text-center text-gray-500 py-10">No games found.</div>'}
-                            </div>
-                        </div>
-                    `;
-                },
-
-                group_details: (groupId) => {
-                    const group = appState.groups.find(g => g.id === groupId);
-                    if(!group) return "Group Not Found";
-                    
-                    const groupGames = appState.games.filter(g => g.ownerId === groupId);
-                    const isVerified = appState.user.followers >= 100000;
-
-                    return `
-                        <div class="max-w-5xl mx-auto">
-                            <div class="rbx-card p-6 mb-6">
-                                <div class="flex gap-6 items-center">
-                                    <div class="w-32 h-32 bg-black rounded-lg overflow-hidden border border-[#393b3d]">
-                                        <img src="${group.icon}" class="w-full h-full object-cover">
-                                    </div>
-                                    <div class="flex-1">
-                                        <h2 class="text-3xl font-bold text-white mb-2">${group.name}</h2>
-                                        <div class="text-sm text-gray-400 mb-2">Owned by <span class="text-white font-bold">${appState.user.username} ${isVerified ? '<span class="verified-badge w-4 h-4 text-[10px]"><i class="fas fa-check"></i></span>' : ''} ${appState.user.hasCreatorAward ? '<span class="creator-badge w-4 h-4 text-[10px]"><i class="fas fa-crown"></i></span>' : ''}</span></div>
-                                        <div class="text-gray-400 mb-2">${group.description}</div>
-                                        <div class="text-sm text-gray-500">${app.formatNumber(group.members)} Members</div>
-                                        <div class="mt-4 flex gap-3">
-                                            <button onclick="document.getElementById('create-modal').classList.remove('hidden')" class="bg-[#00b06f] hover:bg-[#009960] text-white px-4 py-1.5 rounded font-bold text-sm">Create Experience</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="md:col-span-2 space-y-6">
-                                    <div class="rbx-card p-4">
-                                        <h3 class="font-bold text-lg mb-3">Shout</h3>
-                                        <div class="flex gap-2">
-                                            <input id="shout-input" type="text" placeholder="Enter shout..." class="flex-1 rbx-input p-2 text-sm">
-                                            <button onclick="app.postAnnouncement('${group.id}', document.getElementById('shout-input').value); document.getElementById('shout-input').value=''" class="bg-[#393b3d] hover:bg-[#45484d] text-white px-4 py-1 rounded font-bold text-sm">Post</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="space-y-4">
-                                        ${group.announcements && group.announcements.length > 0 ? group.announcements.map(ann => `
-                                            <div class="rbx-card p-4">
-                                                <div class="flex items-center gap-3 mb-2">
-                                                    <div class="w-8 h-8 bg-gray-600 rounded-full overflow-hidden">
-                                                        <img src="${appState.user.pfp}" class="w-full h-full object-cover">
-                                                    </div>
-                                                    <div>
-                                                        <div class="font-bold text-sm text-blue-400 hover:underline cursor-pointer">${ann.author} ${isVerified ? '<span class="verified-badge w-3 h-3 text-[8px]"><i class="fas fa-check"></i></span>' : ''}</div>
-                                                        <div class="text-xs text-gray-500">${new Date(ann.timestamp).toLocaleTimeString()}</div>
-                                                    </div>
-                                                </div>
-                                                <div class="text-gray-300 text-sm mb-3 pl-11">
-                                                    ${ann.text}
-                                                </div>
-                                                <div class="flex gap-4 pl-11 text-xs text-gray-500">
-                                                    <span><i class="fas fa-heart mr-1"></i> ${ann.likes} Likes</span>
-                                                    <span>${ann.comments.length} Comments</span>
-                                                </div>
-                                                ${ann.comments.length > 0 ? `
-                                                    <div class="mt-3 pl-11 space-y-2 border-t border-[#393b3d] pt-2">
-                                                        ${ann.comments.slice(-3).map(c => `
-                                                            <div class="text-xs text-gray-400"><span class="font-bold text-white">${c.user}:</span> ${c.text}</div>
-                                                        `).join('')}
-                                                    </div>
-                                                ` : ''}
-                                            </div>
-                                        `).join('') : '<div class="text-center text-gray-500 py-4">No shouts yet.</div>'}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 class="font-bold text-lg mb-3">Experiences</h3>
-                                    <div class="space-y-3">
-                                        ${groupGames.length > 0 ? groupGames.map(g => `
-                                            <div class="rbx-card p-2">
-                                                <div class="flex gap-3 cursor-pointer hover:bg-[#323438] p-1 rounded" onclick="app.navigate('game', '${g.id}')">
-                                                    <div class="w-16 h-16 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0">
-                                                        <img src="${g.icon}" class="w-full h-full object-cover">
-                                                    </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <div class="font-bold text-sm truncate">${g.name}</div>
-                                                        <div class="text-xs text-green-400">${app.formatNumber(g.active)} Active</div>
-                                                    </div>
-                                                </div>
-                                                <button class="w-full mt-2 bg-[#393b3d] text-white text-xs font-bold py-1 rounded hover:bg-white hover:text-black transition" onclick="app.shoutoutGame('${g.id}')">Shoutout</button>
-                                            </div>
-                                        `).join('') : '<div class="text-gray-500 text-sm">No games yet.</div>'}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Create Game Modal Reused but pre-filled -->
-                        <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31] shadow-2xl">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
-                                <h3 class="text-2xl font-bold mb-6 text-white">Create Group Experience</h3>
-                                <div class="space-y-4">
-                                    <input id="new-game-name" type="text" placeholder="Experience Name" class="w-full rbx-input p-3">
-                                    <textarea id="new-game-desc" placeholder="Description" class="w-full rbx-input p-3 h-24"></textarea>
-                                    <input type="hidden" id="new-game-owner" value="${groupId}">
-                                    <select id="new-game-genre" class="w-full rbx-input p-3">
-                                        <option>Adventure</option>
-                                        <option>Fighting</option>
-                                        <option>Obby</option>
-                                        <option>Tycoon</option>
-                                        <option>Simulator</option>
-                                    </select>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Icon (Optional)</label>
-                                        <input id="new-game-icon" type="file" accept="image/*" class="w-full text-sm text-gray-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Thumbnail (Optional)</label>
-                                        <input id="new-game-thumb" type="file" accept="image/*" class="w-full text-sm text-gray-500">
-                                    </div>
-                                    <button onclick="app.createGame(document.getElementById('new-game-name').value, document.getElementById('new-game-genre').value, document.getElementById('new-game-desc').value, document.getElementById('new-game-owner').value, document.getElementById('new-game-icon').files[0], document.getElementById('new-game-thumb').files[0]); document.getElementById('create-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960] transition shadow-md">Create Experience</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-
-                profile: () => {
-                    const isVerified = appState.user.followers >= 100000;
-                    const totalVisits = appState.games.reduce((acc, g) => acc + g.visits, 0);
-                    
-                    return `
-                        <div class="max-w-5xl mx-auto rbx-card p-6 md:p-8 relative bg-[#2b2d31]">
-                            <button onclick="document.getElementById('edit-profile-modal').classList.remove('hidden')" class="absolute top-6 right-6 text-gray-400 hover:text-white"><i class="fas fa-cog text-xl"></i></button>
-                            
-                            <div class="flex flex-col md:flex-row gap-8 items-center md:items-start border-b border-[#393b3d] pb-8">
-                                <div class="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-[#393b3d] bg-gray-600">
-                                     <img src="${appState.user.pfp}" class="w-full h-full object-cover">
-                                </div>
-                                <div class="flex-1 text-center md:text-left">
-                                    <h2 class="text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2 text-white">
-                                        ${appState.user.username} 
-                                        ${isVerified ? '<span class="verified-badge w-6 h-6 text-sm" title="Verified Creator"><i class="fas fa-check"></i></span>' : ''}
-                                        ${appState.user.hasCreatorAward ? '<span class="creator-badge w-6 h-6 text-sm" title="Peyza Creator Award"><i class="fas fa-crown"></i></span>' : ''}
-                                    </h2>
-                                    <p class="text-gray-400 mt-1 italic">"${appState.user.status}"</p>
-                                    
-                                    <div class="flex gap-8 mt-6 justify-center md:justify-start text-sm">
-                                        <div class="text-center md:text-left">
-                                            <div class="font-bold text-xl text-white">${app.formatNumber(appState.user.followers)}</div>
-                                            <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Followers</div>
-                                        </div>
-                                        <div class="text-center md:text-left">
-                                            <div class="font-bold text-xl text-white">${app.formatNumber(totalVisits)}</div>
-                                            <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Total Visits</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-8">
-                                <h3 class="text-xl font-bold mb-6 text-white">Creations</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                     ${appState.games.map(game => `
-                                    <div class="cursor-pointer group" onclick="app.navigate('game', '${game.id}')">
-                                        <div class="aspect-square rounded-xl overflow-hidden mb-3 border border-[#393b3d] shadow-sm relative">
-                                            <img src="${game.icon}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
-                                        </div>
-                                        <h4 class="font-bold text-white text-base truncate group-hover:underline">${game.name}</h4>
-                                        <div class="text-xs text-gray-500 mt-1" id="live-visits-${game.id}">
-                                            ${app.formatNumber(game.visits)} Visits
-                                        </div>
-                                    </div>
-                                `).join('')}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Edit Profile Modal -->
-                        <div id="edit-profile-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('edit-profile-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
-                                <h3 class="text-xl font-bold mb-4 text-white">Edit Profile</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-1">Username</label>
-                                        <input id="edit-username" type="text" value="${appState.user.username}" class="w-full rbx-input p-2">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-1">Profile Picture URL</label>
-                                        <input id="edit-pfp" type="text" value="${appState.user.pfp}" class="w-full rbx-input p-2">
-                                        <div class="text-[10px] text-gray-500 mt-1">Paste a direct image link (png/jpg)</div>
-                                    </div>
-                                    <button onclick="app.updateProfile(document.getElementById('edit-username').value, document.getElementById('edit-pfp').value); document.getElementById('edit-profile-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-2 rounded font-bold text-white hover:bg-[#009960]">Save Changes</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-                
-                // ... (Messages, Groups, Marketplace, Avatar, Game, DevHub, Robux - same structure as previous) ...
-                
-                messages: () => {
-                     return `
-                        <div class="max-w-4xl mx-auto rbx-card p-0 overflow-hidden">
-                            <h2 class="text-2xl font-bold p-6 bg-[#2b2d31] border-b border-[#393b3d]">Messages</h2>
-                            <div class="divide-y divide-[#393b3d]">
-                                ${appState.messages.length === 0 ? '<div class="p-6 text-center text-gray-500">No messages</div>' : ''}
-                                ${appState.messages.map(msg => `
-                                    <div class="p-4 hover:bg-[#323438] cursor-pointer transition flex gap-4 ${msg.read ? 'opacity-60' : 'bg-[#2b2d31] border-l-4 border-blue-500'}" onclick="app.markMessageRead(${msg.id})">
-                                        <div class="w-12 h-12 bg-gray-600 rounded-full flex-shrink-0 overflow-hidden">
-                                            <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full">
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between">
-                                                <span class="font-bold text-white">${msg.subject}</span>
-                                                <span class="text-xs text-gray-500">Yesterday</span>
-                                            </div>
-                                            <div class="text-sm text-gray-400">From: ${msg.from}</div>
-                                            <div class="text-sm text-gray-300 mt-1">${msg.body}</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                },
-                groups: () => {
-                    return `
-                        <div class="max-w-4xl mx-auto">
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="text-3xl font-bold text-white">My Groups</h2>
-                                <button onclick="document.getElementById('create-group-modal').classList.remove('hidden')" class="bg-[#00b06f] text-white px-4 py-2 rounded font-bold hover:bg-[#009960]">Create Group (100 R$)</button>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                ${appState.groups.length === 0 ? '<div class="col-span-full text-center py-10 text-gray-500">You are not in any groups.</div>' : ''}
-                                ${appState.groups.map(group => `
-                                    <div class="rbx-card p-4 flex gap-4 items-center cursor-pointer hover:bg-[#323438]" onclick="app.navigate('group_details', '${group.id}')">
-                                        <div class="w-20 h-20 bg-gray-700 rounded-lg overflow-hidden">
-                                            <img src="${group.icon}" class="w-full h-full object-cover">
-                                        </div>
-                                        <div class="flex-1">
-                                            <h3 class="font-bold text-xl text-white">${group.name}</h3>
-                                            <div class="text-sm text-gray-400">${app.formatNumber(group.members)} Members</div>
-                                            <div class="text-xs text-gray-500 mt-1">${group.description}</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <!-- Create Group Modal -->
-                        <div id="create-group-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-group-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
-                                <h3 class="text-xl font-bold mb-4 text-white">Create New Group</h3>
-                                <input id="new-group-name" type="text" placeholder="Group Name" class="w-full rbx-input p-3 mb-3">
-                                <textarea id="new-group-desc" placeholder="Description" class="w-full rbx-input p-3 mb-3 h-24"></textarea>
-                                <button onclick="app.createGroup(document.getElementById('new-group-name').value, document.getElementById('new-group-desc').value); document.getElementById('create-group-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded font-bold text-white hover:bg-[#009960]">Purchase (100 R$)</button>
-                            </div>
-                        </div>
-                    `;
-                },
-                marketplace: () => {
-                     return `
-                         <div class="max-w-6xl mx-auto">
-                            <h2 class="text-3xl font-bold mb-6 text-white">Marketplace</h2>
-                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                ${[...Array(12)].map((_, i) => `
-                                    <div class="rbx-card p-2 cursor-pointer hover:bg-[#323438] transition">
-                                        <div class="aspect-square bg-gray-700 rounded-lg mb-2 overflow-hidden">
-                                             <img src="https://picsum.photos/seed/item${i}/200/200" class="w-full h-full object-cover">
-                                        </div>
-                                        <div class="font-bold text-sm text-white truncate">Cool Item ${i+1}</div>
-                                        <div class="text-xs text-gray-400">By Peyza</div>
-                                        <div class="font-bold text-sm text-white mt-1"><i class="fas fa-hexagon text-xs"></i> ${50 + i * 10}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                },
-                avatar: () => {
-                    return `
-                        <div class="max-w-4xl mx-auto">
-                            <h2 class="text-3xl font-bold mb-6 text-white">Avatar Editor</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div class="flex justify-center">
-                                    <div class="w-64 h-80 bg-[#1a1c1e] rounded-lg border border-[#393b3d] flex items-center justify-center relative overflow-hidden">
-                                        <div class="w-32 h-32 bg-gray-300 rounded-full mb-10 relative z-10" style="background-color: ${appState.user.avatarColor}"></div>
-                                        <div class="w-40 h-48 bg-gray-700 absolute bottom-0 rounded-t-3xl"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-xl mb-4">Body Colors</h3>
-                                    <div class="flex gap-2 flex-wrap mb-8">
-                                        ${['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#ecf0f1', '#34495e'].map(c => `
-                                            <div class="w-10 h-10 rounded-full cursor-pointer hover:scale-110 transition border-2 border-transparent hover:border-white" style="background-color: ${c}" onclick="app.changeAvatarColor('${c}')"></div>
-                                        `).join('')}
-                                    </div>
-                                    <h3 class="font-bold text-xl mb-4">Recent Items</h3>
-                                    <div class="text-gray-500 italic">No items available. Visit Marketplace.</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-                game: (gameId) => {
-                    const allGames = [...appState.games, ...appState.demoGames];
-                    const game = allGames.find(g => g.id === gameId);
-                    if (!game) return "Game not found";
-                    const isOwner = game.ownerId === 'user' || appState.groups.find(gr => gr.id === game.ownerId);
-                    const isVerified = appState.user.followers >= 100000;
-
-                    const likeRatio = Math.round((game.likes / (game.likes + game.dislikes || 1)) * 100);
-
-                    return `
-                        <div class="max-w-6xl mx-auto">
-                            <div class="flex flex-col lg:flex-row gap-8 mb-8">
-                                <div class="w-full lg:w-[700px] aspect-video bg-[#000] rounded-xl overflow-hidden shadow-lg relative group border border-[#393b3d]">
-                                    <img src="${game.thumbnail}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition">
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black bg-opacity-40 pointer-events-none">
-                                        <i class="fas fa-play text-white text-6xl shadow-xl drop-shadow-lg"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-1">
-                                    <h2 class="text-3xl md:text-4xl font-extrabold mb-2 text-white leading-tight">${game.name}</h2>
-                                    <div class="text-sm text-gray-400 mb-6 font-medium">By <a href="#" class="text-blue-400 hover:underline">@${game.creatorName} ${isOwner && isVerified ? '<span class="verified-badge w-4 h-4 text-[10px]"><i class="fas fa-check"></i></span>' : ''} ${isOwner && appState.user.hasCreatorAward ? '<span class="creator-badge w-4 h-4 text-[10px]"><i class="fas fa-crown"></i></span>' : ''}</a></div>
-                                    
-                                    <div class="flex gap-8 mb-8 border-t border-b border-[#393b3d] py-4">
-                                        <div class="flex flex-col items-center">
-                                            <div class="text-2xl font-bold text-white" id="live-active-${game.id}">${app.formatNumber(game.active)}</div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Active</div>
-                                        </div>
-                                        <div class="flex flex-col items-center">
-                                            <div class="text-2xl font-bold text-white" id="live-visits-${game.id}">${app.formatNumber(game.visits)}</div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Visits</div>
-                                        </div>
-                                        <div class="flex flex-col items-center">
-                                            <div class="text-2xl font-bold text-white flex items-center gap-1">
-                                                <i class="fas fa-thumbs-up text-lg text-[#00b06f]"></i> ${likeRatio}%
-                                            </div>
-                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Rating</div>
-                                        </div>
-                                    </div>
-
-                                    <button class="w-full bg-[#00b06f] hover:bg-[#009960] text-white py-4 rounded-xl font-bold text-xl shadow-lg mb-6 flex items-center justify-center gap-3 transform transition hover:-translate-y-1 active:scale-95 active:translate-y-0" onclick="app.launchGame3D('${game.id}')">
-                                        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center"><i class="fas fa-play text-sm"></i></div>
-                                        Play
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <div class="lg:col-span-2">
-                                    ${isOwner ? `
-                                        <div class="rbx-card p-4 mb-6 border-blue-500/30 bg-blue-900/10">
-                                            <h3 class="font-bold text-lg mb-2 text-blue-300">Developer Controls</h3>
-                                            <div class="flex gap-2">
-                                                <input id="event-title" type="text" placeholder="Event Title (e.g. Double XP)" class="flex-1 rbx-input p-2 text-sm">
-                                                <button onclick="app.createEvent('${game.id}', document.getElementById('event-title').value, 'Limited time event!'); document.getElementById('event-title').value=''" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1 rounded font-bold text-sm">Publish Event</button>
-                                            </div>
-                                        </div>
-                                    ` : ''}
-
-                                    <div class="rbx-card p-6 mb-6">
-                                        <h3 class="font-bold text-xl mb-4 text-white">About</h3>
-                                        <p class="text-gray-300 whitespace-pre-line leading-relaxed">${game.description}</p>
-                                    </div>
-
-                                    ${game.events && game.events.length > 0 ? `
-                                        <div class="rbx-card p-6 mb-6">
-                                            <h3 class="font-bold text-xl mb-4 text-white">Events</h3>
-                                            <div class="space-y-4">
-                                                ${game.events.map(ev => `
-                                                    <div class="bg-[#1a1c1e] p-3 rounded-lg border border-[#393b3d]">
-                                                        <div class="flex justify-between">
-                                                            <div class="font-bold text-blue-400">${ev.title}</div>
-                                                            <div class="text-xs text-gray-500">${ev.date}</div>
-                                                        </div>
-                                                        <div class="text-sm text-gray-300 mt-1">${ev.description}</div>
-                                                        <div class="text-xs text-gray-500 mt-2"><i class="fas fa-star text-yellow-500"></i> ${ev.interested} Interested</div>
-                                                    </div>
-                                                `).join('')}
-                                            </div>
-                                        </div>
-                                    `: ''}
-                                    
-                                    <h3 class="font-bold text-xl mb-4 text-white">Store</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        ${game.gamepasses.length > 0 ? game.gamepasses.map(gp => `
-                                            <div class="rbx-card p-4 flex gap-4 items-center shadow-sm hover:bg-[#323438] transition border border-[#393b3d]">
-                                                <div class="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden">
-                                                    <img src="${gp.image}" class="w-full h-full object-cover">
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="font-bold text-white truncate">${gp.name}</div>
-                                                    <button class="mt-2 bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg w-full hover:bg-gray-200 transition" onclick="app.buyGamepass('${game.id}', '${gp.id}')">
-                                                        <i class="fas fa-hexagon text-[10px] mr-1"></i> ${gp.price}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        `).join('') : '<div class="col-span-full text-gray-500 italic">No items for sale.</div>'}
-                                        
-                                        ${!game.isDemo ? `
-                                        <div class="rbx-card p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-[#323438] border-2 border-dashed border-[#393b3d] text-gray-500 hover:text-gray-300 transition" onclick="app.navigate('devhub')">
-                                            <i class="fas fa-plus text-2xl mb-1"></i>
-                                            <span class="text-sm font-bold">Add Pass</span>
-                                        </div>` : ''}
-                                    </div>
-                                </div>
-                                
-                                <div class="hidden lg:block">
-                                    <div class="rbx-card p-6 sticky top-20">
-                                        <h4 class="font-bold text-white mb-4">Game Stats</h4>
-                                        <ul class="text-sm text-gray-400 space-y-3 font-medium">
-                                            <li class="flex justify-between border-b border-[#393b3d] pb-2"><span>Favorites</span> <span class="text-white">${app.formatNumber(game.favorites)}</span></li>
-                                            <li class="flex justify-between border-b border-[#393b3d] pb-2"><span>Likes</span> <span class="text-white">${app.formatNumber(game.likes)}</span></li>
-                                            <li class="flex justify-between"><span>Dislikes</span> <span class="text-white">${app.formatNumber(game.dislikes)}</span></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-                devhub: () => {
-                    return `
-                        <div class="max-w-6xl mx-auto">
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="text-3xl font-extrabold text-white">Developer Hub</h2>
-                                <button onclick="document.getElementById('create-modal').classList.remove('hidden')" class="bg-[#00b06f] text-white px-5 py-2.5 rounded-lg font-bold hover:bg-[#009960] shadow-md transition transform active:scale-95">
-                                    <i class="fas fa-plus mr-2"></i> Create Experience
-                                </button>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                <div class="col-span-1 space-y-4">
-                                    <div class="rbx-card p-5 border-l-4 border-blue-500 shadow-sm">
-                                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">Total Visits</div>
-                                        <div class="text-3xl font-bold text-white mt-1">
-                                            ${app.formatNumber(appState.games.reduce((acc, g) => acc + g.visits, 0))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-span-1 md:col-span-3">
-                                    <h3 class="text-xl font-bold mb-4 text-white">My Experiences</h3>
-                                    <div class="space-y-4">
-                                        ${appState.games.map(game => `
-                                            <div class="rbx-card p-5 flex gap-5 items-start hover:shadow-md transition bg-[#2b2d31]">
-                                                <div class="w-24 h-24 bg-black rounded-lg overflow-hidden flex-shrink-0 border border-[#393b3d]">
-                                                    <img src="${game.icon}" class="w-full h-full object-cover">
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="flex justify-between items-start">
-                                                        <h4 class="font-bold text-lg text-white hover:text-blue-400 cursor-pointer truncate" onclick="app.navigate('game', '${game.id}')">${game.name}</h4>
-                                                        <span class="text-xs bg-green-900 text-green-200 px-2 py-1 rounded font-bold">Public</span>
-                                                    </div>
-                                                    <div class="text-sm text-gray-400 mt-1 mb-4 line-clamp-2">${game.description}</div>
-                                                    
-                                                    <div class="flex flex-wrap gap-2">
-                                                        <button class="px-4 py-1.5 bg-[#393b3d] text-gray-300 text-xs font-bold rounded-lg hover:bg-gray-600 transition" onclick="app.navigate('game', '${game.id}')">View Page</button>
-                                                        <button class="px-4 py-1.5 bg-[#393b3d] text-gray-300 text-xs font-bold rounded-lg hover:bg-gray-600 transition" onclick="app.runAd('${game.id}', 'paid')">Run Ad (50 R$)</button>
-                                                        <button class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition" 
-                                                            onclick="document.getElementById('gp-modal-gameid').value='${game.id}'; document.getElementById('gp-modal').classList.remove('hidden')">
-                                                            + Add Pass
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Create Game Modal (Main Hub Version) -->
-                        <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31] shadow-2xl">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
-                                <h3 class="text-2xl font-bold mb-6 text-white">Create New Experience</h3>
-                                <div class="space-y-4">
-                                    <input id="new-game-name" type="text" placeholder="Experience Name" class="w-full rbx-input p-3">
-                                    <textarea id="new-game-desc" placeholder="Description" class="w-full rbx-input p-3 h-24"></textarea>
-                                    <select id="new-game-owner" class="w-full rbx-input p-3">
-                                        <option value="user">Me (User)</option>
-                                        ${appState.groups.map(g => `<option value="${g.id}">Group: ${g.name}</option>`).join('')}
-                                    </select>
-                                    <select id="new-game-genre" class="w-full rbx-input p-3">
-                                        <option>Adventure</option>
-                                        <option>Fighting</option>
-                                        <option>Obby</option>
-                                        <option>Tycoon</option>
-                                        <option>Simulator</option>
-                                    </select>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Icon (Optional)</label>
-                                        <input id="new-game-icon" type="file" accept="image/*" class="w-full text-sm text-gray-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Thumbnail (Optional)</label>
-                                        <input id="new-game-thumb" type="file" accept="image/*" class="w-full text-sm text-gray-500">
-                                    </div>
-                                    <button onclick="app.createGame(document.getElementById('new-game-name').value, document.getElementById('new-game-genre').value, document.getElementById('new-game-desc').value, document.getElementById('new-game-owner').value, document.getElementById('new-game-icon').files[0], document.getElementById('new-game-thumb').files[0]); document.getElementById('create-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960] transition shadow-md">Create Experience</button>
-                                </div>
-                            </div>
-                        </div>
-
-                         <!-- Create Gamepass Modal -->
-                        <div id="gp-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
-                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('gp-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
-                                <h3 class="text-2xl font-bold mb-6 text-white">Create Gamepass</h3>
-                                <input type="hidden" id="gp-modal-gameid">
-                                <div class="space-y-4">
-                                    <input id="gp-name" type="text" placeholder="Pass Name" class="w-full rbx-input p-3">
-                                    <input id="gp-price" type="number" placeholder="Price (Robux)" class="w-full rbx-input p-3">
-                                    <button onclick="app.createGamepass(document.getElementById('gp-modal-gameid').value, document.getElementById('gp-name').value, document.getElementById('gp-price').value); document.getElementById('gp-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960]">Put On Sale</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                },
-                robux: () => {
-                    const canCashOut = appState.user.robux >= 50000;
-                    return `
-                        <div class="max-w-4xl mx-auto text-center pt-10">
-                            <div class="mb-12">
-                                <i class="fas fa-hexagon text-7xl text-white mb-6"></i>
-                                <h2 class="text-4xl font-extrabold mb-2 text-white">My Balance</h2>
-                                <div class="text-6xl font-bold text-[#00b06f] flex items-center justify-center gap-3">
-                                    ${app.formatNumber(appState.user.robux)} <span class="text-3xl text-gray-500 font-medium self-end mb-2">Robux</span>
-                                </div>
-                                <div class="text-xl text-gray-500 mt-2 font-medium">$${appState.user.usd.toFixed(2)} USD Earned</div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                                <div class="rbx-card p-8 bg-[#2b2d31]">
-                                    <h3 class="text-xl font-bold mb-6 text-white">Buy Robux</h3>
-                                    <div class="space-y-4">
-                                        <button class="w-full flex justify-between items-center p-4 border border-[#393b3d] rounded-xl hover:bg-[#323438] transition group" onclick="appState.user.robux+=400; app.render(); app.updateHeader();">
-                                            <span class="font-bold text-gray-300 group-hover:text-white">400 Robux</span>
-                                            <span class="bg-white text-black px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm">$4.99</span>
-                                        </button>
-                                        <button class="w-full flex justify-between items-center p-4 border border-[#393b3d] rounded-xl hover:bg-[#323438] transition group" onclick="appState.user.robux+=800; app.render(); app.updateHeader();">
-                                            <span class="font-bold text-gray-300 group-hover:text-white">800 Robux</span>
-                                            <span class="bg-white text-black px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm">$9.99</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="rbx-card p-8 bg-gradient-to-br from-[#1a1c1e] to-[#2b2d31] relative overflow-hidden">
-                                    <h3 class="text-xl font-bold mb-2 text-white">Developer Exchange</h3>
-                                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">Convert your earned Robux into real cash. Minimum 50,000 Robux required.</p>
-                                    <div class="mb-6 relative z-10">
-                                        <div class="flex gap-2">
-                                            <input id="devex-amount" type="number" value="50000" class="flex-1 rbx-input p-3 font-bold">
-                                            <button class="bg-[#00b06f] text-white font-bold px-6 rounded-lg shadow-md transition ${!canCashOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#009960]'}" 
-                                                onclick="${canCashOut ? "app.convertRobux(parseInt(document.getElementById('devex-amount').value))" : "app.showToast('Minimum 50K Robux required', 'error')" }">
-                                                Cash Out
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="text-xs text-center text-gray-500 font-medium">Current Rate: 1,000 R$ = $3.50 USD</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-        };
-
-        window.addEventListener('DOMContentLoaded', app.init);
-    </script>
+<script>
+/**
+ * PEYZA ENGINE 2.0
+ */
+
+// --- 1. GAME STATE ---
+const state = {
+    version: 1, // 1 or 2
+    hp: 100,
+    gold: 0,
+    karma: 0,
+    inventory: [],
+    location: 'start',
+    riddlesSolved: 0,
+    hasMetWizard: false,
+    hasMetMayor: false
+};
+
+// --- 2. THREE.JS SETUP ---
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x111111, 0.02);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// Lights
+const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(10, 20, 10);
+dirLight.castShadow = true;
+scene.add(dirLight);
+
+const charLight = new THREE.PointLight(0xfbbf24, 2, 20);
+charLight.position.set(0, 5, 2);
+scene.add(charLight);
+
+// --- 3. 3D ASSETS ---
+
+// Floor
+const floorGeo = new THREE.PlaneGeometry(200, 200, 64, 64);
+const positionAttribute = floorGeo.attributes.position;
+for ( let i = 0; i < positionAttribute.count; i ++ ) {
+    const z = positionAttribute.getZ( i );
+    positionAttribute.setZ( i, z + (Math.random() * 2) );
+}
+floorGeo.computeVertexNormals();
+
+const floorMat = new THREE.MeshStandardMaterial({ 
+    color: 0x1a472a, 
+    roughness: 0.8,
+    metalness: 0.1
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Environment Groups
+const villageGroup = new THREE.Group();
+const forestGroup = new THREE.Group();
+const caveGroup = new THREE.Group();
+const snowGroup = new THREE.Group(); // New for V2
+scene.add(villageGroup);
+scene.add(forestGroup);
+scene.add(caveGroup);
+scene.add(snowGroup);
+
+// Snow Particles (V2 Only)
+const snowGeo = new THREE.BufferGeometry();
+const snowCount = 1000;
+const snowPos = new Float32Array(snowCount * 3);
+for(let i=0; i<snowCount*3; i++) {
+    snowPos[i] = (Math.random() - 0.5) * 100;
+}
+snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+const snowMat = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.5,
+    transparent: true,
+    opacity: 0.8
+});
+const snowSystem = new THREE.Points(snowGeo, snowMat);
+snowGroup.add(snowSystem);
+snowGroup.visible = false;
+
+// Helper: Tree
+function createTree(x, z, frozen = false) {
+    const trunkGeo = new THREE.CylinderGeometry(0.5, 0.8, 4, 6);
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3728 });
+    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+    trunk.position.y = 0;
+    
+    const leavesGeo = new THREE.ConeGeometry(3, 6, 8);
+    // Frozen trees are white/blue
+    const leavesMat = new THREE.MeshStandardMaterial({ color: frozen ? 0xaaddff : 0x2d5a27 });
+    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+    leaves.position.y = 4;
+    
+    const tree = new THREE.Group();
+    tree.add(trunk);
+    tree.add(leaves);
+    tree.position.set(x, -0.5, z);
+    tree.castShadow = true;
+    return tree;
+}
+
+// Helper: House
+function createHouse(x, z, snowCovered = false) {
+    const baseGeo = new THREE.BoxGeometry(6, 4, 6);
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x8d7b68 });
+    const base = new THREE.Mesh(baseGeo, baseMat);
+    
+    const roofGeo = new THREE.ConeGeometry(5, 4, 4);
+    const roofMat = new THREE.MeshStandardMaterial({ color: snowCovered ? 0xffffff : 0x4a2c2a });
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.position.y = 4;
+    roof.rotation.y = Math.PI / 4;
+
+    const house = new THREE.Group();
+    house.add(base);
+    house.add(roof);
+    house.position.set(x, 0, z);
+    return house;
+}
+
+// Helper: Character
+let currentCharacter = null;
+function createCharacter(type, color) {
+    if (currentCharacter) {
+        scene.remove(currentCharacter);
+    }
+    const group = new THREE.Group();
+    
+    // Head
+    const headGeo = new THREE.SphereGeometry(1, 16, 16);
+    const headMat = new THREE.MeshStandardMaterial({ color: 0xffdbac });
+    const head = new THREE.Mesh(headGeo, headMat);
+    head.position.y = 4;
+    
+    // Body
+    const bodyGeo = new THREE.CylinderGeometry(0.8, 1, 3, 12);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: color });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = 1.5;
+
+    // Hat logic
+    if(type === 'wizard' || type === 'frozen_king') {
+        const hatGeo = new THREE.ConeGeometry(1.2, 3, 16);
+        const hatMat = new THREE.MeshStandardMaterial({ color: type === 'frozen_king' ? 0x00ffff : 0x4b0082 });
+        const hat = new THREE.Mesh(hatGeo, hatMat);
+        hat.position.y = 5.2;
+        group.add(hat);
+    }
+
+    group.add(head);
+    group.add(body);
+    group.userData = { offset: Math.random() * 100 };
+    group.position.set(0, -2, -5);
+    scene.add(group);
+    currentCharacter = group;
+}
+
+// Populate V1 (Green)
+for(let i=0; i<30; i++) {
+    const x = (Math.random() - 0.5) * 80;
+    const z = (Math.random() - 0.5) * 60 - 20;
+    if (Math.abs(x) < 5 && Math.abs(z) < 5) continue;
+    forestGroup.add(createTree(x, z, false));
+}
+villageGroup.add(createHouse(-10, -10));
+villageGroup.add(createHouse(10, -15));
+villageGroup.add(createHouse(-8, -25));
+villageGroup.add(createTree(15, -5));
+
+// --- 4. GAME LOOP ---
+let time = 0;
+function animate() {
+    requestAnimationFrame(animate);
+    time += 0.01;
+
+    // Character Bobbing
+    if (currentCharacter) {
+        currentCharacter.position.y = -2 + Math.sin(time * 2 + currentCharacter.userData.offset) * 0.2;
+        currentCharacter.rotation.y = Math.sin(time * 0.5) * 0.1;
+    }
+
+    // Camera Drift
+    camera.position.x = Math.sin(time * 0.2) * 0.5;
+    camera.position.y = 2 + Math.cos(time * 0.3) * 0.2;
+    
+    // Snow Animation
+    if (snowGroup.visible) {
+        const positions = snowSystem.geometry.attributes.position.array;
+        for(let i = 1; i < positions.length; i += 3) {
+            positions[i] -= 0.1;
+            if (positions[i] < -5) positions[i] = 20;
+        }
+        snowSystem.geometry.attributes.position.needsUpdate = true;
+    }
+
+    renderer.render(scene, camera);
+}
+animate();
+
+// --- 5. STORY ENGINE ---
+
+// Combined Story Nodes for V1 and V2
+const storyNodes = {
+    // === V1 NODES ===
+    v1_start: {
+        text: "You awaken in a clearing. The air smells of pine. A path leads North to Peyza Village.",
+        speaker: "Narrator",
+        bg: "forest",
+        options: [
+            { text: "Go to Village", next: "v1_village_gate" },
+            { text: "Check pockets", next: "v1_pockets" }
+        ]
+    },
+    v1_pockets: {
+        text: "You find a rusty coin and a note: 'Beware the Red Wizard'.",
+        speaker: "Inventory",
+        bg: "forest",
+        action: () => state.inventory.push("Rusty Coin"),
+        options: [{ text: "Back", next: "v1_start" }]
+    },
+    v1_village_gate: {
+        text: "Peyza Village. Mayor Oryn looks worried.",
+        speaker: "Narrator",
+        bg: "village",
+        char: { type: 'villager', color: 0x3b82f6 },
+        options: [
+            { text: "Talk to Mayor", next: "v1_meet_mayor" }
+        ]
+    },
+    v1_meet_mayor: {
+        text: "Traveler! The Red Wizard has cursed us. Please, save our village.",
+        speaker: "Mayor Oryn",
+        bg: "village",
+        char: { type: 'villager', color: 0x3b82f6 },
+        options: [
+            { text: "I will help.", next: "v1_forest_entry" },
+            { text: "No thanks.", next: "v1_leave" }
+        ]
+    },
+    v1_forest_entry: {
+        text: "The forest is dark. A fairy appears.",
+        speaker: "Narrator",
+        bg: "forest",
+        options: [
+            { text: "Follow Fairy", next: "v1_tower" }
+        ]
+    },
+    v1_tower: {
+        text: "You reach the Obsidian Tower. Zog the Red awaits.",
+        speaker: "Narrator",
+        bg: "cave",
+        char: { type: 'wizard', color: 0x4b0082 },
+        options: [
+            { text: "Fight Him", next: "v1_fight" },
+            { text: "Talk", next: "v1_talk" }
+        ]
+    },
+    v1_talk: {
+        text: "The Mayor is corrupt! Help me stop the demons.",
+        speaker: "Zog",
+        bg: "cave",
+        options: [
+            { text: "Join Zog", next: "end_hero" }
+        ]
+    },
+    v1_fight: {
+        text: "Zog blasts you with fire. You perish.",
+        speaker: "Narrator",
+        bg: "cave",
+        action: () => state.hp = 0,
+        options: [{ text: "End", next: "end_death" }]
+    },
+    v1_leave: {
+        text: "You walk away, leaving the village to its doom.",
+        speaker: "Narrator",
+        bg: "forest",
+        options: [{ text: "End", next: "end_coward" }]
+    },
+
+    // === V2 NODES (Winter's Legacy) ===
+    v2_start: {
+        text: "Twenty years have passed since your father saved Peyza. But now, an unnatural blizzard buries the land. You, Eldrin, must rise.",
+        speaker: "Narrator",
+        bg: "snow_forest",
+        options: [
+            { text: "Leave your warm cabin", next: "v2_snow_village" },
+            { text: "Take Father's Old Sword", next: "v2_take_sword" }
+        ]
+    },
+    v2_take_sword: {
+        text: "The blade is cold but sharp. It hums with old magic.",
+        speaker: "Inventory",
+        bg: "snow_forest",
+        action: () => state.inventory.push("Hero Sword"),
+        options: [{ text: "Head out", next: "v2_snow_village" }]
+    },
+    v2_snow_village: {
+        text: "Peyza Village is frozen. The fountain is solid ice. A shivering guard blocks the path.",
+        speaker: "Narrator",
+        bg: "snow_village",
+        char: { type: 'villager', color: 0xaaddff }, // Frozen villager
+        options: [
+            { text: "Ask about the cold", next: "v2_guard_talk" },
+            { text: "Give him a warm potion", next: "v2_give_potion" } // Hidden option if you had one
+        ]
+    },
+    v2_guard_talk: {
+        text: "It's the Frozen King... he returned from the Northern Spire. He demands the Ever-Flame.",
+        speaker: "Guard",
+        bg: "snow_village",
+        options: [
+            { text: "I will defeat him.", next: "v2_spire_journey" },
+            { text: "Where is the Ever-Flame?", next: "v2_lore_flame" }
+        ]
+    },
+    v2_lore_flame: {
+        text: "The Ever-Flame was hidden by your father. Only his blood can find it.",
+        speaker: "Guard",
+        bg: "snow_village",
+        options: [
+            { text: "Check the Old Shrine", next: "v2_shrine" }
+        ]
+    },
+    v2_shrine: {
+        text: "You find the shrine. A blue flame flickers. It warms your soul.",
+        speaker: "Narrator",
+        bg: "snow_forest",
+        action: () => { state.inventory.push("Ever-Flame"); state.karma += 20; },
+        options: [
+            { text: "Take it to the Spire", next: "v2_spire_journey" }
+        ]
+    },
+    v2_spire_journey: {
+        text: "The wind howls. You climb the frozen steps of the Spire. The cold bites for 10 damage.",
+        speaker: "Narrator",
+        bg: "snow_cave",
+        action: () => { state.hp -= 10; updateHUD(); },
+        options: [
+            { text: "Enter the Throne Room", next: "v2_throne" }
+        ]
+    },
+    v2_throne: {
+        text: "The Frozen King sits on a throne of ice. 'Son of the Hero... have you come to die?'",
+        speaker: "Frozen King",
+        bg: "snow_cave",
+        char: { type: 'frozen_king', color: 0x00ffff },
+        options: [
+            { text: "Attack with Sword", next: "v2_fight_sword" },
+            { text: "Use the Ever-Flame", next: "v2_use_flame" },
+            { text: "Try to reason", next: "v2_reason" }
+        ]
+    },
+    v2_fight_sword: {
+        text: "Your sword shatters against his ice armor! He freezes you instantly.",
+        speaker: "Narrator",
+        bg: "snow_cave",
+        action: () => state.hp = 0,
+        options: [{ text: "End", next: "end_frozen" }]
+    },
+    v2_use_flame: {
+        text: "You unleash the Ever-Flame! The ice melts, and the King shrieks as spring returns to Peyza.",
+        speaker: "Narrator",
+        bg: "snow_cave",
+        options: [{ text: "Victory", next: "end_spring" }]
+    },
+    v2_reason: {
+        text: "He has no heart to reason with. The cold consumes you.",
+        speaker: "Narrator",
+        bg: "snow_cave",
+        action: () => state.hp = 0,
+        options: [{ text: "End", next: "end_frozen" }]
+    },
+
+    // === ENDINGS ===
+    end_hero: { title: "Ending: Hero of V1", desc: "You saved the village.", type: "end" },
+    end_coward: { title: "Ending: Coward", desc: "You ran away.", type: "end" },
+    end_death: { title: "Ending: Ashes", desc: "You died.", type: "end" },
+    end_frozen: { title: "Ending: Ice Statue", desc: "You are frozen forever.", type: "end" },
+    end_spring: { title: "Ending: Spring Bringer", desc: "You melted the eternal winter and surpassed your father.", type: "end" }
+};
+
+// --- 6. UI LOGIC ---
+
+function updateHUD() {
+    document.getElementById('hp-val').innerText = state.hp;
+    document.getElementById('gold-val').innerText = state.gold;
+    document.getElementById('karma-val').innerText = state.karma;
+    
+    if(state.hp <= 0 && !state.location.startsWith('end')) {
+        // Simple death check
+        if(state.version === 1) loadNode('end_death');
+        else loadNode('end_frozen');
+    }
+}
+
+function loadNode(nodeId) {
+    state.location = nodeId;
+    const node = storyNodes[nodeId];
+
+    // Check for Ending
+    if (node.type === 'end') {
+        document.getElementById('dialogue-container').style.display = 'none';
+        const endScreen = document.getElementById('ending-screen');
+        endScreen.style.display = 'flex';
+        document.getElementById('ending-title').innerText = node.title;
+        document.getElementById('ending-desc').innerText = node.desc;
+        return;
+    }
+
+    // Execute Action
+    if (node.action) node.action();
+
+    // Update Text
+    document.getElementById('speaker-name').innerText = node.speaker;
+    document.getElementById('dialogue-text').innerText = node.text;
+
+    // Update Visuals
+    updateSceneVisuals(node.bg, node.char);
+
+    // Generate Choices
+    const choicesDiv = document.getElementById('choices');
+    choicesDiv.innerHTML = '';
+    
+    node.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = opt.text;
+        btn.onclick = () => loadNode(opt.next);
+        choicesDiv.appendChild(btn);
+    });
+}
+
+function updateSceneVisuals(bgType, charData) {
+    // Reset Visibility
+    villageGroup.visible = false;
+    forestGroup.visible = false;
+    caveGroup.visible = false;
+    snowGroup.visible = false;
+    
+    // Default Floor
+    floorMat.color.setHex(0x1a472a); // Green
+
+    // Background Colors
+    let skyColor = 0x87CEEB;
+    let fogColor = 0x87CEEB;
+
+    if (bgType === 'forest') {
+        forestGroup.visible = true;
+        skyColor = 0x1a472a; fogColor = 0x051a05;
+        document.getElementById('location-name').innerText = "Dark Forest";
+    } else if (bgType === 'village') {
+        villageGroup.visible = true;
+        document.getElementById('location-name').innerText = "Peyza Village";
+    } else if (bgType === 'cave') {
+        caveGroup.visible = true;
+        skyColor = 0x111111; fogColor = 0x000000;
+        document.getElementById('location-name').innerText = "Obsidian Tower";
+    } 
+    // V2 Backgrounds
+    else if (bgType === 'snow_forest') {
+        forestGroup.visible = true;
+        snowGroup.visible = true;
+        floorMat.color.setHex(0xffffff); // Snow floor
+        skyColor = 0xddeeff; fogColor = 0xaaccff;
+        document.getElementById('location-name').innerText = "Frozen Wilds";
+    } else if (bgType === 'snow_village') {
+        villageGroup.visible = true;
+        snowGroup.visible = true;
+        floorMat.color.setHex(0xffffff);
+        skyColor = 0xddeeff; fogColor = 0xaaccff;
+        document.getElementById('location-name').innerText = "Frozen Village";
+    } else if (bgType === 'snow_cave') {
+        caveGroup.visible = true;
+        snowGroup.visible = true;
+        floorMat.color.setHex(0xaaaaaa);
+        skyColor = 0x223344; fogColor = 0x112233;
+        document.getElementById('location-name').innerText = "Ice Spire";
+    }
+
+    scene.background = new THREE.Color(skyColor);
+    scene.fog.color.setHex(fogColor);
+
+    // Character
+    if (charData) {
+        createCharacter(charData.type, charData.color);
+    } else {
+        if (currentCharacter) {
+            scene.remove(currentCharacter);
+            currentCharacter = null;
+        }
+    }
+}
+
+// Music Control
+function playMusic(version) {
+    const v1Audio = document.getElementById('bgm-v1');
+    const v2Audio = document.getElementById('bgm-v2');
+    
+    v1Audio.pause(); v1Audio.currentTime = 0;
+    v2Audio.pause(); v2Audio.currentTime = 0;
+
+    if(version === 1) {
+        v1Audio.play().catch(e => console.log("Audio requires interaction"));
+    } else {
+        v2Audio.play().catch(e => console.log("Audio requires interaction"));
+    }
+}
+
+// Start Listeners
+document.getElementById('v1-btn').addEventListener('click', () => {
+    state.version = 1;
+    state.hp = 100; state.gold = 0; state.inventory = [];
+    document.getElementById('title-screen').style.display = 'none';
+    document.getElementById('dialogue-container').style.display = 'flex';
+    playMusic(1);
+    loadNode('v1_start');
+});
+
+document.getElementById('v2-btn').addEventListener('click', () => {
+    state.version = 2;
+    state.hp = 100; state.gold = 50; state.inventory = [];
+    document.getElementById('title-screen').style.display = 'none';
+    document.getElementById('dialogue-container').style.display = 'flex';
+    playMusic(2);
+    loadNode('v2_start');
+});
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+    location.reload();
+});
+
+// Resize
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+</script>
 </body>
 </html>
