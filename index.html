@@ -128,7 +128,7 @@
 
     const INITIAL_STATE = {
         view: 'home', activeArtistId: null, activeAlbumId: null, activePlaylistId: null, dashboardArtistId: null, dashboardReleaseId: null, searchQuery: '', activeTrackIdx: null, aboutArtistId: null,
-        user: { name: 'Guest User', followers: 120, image: null },
+        user: { name: 'Guest User', followers: 120, image: null, bio: 'Music Lover' },
         artists: [
             { id: 'a1', name: 'Neon Horizon', bio: 'Synthwave legends from the future.', followers: 125000, monthlyListeners: 450000, momentum: 80, lastReleaseDay: -20, lastReleaseType: 'Album', image: null, banner: null, verified: true, color: 'from-purple-900', geoStats: generateGeoStats(), managerInsight: null },
             { id: 'a2', name: 'Luna Drift', bio: 'Ethereal vocals meeting heavy bass.', followers: 3200, monthlyListeners: 8900, momentum: 95, lastReleaseDay: -5, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-blue-900', geoStats: generateGeoStats(), managerInsight: null }
@@ -145,7 +145,7 @@
         playlists: [{id:'p1', name:'My Mix', songs:['s1'], cover:null, saves: 42}],
         charts: [],
         currentSong: null, currentSongReview: null, isPlaying: false, day: 0, dailyLog: [], showDailyLog: false, modal: null, fullScreenPlayer: false,
-        editForm: {}, releaseForm: { title: '', type: 'Single', cover: '', tracks: [] }, userForm: {}
+        editForm: {}, releaseForm: { title: '', type: 'Single', cover: '', tracks: [] }, userForm: {}, playlistForm: { id: null, name: '' }
     };
 
     let state = INITIAL_STATE;
@@ -360,6 +360,44 @@
     function openAboutModal(id) { state.aboutArtistId = id; state.modal = 'about-artist'; render(); }
     function openEditUser() { state.userForm = { ...state.user }; state.modal = 'edit-user'; render(); }
     
+    // Playlist Modal Actions
+    function openPlaylistMenu(id) {
+        state.activePlaylistId = id;
+        state.modal = 'playlist-menu';
+        render();
+    }
+    
+    function openRenamePlaylist() {
+        const p = state.playlists.find(pl => pl.id === state.activePlaylistId);
+        state.playlistForm = { ...p };
+        state.modal = 'rename-playlist';
+        render();
+    }
+    
+    function openAddSongs() {
+        state.modal = 'add-songs';
+        render();
+    }
+    
+    function savePlaylistName() {
+        const idx = state.playlists.findIndex(pl => pl.id === state.playlistForm.id);
+        if(idx !== -1) {
+            state.playlists[idx].name = state.playlistForm.name;
+            saveState();
+            state.modal = null;
+            render();
+        }
+    }
+    
+    function addSongToCurrentPlaylist(songId) {
+        const p = state.playlists.find(pl => pl.id === state.activePlaylistId);
+        if(p && !p.songs.includes(songId)) {
+            p.songs.push(songId);
+            saveState();
+            render(); 
+        }
+    }
+    
     function saveArtistEdit() {
         const idx = state.artists.findIndex(a => a.id === state.editForm.id);
         if (idx !== -1) {
@@ -396,6 +434,10 @@
         }
         state.modal = null; saveState(); render();
     }
+    
+    function openEditUser() { state.userForm = { ...state.user }; state.modal = 'edit-user'; render(); }
+    function openAboutModal(id) { state.aboutArtistId = id; state.modal = 'about-artist'; render(); }
+    function openEditArtist(id) { state.editForm = { ...state.artists.find(a => a.id === id) }; state.modal = 'edit-artist'; render(); }
 
     // --- RENDERERS ---
 
@@ -439,7 +481,6 @@
                         <span class="text-xs font-mono text-gray-300">${formatNumber(song.streams)}</span>
                         ${song.dailyStreams > 0 ? `<span class="text-[10px] text-gray-500 font-bold flex items-center gap-0.5"><i data-lucide="trending-up" class="w-3 h-3"></i> ${dailyChange}</span>` : ''}
                     </div>
-                    <!-- Mobile Stream View -->
                     <div class="md:hidden flex flex-col items-end mr-3">
                         <span class="text-[10px] text-gray-400">${formatNumber(song.streams)}</span>
                     </div>
@@ -464,7 +505,7 @@
                           const artist = state.artists.find(a => a.id === song.artistId);
                           if(!song || !artist) return '';
                           let changeIcon = '<span class="text-gray-500">-</span>';
-                          if(!c.lastRank) changeIcon = '<span class="text-blue-500 text-[10px] font-bold">NEW</span>';
+                          if(!c.lastRank) changeIcon = '<span class="text-blue-500 text-[9px] font-bold">NEW</span>';
                           else if(c.rank < c.lastRank) changeIcon = `<div class="text-green-500 flex items-center justify-center gap-0.5"><i data-lucide="triangle" class="w-2 h-2 fill-current"></i> ${c.lastRank - c.rank}</div>`;
                           else if(c.rank > c.lastRank) changeIcon = `<div class="text-red-500 flex items-center justify-center gap-0.5"><i data-lucide="triangle" class="w-2 h-2 fill-current rotate-180"></i> ${c.rank - c.lastRank}</div>`;
                           
@@ -703,7 +744,7 @@
         
         if (state.view === 'library') return `<div class="p-6 md:p-8 pt-12 pb-32"><h1 class="text-4xl font-bold text-white mb-8">Your Library</h1><div class="flex gap-4 mb-8 overflow-x-auto pb-2"><button class="bg-[#2a2a2a] px-4 py-1.5 rounded-full text-sm font-bold text-white whitespace-nowrap">Playlists</button><button class="bg-[#2a2a2a] px-4 py-1.5 rounded-full text-sm font-bold text-white whitespace-nowrap">Artists</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${state.playlists.map(p => `<div onclick="setView('playlist', '${p.id}')" class="flex items-center gap-4 bg-[#181818] hover:bg-[#282828] p-4 rounded-lg cursor-pointer transition-colors"><div class="w-16 h-16 bg-[#2a2a2a] flex items-center justify-center rounded shadow-lg"><i data-lucide="music" class="text-gray-500"></i></div><div><div class="font-bold text-white">${p.name}</div><div class="text-xs text-gray-400">Playlist • You</div></div></div>`).join('')}</div><div class="mt-12 border-t border-gray-800 pt-8"><h2 class="text-xl font-bold text-white mb-4">Data Management</h2><div class="flex gap-4"><button onclick="exportData()" class="bg-blue-600 px-6 py-2 rounded-full font-bold text-sm hover:bg-blue-500">Download Save</button><button onclick="triggerFileUpload('import')" class="bg-gray-700 px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-600">Upload Save</button></div></div></div>`;
         
-        if (state.view === 'playlist') { const p = state.playlists.find(pl => pl.id === state.activePlaylistId); return `<div class="pb-32 pt-20 px-4 md:px-8 bg-gradient-to-b from-gray-900 to-[#121212] min-h-full"><h1 class="text-3xl md:text-6xl font-black text-white mb-4">${p.name}</h1><div class="flex items-center gap-2 mb-6 text-sm font-bold text-gray-400"><i data-lucide="heart" class="w-4 h-4"></i> ${formatNumber(p.saves || 0)} Saves</div><div class="bg-black/20 rounded-lg p-2 md:p-4">${p.songs.length === 0 ? '<div class="text-gray-500 p-4 text-center">No songs</div>' : p.songs.map((sid, i) => { const s = state.songs.find(x => x.id === sid); return s ? SongRow(s, i, true, false) : ''; }).join('')}</div></div>`; }
+        if (state.view === 'playlist') { const p = state.playlists.find(pl => pl.id === state.activePlaylistId); return `<div class="pb-32 pt-20 px-4 md:px-8 bg-gradient-to-b from-gray-900 to-[#121212] min-h-full"><div class="flex justify-between items-start mb-4"><h1 class="text-3xl md:text-6xl font-black text-white">${p.name}</h1><button onclick="openPlaylistMenu('${p.id}')" class="text-gray-400 hover:text-white p-2"><i data-lucide="more-horizontal" class="w-8 h-8"></i></button></div><div class="flex items-center gap-2 mb-6 text-sm font-bold text-gray-400"><i data-lucide="heart" class="w-4 h-4"></i> ${formatNumber(p.saves || 0)} Saves</div><div class="bg-black/20 rounded-lg p-2 md:p-4">${p.songs.length === 0 ? '<div class="text-gray-500 p-4 text-center">No songs</div>' : p.songs.map((sid, i) => { const s = state.songs.find(x => x.id === sid); return s ? SongRow(s, i, true, false) : ''; }).join('')}</div></div>`; }
         
         if (state.view === 'create-artist') return `<div class="p-8 max-w-2xl mx-auto mt-20 pb-32"><h2 class="text-3xl md:text-5xl font-black text-white mb-10 text-center">Start a Legacy</h2><div class="bg-[#181818] p-6 md:p-10 rounded-xl shadow-2xl space-y-6 md:space-y-8 border border-gray-800"><div><label class="text-white font-bold block mb-3 text-lg">Artist Name</label><input id="new-artist-name-input" class="w-full bg-[#2a2a2a] text-white p-4 rounded-lg text-lg md:text-2xl" placeholder="e.g. The Weeknd"></div><button onclick="createArtist(document.getElementById('new-artist-name-input').value)" class="w-full bg-[#1db954] text-black font-black py-4 md:py-5 rounded-full text-lg uppercase">Launch Career</button></div></div>`;
         
@@ -742,6 +783,9 @@
                         </div>
                     `).join('')}
                 </div>
+                <div class="p-4 border-t border-[#121212]">
+                    <button onclick="setView('create-artist')" class="w-full bg-[#1db954] text-black font-bold py-2 rounded-full text-sm">Sign New Artist</button>
+                </div>
             </div>
         `;
     }
@@ -749,7 +793,13 @@
     function RenderModals() {
         if (!state.modal) return '';
         
-        if (state.modal === 'edit-user') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg p-6 space-y-4"><h3 class="text-xl font-bold text-white">Edit Profile</h3><div onclick="triggerFileUpload('image')" class="aspect-square w-32 mx-auto bg-black/50 rounded-full flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.userForm.image, 'https://via.placeholder.com/200')}" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"><i data-lucide="upload" class="text-white"></i></div></div><input oninput="state.userForm.name=this.value" value="${state.userForm.name}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" placeholder="Name"><div class="flex justify-end gap-2 pt-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="saveUserEdit()" class="bg-white text-black px-4 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
+        if (state.modal === 'playlist-menu') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4" onclick="state.modal=null; render()"><div class="bg-[#282828] rounded-xl w-64 p-2" onclick="event.stopPropagation()"><button onclick="openRenamePlaylist()" class="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] rounded text-white text-sm font-bold">Rename Playlist</button><button onclick="openAddSongs()" class="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] rounded text-white text-sm font-bold">Add Songs</button></div></div>`;
+        
+        if (state.modal === 'rename-playlist') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-sm p-6 space-y-4"><h3 class="text-xl font-bold text-white">Rename Playlist</h3><input oninput="state.playlistForm.name=this.value" value="${state.playlistForm.name}" class="w-full bg-[#3e3e3e] p-3 rounded text-white outline-none focus:ring-2 focus:ring-white" placeholder="Playlist Name"><div class="flex justify-end gap-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold px-4 py-2">Cancel</button><button onclick="savePlaylistName()" class="bg-white text-black px-6 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
+        
+        if (state.modal === 'add-songs') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">Add Songs</h3><button onclick="state.modal=null; render()"><i data-lucide="x"></i></button></div><div class="space-y-2">${state.songs.map(s => { const isIn = state.playlists.find(p=>p.id===state.activePlaylistId).songs.includes(s.id); return `<div class="flex items-center justify-between p-2 hover:bg-[#3e3e3e] rounded"><div class="flex items-center gap-3"><img src="${getImgSrc(s.cover)}" class="w-10 h-10 rounded"><div class="text-sm font-bold text-white">${s.title}</div></div>${isIn ? '<span class="text-green-500 text-xs font-bold">Added</span>' : `<button onclick="addSongToCurrentPlaylist('${s.id}')" class="border border-gray-500 rounded-full px-3 py-1 text-xs font-bold hover:border-white">Add</button>`}</div>` }).join('')}</div></div></div>`;
+
+        if (state.modal === 'edit-user') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg p-6 space-y-4"><h3 class="text-xl font-bold text-white">Edit Profile</h3><div onclick="triggerFileUpload('image')" class="aspect-square w-32 mx-auto bg-black/50 rounded-full flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.userForm.image, 'https://via.placeholder.com/200')}" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"><i data-lucide="upload" class="text-white"></i></div></div><div class="space-y-2"><label class="text-xs font-bold text-gray-400">Name</label><input oninput="state.userForm.name=this.value" value="${state.userForm.name}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" placeholder="Name"></div><div class="space-y-2"><label class="text-xs font-bold text-gray-400">Bio</label><textarea oninput="state.userForm.bio=this.value" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" rows="3" placeholder="Tell us about yourself">${state.userForm.bio || ''}</textarea></div><div class="flex justify-end gap-2 pt-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="saveUserEdit()" class="bg-white text-black px-4 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
 
         if (state.modal === 'about-artist') {
             const a = state.artists.find(art => art.id === state.aboutArtistId);
