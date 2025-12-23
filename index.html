@@ -88,6 +88,23 @@
             margin-left: 4px;
             vertical-align: middle;
         }
+        
+        .creator-badge {
+            color: #fff;
+            background: linear-gradient(135deg, #f1c40f, #d35400);
+            border-radius: 50%;
+            padding: 2px;
+            font-size: 0.7em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-left: 4px;
+            vertical-align: middle;
+            border: 1px solid #fff;
+            box-shadow: 0 0 5px #f1c40f;
+        }
 
         /* 3D View Container */
         #game-view {
@@ -116,6 +133,21 @@
                 margin-left: 0 !important;
                 padding-bottom: 80px;
             }
+        }
+        
+        /* Awards Banner */
+        .awards-banner {
+            background: linear-gradient(90deg, #8e44ad, #c0392b);
+            color: white;
+            text-align: center;
+            padding: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            position: fixed;
+            top: 56px; /* Below nav */
+            width: 100%;
+            z-index: 30;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -152,8 +184,13 @@
         </div>
     </nav>
 
+    <!-- Awards Countdown Banner -->
+    <div id="awards-banner" class="awards-banner hidden">
+        🏆 PEYZA GAMES AWARDS: <span id="awards-timer">10:00</span> LEFT! Reach 10M Total Visits to Win!
+    </div>
+
     <!-- Sidebar (Desktop) -->
-    <aside class="sidebar fixed left-0 top-14 w-60 h-full bg-[#191b1d] border-r border-[#393b3d] pt-4 hidden lg:block z-40 overflow-y-auto">
+    <aside class="sidebar fixed left-0 top-14 w-60 h-full bg-[#191b1d] border-r border-[#393b3d] pt-8 hidden lg:block z-40 overflow-y-auto">
         <div class="flex flex-col gap-1 px-3">
             <a onclick="app.navigate('home')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-home w-5"></i> Home</a>
             <a onclick="app.navigate('profile')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-user w-5"></i> Profile</a>
@@ -194,7 +231,7 @@
     </div>
 
     <!-- Main Content -->
-    <main id="main-content" class="lg:ml-60 mt-14 p-4 md:p-8 flex-1 overflow-y-auto pb-24">
+    <main id="main-content" class="lg:ml-60 mt-14 pt-10 p-4 md:p-8 flex-1 overflow-y-auto pb-24">
         <!-- Dynamic Content Injected Here -->
     </main>
 
@@ -225,10 +262,10 @@
                     state: appState,
                     timestamp: Date.now()
                 };
-                localStorage.setItem('peyza_save_v7', JSON.stringify(data));
+                localStorage.setItem('peyza_save_v8', JSON.stringify(data));
             },
             load: () => {
-                const data = localStorage.getItem('peyza_save_v7');
+                const data = localStorage.getItem('peyza_save_v8');
                 if (data) return JSON.parse(data);
                 return null;
             }
@@ -298,7 +335,9 @@
                 status: "Developing the next big hit!",
                 joinDate: "2/14/2021",
                 usedFreeSponsor: false,
-                avatarColor: '#1e1e1e'
+                avatarColor: '#1e1e1e',
+                pfp: "https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png",
+                hasCreatorAward: false
             },
             groups: [],
             messages: [
@@ -311,7 +350,8 @@
             currentGroupId: null,
             eventsLog: [],
             searchTerm: "",
-            inventory: []
+            inventory: [],
+            awardsEndTime: Date.now() + 600000 // 10 mins from start
         };
 
         let appState = defaultState;
@@ -323,8 +363,12 @@
                 const saved = storage.load();
                 if (saved) {
                     appState = saved.state;
+                    // Migrations/Defaults
                     if (!appState.groups) appState.groups = [];
                     if (!appState.messages) appState.messages = defaultState.messages;
+                    if (!appState.user.pfp) appState.user.pfp = defaultState.user.pfp;
+                    if (!appState.awardsEndTime || appState.awardsEndTime < Date.now()) appState.awardsEndTime = Date.now() + 600000;
+                    
                     appState.games.forEach(g => { if(!g.events) g.events = []; });
                     appState.groups.forEach(g => { if(!g.announcements) g.announcements = []; });
 
@@ -362,22 +406,18 @@
                         const decay = Math.pow(0.999, diffSeconds); 
                         game.active = Math.floor(game.active * decay);
                         
-                        // Offline visits from decayed active players + Followers
-                        // Followers help bring passive traffic even offline
-                        const followerTraffic = Math.floor(appState.user.followers * 0.001); 
+                        // Offline visits (Active + Follower traffic)
+                        const followerTraffic = Math.floor(appState.user.followers * 0.002); 
                         
                         const avgActive = (oldActive + game.active) / 2;
                         let offlineVisits = Math.floor((avgActive + followerTraffic) * 0.5 * diffSeconds);
                         
-                        // Passive Group Visits (Members checking out game)
                         if (game.ownerId !== 'user') {
                             const group = appState.groups.find(g => g.id === game.ownerId);
                             if (group) {
                                 const memberVisits = Math.floor(group.members * (0.015 * diffSeconds)); 
                                 offlineVisits += memberVisits;
-
-                                // Visits -> New Members (Offline) - HUGE BOOST
-                                // 10 visits = 1 new member approximately
+                                // Offline Group Growth
                                 const newMembers = Math.floor(offlineVisits / 10);
                                 group.members += newMembers;
                                 totalMembersGained += newMembers;
@@ -389,6 +429,7 @@
 
                         if (offlineVisits > 0 && !game.isDemo) {
                             appState.user.followers += Math.floor(offlineVisits / 100);
+                            appState.user.robux += Math.floor(offlineVisits / 20); // Passive income
                         }
                     });
                     
@@ -420,36 +461,59 @@
                         badge.style.display = unreadMsg > 0 ? 'inline-block' : 'none';
                     }
 
+                    // Awards Logic
+                    const timeLeft = appState.awardsEndTime - Date.now();
+                    const timerEl = document.getElementById('awards-timer');
+                    const bannerEl = document.getElementById('awards-banner');
+                    
+                    if(timeLeft > 0) {
+                        if(bannerEl) bannerEl.classList.remove('hidden');
+                        const mins = Math.floor(timeLeft / 60000);
+                        const secs = Math.floor((timeLeft % 60000) / 1000);
+                        if(timerEl) timerEl.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+                    } else {
+                        // Check for win condition
+                        const totalVisits = appState.games.reduce((acc, g) => acc + g.visits, 0);
+                        if(totalVisits >= 10000000) { // 10M
+                             if(!appState.user.hasCreatorAward) {
+                                 appState.user.hasCreatorAward = true;
+                                 const earnedFollowers = Math.floor(Math.random() * 6000000) + 1000000; // 1-7M
+                                 const earnedMembers = Math.floor(Math.random() * 9000000) + 6000000; // 6-15M
+                                 
+                                 appState.user.followers += earnedFollowers;
+                                 if(appState.groups.length > 0) {
+                                     appState.groups[0].members += earnedMembers;
+                                 }
+                                 
+                                 app.showToast(`🏆 AWARD WON! +${app.formatNumber(earnedFollowers)} Followers!`, "info");
+                                 app.postMessage("System", "Peyza Awards Winner!", "Congratulations! You won the Creator Award. Your fame has skyrocketed!");
+                             }
+                        }
+                        // Reset timer for next day
+                        appState.awardsEndTime = Date.now() + 86400000; // 24 hours
+                        if(bannerEl) bannerEl.classList.add('hidden');
+                    }
+
                     allGames.forEach(game => {
                         // 1. Natural Fluctuation
                         const drift = (Math.random() - 0.49) * 2; 
                         
-                        // 2. Determine Active Players
-                        
-                        // Follower Boost: Followers provide a "floor" for traffic
-                        // 1000 followers = ~5 active players guaranteed
+                        // 2. Active Players Logic (Follower + Group Floor)
                         const followerFloor = Math.floor(appState.user.followers / 200);
-                        
-                        // Group Synergy: Members provide a base floor
                         let groupFloor = 0;
                         if (game.ownerId !== 'user') {
                             const group = appState.groups.find(g => g.id === game.ownerId);
                             if (group) {
                                 groupFloor = Math.floor(group.members / 500);
-                                
-                                // Visits -> Members (High Conversion)
-                                // 10% of new visits become members in realtime
-                                const potentialMembers = Math.ceil(game.active * 0.1 * 0.5); // active * rate * tick_time_factor
-                                if(potentialMembers > 0) {
-                                    group.members += potentialMembers;
-                                }
+                                // Turbo Group Growth from active game
+                                const potentialMembers = Math.ceil(game.active * 0.2); // 20% conversion per tick is huge
+                                if(potentialMembers > 0) group.members += potentialMembers;
                             }
                         }
 
                         const totalFloor = followerFloor + groupFloor;
 
                         if (game.active < totalFloor) {
-                             // Fast recovery if below floor (fans joining)
                              game.active += Math.ceil((totalFloor - game.active) * 0.1) + 1;
                         } else if (game.active === 0) {
                              if(Math.random() < 0.001) game.active = Math.floor(Math.random() * 20); 
@@ -459,41 +523,44 @@
                             game.active = Math.floor(Math.max(0, game.active + actualChange));
                         }
                         
-                        // 3. Visits Accumulation
+                        // 3. Visits
                         const newVisits = Math.ceil(game.active * 0.5);
                         game.visits += newVisits;
 
-                        // 4. Stats Growth 
+                        // 4. SUPERCHARGED Stats Growth 
                         if (newVisits > 0) {
-                            if (Math.random() < 0.02) game.likes++;
-                            if (Math.random() < 0.01) game.favorites++;
-                            if (Math.random() < 0.001) game.dislikes++;
+                            // Way more likes: ~1 like per 10 visits
+                            if (Math.random() < 0.15) game.likes++;
+                            // Dislikes
+                            if (Math.random() < 0.02) game.dislikes++;
+                            // Favorites
+                            if (Math.random() < 0.05) game.favorites++;
                         }
 
-                        // 5. Followers from Visits (Faster Growth)
+                        // 5. Followers from Visits
                         if (!game.isDemo && newVisits > 0) { 
-                             // 1 follower per ~50 visits
-                             const gained = Math.floor(newVisits / 50);
+                             const gained = Math.floor(newVisits / 40); // 1 per 40 visits
                              if(gained > 0) appState.user.followers += gained;
-                             else if (Math.random() < 0.05) appState.user.followers++;
                         }
 
-                        // 6. Events Simulation
+                        // 6. Events
                         if (game.events && game.events.length > 0) {
                             game.events.forEach(ev => {
                                 if(Math.random() < 0.05) {
                                     ev.interested += Math.floor(Math.random() * 5) + 1;
                                     if(game.ownerId !== 'user') {
                                         const grp = appState.groups.find(g => g.id === game.ownerId);
-                                        if(grp) grp.members += 10; // Events drive lots of members
+                                        if(grp) grp.members += 25; 
                                     }
                                 }
                             });
                         }
 
-                        // 7. Visits -> Robux
-                        if (!game.isDemo && game.active > 0 && Math.random() < 0.05) {
-                            appState.user.robux++;
+                        // 7. Visits -> Robux (Boosted)
+                        // 1 Robux per ~10 visits
+                        if (!game.isDemo && newVisits > 0) {
+                            const robuxGain = Math.floor(newVisits / 10);
+                            if(robuxGain > 0) appState.user.robux += robuxGain;
                         }
 
                         // LIVE DOM UPDATE
@@ -503,24 +570,8 @@
                         if (visitEl) visitEl.innerText = `${app.formatNumber(game.visits)} Visits`;
                     });
 
-                    // Simulate Groups (Bot Reactions)
                     appState.groups.forEach(group => {
-                        if(group.announcements) {
-                            group.announcements.forEach(ann => {
-                                const age = Date.now() - ann.timestamp;
-                                if(age < 600000) { 
-                                    if(Math.random() < 0.1) ann.likes++;
-                                    if(Math.random() < 0.05) {
-                                        const bots = ["Noob123", "Guest99", "FanBoy", "RbxLover", "CoolGuy", "Sniper", "Gamer"];
-                                        ann.comments.push({
-                                            user: bots[Math.floor(Math.random()*bots.length)],
-                                            text: ["Awesome!", "Hype!", "Can't wait!", "Finally!", "Best group ever!"][Math.floor(Math.random()*5)]
-                                        });
-                                        if(appState.view === 'group_details' && appState.currentGroupId === group.id) app.render(false);
-                                    }
-                                }
-                            });
-                        }
+                        if(Math.random() < 0.01) group.members++;
                     });
 
                     app.updateHeader();
@@ -574,7 +625,7 @@
                         interested: 1,
                         date: new Date().toLocaleDateString()
                     });
-                    game.active += 50; 
+                    game.active += 100; 
                     app.showToast("Event Published!");
                     app.render();
                 }
@@ -618,10 +669,30 @@
             shoutoutGame: (gameId) => {
                 const game = appState.games.find(g => g.id === gameId);
                 if(game) {
-                    game.active += 500; // Immediate boost
+                    game.active += 1000; 
                     app.showToast(`Shouted out ${game.name}!`);
                     app.render();
                 }
+            },
+
+            updateProfile: (newName, newPfp) => {
+                if(newName) appState.user.username = newName;
+                if(newPfp) appState.user.pfp = newPfp;
+                app.showToast("Profile Updated!");
+                // Force update nav
+                document.getElementById('nav-avatar-img').src = appState.user.pfp;
+                document.getElementById('nav-username').innerText = appState.user.username;
+                app.render();
+            },
+
+            postMessage: (from, subject, body) => {
+                appState.messages.unshift({
+                    id: Date.now(),
+                    from,
+                    subject,
+                    body,
+                    read: false
+                });
             },
 
             createGamepass: (gameId, name, price) => {
@@ -671,8 +742,8 @@
                         return;
                     }
                     appState.user.usedFreeSponsor = true;
-                    game.active += 5000; 
-                    game.visits += 10000;
+                    game.active += 10000; 
+                    game.visits += 50000;
                     app.showToast(`MEGA SPONSOR ACTIVE! ${game.name} is blowing up!`);
                     app.updateHeader();
                     return;
@@ -720,8 +791,6 @@
             changeAvatarColor: (color) => {
                 appState.user.avatarColor = color;
                 app.showToast("Avatar Updated!");
-                const navImg = document.getElementById('nav-avatar-img');
-                if(navImg) navImg.style.filter = `hue-rotate(${Math.random() * 360}deg)`; 
                 app.render();
             },
 
@@ -737,6 +806,7 @@
                 const toast = document.createElement('div');
                 let colorClass = 'bg-[#00b06f]';
                 if (type === 'error') colorClass = 'bg-red-500';
+                if (type === 'info') colorClass = 'bg-yellow-600';
                 
                 toast.className = `px-4 py-3 rounded-lg shadow-xl text-white text-sm font-bold animate-bounce ${colorClass} flex items-center gap-2 border border-white/10`;
                 toast.innerHTML = msg;
@@ -749,6 +819,8 @@
                 if(rbEl) rbEl.innerText = app.formatNumber(appState.user.robux);
                 const userEl = document.getElementById('nav-username');
                 if(userEl) userEl.innerText = appState.user.username;
+                const imgEl = document.getElementById('nav-avatar-img');
+                if(imgEl) imgEl.src = appState.user.pfp;
             },
 
             // --- Renderers ---
@@ -822,7 +894,7 @@
                                     </div>
                                     <div class="flex-1">
                                         <h2 class="text-3xl font-bold text-white mb-2">${group.name}</h2>
-                                        <div class="text-sm text-gray-400 mb-2">Owned by <span class="text-white font-bold">${appState.user.username} ${isVerified ? '<span class="verified-badge w-4 h-4 text-[10px]"><i class="fas fa-check"></i></span>' : ''}</span></div>
+                                        <div class="text-sm text-gray-400 mb-2">Owned by <span class="text-white font-bold">${appState.user.username} ${isVerified ? '<span class="verified-badge w-4 h-4 text-[10px]"><i class="fas fa-check"></i></span>' : ''} ${appState.user.hasCreatorAward ? '<span class="creator-badge w-4 h-4 text-[10px]"><i class="fas fa-crown"></i></span>' : ''}</span></div>
                                         <div class="text-gray-400 mb-2">${group.description}</div>
                                         <div class="text-sm text-gray-500">${app.formatNumber(group.members)} Members</div>
                                         <div class="mt-4 flex gap-3">
@@ -847,7 +919,7 @@
                                             <div class="rbx-card p-4">
                                                 <div class="flex items-center gap-3 mb-2">
                                                     <div class="w-8 h-8 bg-gray-600 rounded-full overflow-hidden">
-                                                        <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full">
+                                                        <img src="${appState.user.pfp}" class="w-full h-full object-cover">
                                                     </div>
                                                     <div>
                                                         <div class="font-bold text-sm text-blue-400 hover:underline cursor-pointer">${ann.author} ${isVerified ? '<span class="verified-badge w-3 h-3 text-[8px]"><i class="fas fa-check"></i></span>' : ''}</div>
@@ -926,19 +998,23 @@
                     `;
                 },
 
-                // ... other views (profile, robux etc same as before)
                 profile: () => {
                     const isVerified = appState.user.followers >= 100000;
+                    const totalVisits = appState.games.reduce((acc, g) => acc + g.visits, 0);
+                    
                     return `
                         <div class="max-w-5xl mx-auto rbx-card p-6 md:p-8 relative bg-[#2b2d31]">
+                            <button onclick="document.getElementById('edit-profile-modal').classList.remove('hidden')" class="absolute top-6 right-6 text-gray-400 hover:text-white"><i class="fas fa-cog text-xl"></i></button>
+                            
                             <div class="flex flex-col md:flex-row gap-8 items-center md:items-start border-b border-[#393b3d] pb-8">
                                 <div class="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-[#393b3d] bg-gray-600">
-                                     <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full object-cover">
+                                     <img src="${appState.user.pfp}" class="w-full h-full object-cover">
                                 </div>
                                 <div class="flex-1 text-center md:text-left">
                                     <h2 class="text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2 text-white">
                                         ${appState.user.username} 
                                         ${isVerified ? '<span class="verified-badge w-6 h-6 text-sm" title="Verified Creator"><i class="fas fa-check"></i></span>' : ''}
+                                        ${appState.user.hasCreatorAward ? '<span class="creator-badge w-6 h-6 text-sm" title="Peyza Creator Award"><i class="fas fa-crown"></i></span>' : ''}
                                     </h2>
                                     <p class="text-gray-400 mt-1 italic">"${appState.user.status}"</p>
                                     
@@ -948,8 +1024,8 @@
                                             <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Followers</div>
                                         </div>
                                         <div class="text-center md:text-left">
-                                            <div class="font-bold text-xl text-white">24</div>
-                                            <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Following</div>
+                                            <div class="font-bold text-xl text-white">${app.formatNumber(totalVisits)}</div>
+                                            <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Total Visits</div>
                                         </div>
                                     </div>
                                 </div>
@@ -971,8 +1047,31 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Edit Profile Modal -->
+                        <div id="edit-profile-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
+                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
+                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('edit-profile-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
+                                <h3 class="text-xl font-bold mb-4 text-white">Edit Profile</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-1">Username</label>
+                                        <input id="edit-username" type="text" value="${appState.user.username}" class="w-full rbx-input p-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-1">Profile Picture URL</label>
+                                        <input id="edit-pfp" type="text" value="${appState.user.pfp}" class="w-full rbx-input p-2">
+                                        <div class="text-[10px] text-gray-500 mt-1">Paste a direct image link (png/jpg)</div>
+                                    </div>
+                                    <button onclick="app.updateProfile(document.getElementById('edit-username').value, document.getElementById('edit-pfp').value); document.getElementById('edit-profile-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-2 rounded font-bold text-white hover:bg-[#009960]">Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
                     `;
                 },
+                
+                // ... (Messages, Groups, Marketplace, Avatar, Game, DevHub, Robux - same structure as previous) ...
+                
                 messages: () => {
                      return `
                         <div class="max-w-4xl mx-auto rbx-card p-0 overflow-hidden">
@@ -1099,7 +1198,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h2 class="text-3xl md:text-4xl font-extrabold mb-2 text-white leading-tight">${game.name}</h2>
-                                    <div class="text-sm text-gray-400 mb-6 font-medium">By <a href="#" class="text-blue-400 hover:underline">@${game.creatorName} ${isOwner && isVerified ? '<span class="verified-badge w-4 h-4 text-[10px]"><i class="fas fa-check"></i></span>' : ''}</a></div>
+                                    <div class="text-sm text-gray-400 mb-6 font-medium">By <a href="#" class="text-blue-400 hover:underline">@${game.creatorName} ${isOwner && isVerified ? '<span class="verified-badge w-4 h-4 text-[10px]"><i class="fas fa-check"></i></span>' : ''} ${isOwner && appState.user.hasCreatorAward ? '<span class="creator-badge w-4 h-4 text-[10px]"><i class="fas fa-crown"></i></span>' : ''}</a></div>
                                     
                                     <div class="flex gap-8 mb-8 border-t border-b border-[#393b3d] py-4">
                                         <div class="flex flex-col items-center">
