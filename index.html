@@ -86,6 +86,7 @@
             width: 16px;
             height: 16px;
             margin-left: 4px;
+            vertical-align: middle;
         }
 
         /* 3D View Container */
@@ -224,10 +225,10 @@
                     state: appState,
                     timestamp: Date.now()
                 };
-                localStorage.setItem('peyza_save_v6', JSON.stringify(data));
+                localStorage.setItem('peyza_save_v7', JSON.stringify(data));
             },
             load: () => {
-                const data = localStorage.getItem('peyza_save_v6');
+                const data = localStorage.getItem('peyza_save_v7');
                 if (data) return JSON.parse(data);
                 return null;
             }
@@ -291,7 +292,7 @@
             view: 'home',
             user: {
                 username: "PeyzaDev_2025",
-                followers: 95000,
+                followers: 0,
                 robux: 450,
                 usd: 0.00,
                 status: "Developing the next big hit!",
@@ -361,20 +362,23 @@
                         const decay = Math.pow(0.999, diffSeconds); 
                         game.active = Math.floor(game.active * decay);
                         
-                        // Offline visits from decayed active players
+                        // Offline visits from decayed active players + Followers
+                        // Followers help bring passive traffic even offline
+                        const followerTraffic = Math.floor(appState.user.followers * 0.001); 
+                        
                         const avgActive = (oldActive + game.active) / 2;
-                        let offlineVisits = Math.floor(avgActive * 0.5 * diffSeconds);
+                        let offlineVisits = Math.floor((avgActive + followerTraffic) * 0.5 * diffSeconds);
                         
                         // Passive Group Visits (Members checking out game)
                         if (game.ownerId !== 'user') {
                             const group = appState.groups.find(g => g.id === game.ownerId);
                             if (group) {
-                                // e.g. 5% of members visit per hour
                                 const memberVisits = Math.floor(group.members * (0.015 * diffSeconds)); 
                                 offlineVisits += memberVisits;
 
-                                // Visits -> New Members (Offline)
-                                const newMembers = Math.floor(offlineVisits / 800);
+                                // Visits -> New Members (Offline) - HUGE BOOST
+                                // 10 visits = 1 new member approximately
+                                const newMembers = Math.floor(offlineVisits / 10);
                                 group.members += newMembers;
                                 totalMembersGained += newMembers;
                             }
@@ -384,7 +388,7 @@
                         totalVisits += offlineVisits;
 
                         if (offlineVisits > 0 && !game.isDemo) {
-                            appState.user.followers += Math.floor(offlineVisits / 150);
+                            appState.user.followers += Math.floor(offlineVisits / 100);
                         }
                     });
                     
@@ -421,28 +425,33 @@
                         const drift = (Math.random() - 0.49) * 2; 
                         
                         // 2. Determine Active Players
-                        let groupBoost = 0;
                         
-                        // Group Synergy: Members provide a base floor of active players
+                        // Follower Boost: Followers provide a "floor" for traffic
+                        // 1000 followers = ~5 active players guaranteed
+                        const followerFloor = Math.floor(appState.user.followers / 200);
+                        
+                        // Group Synergy: Members provide a base floor
+                        let groupFloor = 0;
                         if (game.ownerId !== 'user') {
                             const group = appState.groups.find(g => g.id === game.ownerId);
                             if (group) {
-                                // 1 active player per 500 members guaranteed
-                                const baseActive = Math.floor(group.members / 500);
-                                if (game.active < baseActive) {
-                                    // Recover fast if below base
-                                    game.active += Math.ceil((baseActive - game.active) * 0.1);
-                                }
+                                groupFloor = Math.floor(group.members / 500);
                                 
-                                // Visits -> Members (Realtime conversion)
-                                // If people are visiting, some join the group
-                                if(game.active > 0 && Math.random() < 0.005) {
-                                    group.members++;
+                                // Visits -> Members (High Conversion)
+                                // 10% of new visits become members in realtime
+                                const potentialMembers = Math.ceil(game.active * 0.1 * 0.5); // active * rate * tick_time_factor
+                                if(potentialMembers > 0) {
+                                    group.members += potentialMembers;
                                 }
                             }
                         }
 
-                        if (game.active === 0) {
+                        const totalFloor = followerFloor + groupFloor;
+
+                        if (game.active < totalFloor) {
+                             // Fast recovery if below floor (fans joining)
+                             game.active += Math.ceil((totalFloor - game.active) * 0.1) + 1;
+                        } else if (game.active === 0) {
                              if(Math.random() < 0.001) game.active = Math.floor(Math.random() * 20); 
                         } else {
                             const maxChange = Math.max(1, game.active * 0.03); 
@@ -461,9 +470,12 @@
                             if (Math.random() < 0.001) game.dislikes++;
                         }
 
-                        // 5. Followers from Visits
-                        if (!game.isDemo && newVisits > 0 && Math.random() < 0.02) { 
-                             appState.user.followers++;
+                        // 5. Followers from Visits (Faster Growth)
+                        if (!game.isDemo && newVisits > 0) { 
+                             // 1 follower per ~50 visits
+                             const gained = Math.floor(newVisits / 50);
+                             if(gained > 0) appState.user.followers += gained;
+                             else if (Math.random() < 0.05) appState.user.followers++;
                         }
 
                         // 6. Events Simulation
@@ -471,10 +483,9 @@
                             game.events.forEach(ev => {
                                 if(Math.random() < 0.05) {
                                     ev.interested += Math.floor(Math.random() * 5) + 1;
-                                    // Events drive group members heavily
-                                    if(game.ownerId !== 'user' && Math.random() < 0.6) {
+                                    if(game.ownerId !== 'user') {
                                         const grp = appState.groups.find(g => g.id === game.ownerId);
-                                        if(grp) grp.members++;
+                                        if(grp) grp.members += 10; // Events drive lots of members
                                     }
                                 }
                             });
@@ -510,8 +521,6 @@
                                 }
                             });
                         }
-                        // Random organic group growth
-                        if(Math.random() < 0.01) group.members++;
                     });
 
                     app.updateHeader();
@@ -602,6 +611,15 @@
                         comments: []
                     });
                     app.showToast("Announcement Posted!");
+                    app.render();
+                }
+            },
+
+            shoutoutGame: (gameId) => {
+                const game = appState.games.find(g => g.id === gameId);
+                if(game) {
+                    game.active += 500; // Immediate boost
+                    app.showToast(`Shouted out ${game.name}!`);
                     app.render();
                 }
             },
@@ -793,6 +811,7 @@
                     if(!group) return "Group Not Found";
                     
                     const groupGames = appState.games.filter(g => g.ownerId === groupId);
+                    const isVerified = appState.user.followers >= 100000;
 
                     return `
                         <div class="max-w-5xl mx-auto">
@@ -803,6 +822,7 @@
                                     </div>
                                     <div class="flex-1">
                                         <h2 class="text-3xl font-bold text-white mb-2">${group.name}</h2>
+                                        <div class="text-sm text-gray-400 mb-2">Owned by <span class="text-white font-bold">${appState.user.username} ${isVerified ? '<span class="verified-badge w-4 h-4 text-[10px]"><i class="fas fa-check"></i></span>' : ''}</span></div>
                                         <div class="text-gray-400 mb-2">${group.description}</div>
                                         <div class="text-sm text-gray-500">${app.formatNumber(group.members)} Members</div>
                                         <div class="mt-4 flex gap-3">
@@ -830,7 +850,7 @@
                                                         <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full">
                                                     </div>
                                                     <div>
-                                                        <div class="font-bold text-sm text-blue-400 hover:underline cursor-pointer">${ann.author}</div>
+                                                        <div class="font-bold text-sm text-blue-400 hover:underline cursor-pointer">${ann.author} ${isVerified ? '<span class="verified-badge w-3 h-3 text-[8px]"><i class="fas fa-check"></i></span>' : ''}</div>
                                                         <div class="text-xs text-gray-500">${new Date(ann.timestamp).toLocaleTimeString()}</div>
                                                     </div>
                                                 </div>
@@ -857,14 +877,17 @@
                                     <h3 class="font-bold text-lg mb-3">Experiences</h3>
                                     <div class="space-y-3">
                                         ${groupGames.length > 0 ? groupGames.map(g => `
-                                            <div class="rbx-card p-2 flex gap-3 cursor-pointer hover:bg-[#323438]" onclick="app.navigate('game', '${g.id}')">
-                                                <div class="w-16 h-16 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0">
-                                                    <img src="${g.icon}" class="w-full h-full object-cover">
+                                            <div class="rbx-card p-2">
+                                                <div class="flex gap-3 cursor-pointer hover:bg-[#323438] p-1 rounded" onclick="app.navigate('game', '${g.id}')">
+                                                    <div class="w-16 h-16 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0">
+                                                        <img src="${g.icon}" class="w-full h-full object-cover">
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="font-bold text-sm truncate">${g.name}</div>
+                                                        <div class="text-xs text-green-400">${app.formatNumber(g.active)} Active</div>
+                                                    </div>
                                                 </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="font-bold text-sm truncate">${g.name}</div>
-                                                    <div class="text-xs text-green-400">${app.formatNumber(g.active)} Active</div>
-                                                </div>
+                                                <button class="w-full mt-2 bg-[#393b3d] text-white text-xs font-bold py-1 rounded hover:bg-white hover:text-black transition" onclick="app.shoutoutGame('${g.id}')">Shoutout</button>
                                             </div>
                                         `).join('') : '<div class="text-gray-500 text-sm">No games yet.</div>'}
                                     </div>
@@ -1003,7 +1026,7 @@
                         <!-- Create Group Modal -->
                         <div id="create-group-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
                             <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
-                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-group-modal').classList.add('hidden')"><i class="fas fa-times"></i></button>
+                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-group-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
                                 <h3 class="text-xl font-bold mb-4 text-white">Create New Group</h3>
                                 <input id="new-group-name" type="text" placeholder="Group Name" class="w-full rbx-input p-3 mb-3">
                                 <textarea id="new-group-desc" placeholder="Description" class="w-full rbx-input p-3 mb-3 h-24"></textarea>
@@ -1061,6 +1084,7 @@
                     const game = allGames.find(g => g.id === gameId);
                     if (!game) return "Game not found";
                     const isOwner = game.ownerId === 'user' || appState.groups.find(gr => gr.id === game.ownerId);
+                    const isVerified = appState.user.followers >= 100000;
 
                     const likeRatio = Math.round((game.likes / (game.likes + game.dislikes || 1)) * 100);
 
@@ -1075,7 +1099,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h2 class="text-3xl md:text-4xl font-extrabold mb-2 text-white leading-tight">${game.name}</h2>
-                                    <div class="text-sm text-gray-400 mb-6 font-medium">By <a href="#" class="text-blue-400 hover:underline">@${game.creatorName}</a></div>
+                                    <div class="text-sm text-gray-400 mb-6 font-medium">By <a href="#" class="text-blue-400 hover:underline">@${game.creatorName} ${isOwner && isVerified ? '<span class="verified-badge w-4 h-4 text-[10px]"><i class="fas fa-check"></i></span>' : ''}</a></div>
                                     
                                     <div class="flex gap-8 mb-8 border-t border-b border-[#393b3d] py-4">
                                         <div class="flex flex-col items-center">
@@ -1318,82 +1342,6 @@
                         </div>
                     `;
                 }
-            }
-        };
-
-        const threeApp = {
-            scene: null, camera: null, renderer: null, animationId: null, cubes: [], activeGameId: null,
-            init: (gameId) => {
-                threeApp.activeGameId = gameId;
-                const container = document.getElementById('game-canvas');
-                threeApp.scene = new THREE.Scene();
-                threeApp.scene.background = new THREE.Color(0x87CEEB);
-                threeApp.scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
-                threeApp.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                threeApp.camera.position.set(0, 5, 10);
-                threeApp.renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true });
-                threeApp.renderer.setSize(window.innerWidth, window.innerHeight);
-                threeApp.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                dirLight.position.set(10, 20, 10);
-                threeApp.scene.add(dirLight);
-                const plane = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({ color: 0x2F4F4F }));
-                plane.rotation.x = -Math.PI / 2;
-                threeApp.scene.add(plane);
-                threeApp.scene.add(new THREE.GridHelper(100, 20));
-                threeApp.cubes = [];
-                for(let i=0; i<15; i++) {
-                    const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
-                    cube.position.set((Math.random() - 0.5) * 40, 1, (Math.random() - 0.5) * 40);
-                    cube.userData = { speed: 0.05 + Math.random() * 0.1, direction: Math.random() * Math.PI * 2, jumpOffset: Math.random() * 10 };
-                    threeApp.scene.add(cube);
-                    threeApp.cubes.push(cube);
-                }
-                threeApp.setupControls(container);
-                threeApp.animate();
-            },
-            setupControls: (container) => {
-                let isDragging = false, prev = { x: 0, y: 0 };
-                const handleStart = (x, y) => { isDragging = true; prev = { x, y }; };
-                const handleMove = (x, y) => {
-                    if(isDragging) {
-                        const deltaX = x - prev.x;
-                        const angle = deltaX * 0.01;
-                        const cx = threeApp.camera.position.x, cz = threeApp.camera.position.z;
-                        threeApp.camera.position.x = cx * Math.cos(angle) - cz * Math.sin(angle);
-                        threeApp.camera.position.z = cx * Math.sin(angle) + cz * Math.cos(angle);
-                        threeApp.camera.lookAt(0, 0, 0);
-                        prev = { x, y };
-                    }
-                };
-                container.onmousedown = (e) => handleStart(e.offsetX, e.offsetY);
-                container.onmousemove = (e) => handleMove(e.offsetX, e.offsetY);
-                window.onmouseup = () => isDragging = false;
-                container.ontouchstart = (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY);
-                container.ontouchmove = (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY);
-                container.ontouchend = () => isDragging = false;
-            },
-            animate: () => {
-                threeApp.animationId = requestAnimationFrame(threeApp.animate);
-                const time = Date.now() * 0.001;
-                threeApp.cubes.forEach(c => {
-                    c.position.x += Math.cos(c.userData.direction) * c.userData.speed;
-                    c.position.z += Math.sin(c.userData.direction) * c.userData.speed;
-                    c.position.y = 1 + Math.abs(Math.sin(time * 3 + c.userData.jumpOffset));
-                    if(Math.abs(c.position.x)>20 || Math.abs(c.position.z)>20) c.userData.direction += Math.PI;
-                });
-                if (Math.random() < 0.05) {
-                     const game = [...appState.games, ...appState.demoGames].find(g => g.id === threeApp.activeGameId);
-                     if(game) { game.visits++; if(!game.isDemo && Math.random() < 0.2) appState.user.followers++; }
-                }
-                threeApp.renderer.render(threeApp.scene, threeApp.camera);
-            },
-            stopGame: () => {
-                cancelAnimationFrame(threeApp.animationId);
-                document.getElementById('game-view').style.display = 'none';
-                threeApp.scene = null;
-                app.render();
-                app.showToast("Thanks for playing!");
             }
         };
 
