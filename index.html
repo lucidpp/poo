@@ -2,913 +2,1402 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Peyza - Music Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peyza Developer Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        @keyframes bounce-in { 0% { transform: translateY(-20px); opacity: 0; } 50% { transform: translateY(5px); } 100% { transform: translateY(0); opacity: 1; } }
-        @keyframes slide-up { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
-        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        body { background-color: black; color: white; font-family: "Circular Std", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; -webkit-tap-highlight-color: transparent; }
-        input:focus, textarea:focus, select:focus { outline: none; }
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .glass-panel { background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.05); }
-        .chart-row:hover { background-color: rgba(255,255,255,0.1); }
+        /* Modern Dark/Grey Theme */
+        :root {
+            --rbx-bg: #191b1d;
+            --rbx-panel: #2b2d31;
+            --rbx-header: #232527;
+            --rbx-text: #ffffff;
+            --rbx-text-sec: #adadad;
+            --rbx-blue: #00b06f;
+            --rbx-divider: #393b3d;
+            --rbx-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        body {
+            background-color: var(--rbx-bg);
+            color: var(--rbx-text);
+            font-family: 'Gotham SSm', 'Segoe UI', Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        .rbx-card {
+            background-color: var(--rbx-panel);
+            border-radius: 12px;
+            box-shadow: var(--rbx-shadow);
+            border: 1px solid #383a40;
+        }
+        .rbx-input {
+            background-color: #1a1c1e;
+            border: 1px solid #393b3d;
+            color: white;
+            border-radius: 8px;
+        }
+        .rbx-input:focus {
+            border-color: #00b06f;
+            outline: none;
+        }
+        .rbx-btn-primary {
+            background-color: white;
+            color: black;
+            font-weight: 700;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .rbx-btn-green {
+            background-color: #00b06f;
+            color: white;
+            font-weight: 700;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .rbx-btn-green:hover {
+            background-color: #009960;
+        }
         
-        /* Spotify Specific Utilities */
-        .text-spotify { color: #1db954; }
-        .bg-spotify { background-color: #1db954; }
-        .border-spotify { border-color: #1db954; }
-        .hover-text-spotify:hover { color: #1db954; }
-        .hover-bg-spotify:hover { background-color: #1db954; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--rbx-bg); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a4d52; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #606368; 
+        }
+
+        .verified-badge {
+            color: #fff;
+            background-color: #00b06f;
+            border-radius: 50%;
+            padding: 2px;
+            font-size: 0.7em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            margin-left: 4px;
+        }
+
+        /* 3D View Container */
+        #game-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 100;
+            background: #000;
+            display: none;
+        }
+        
+        /* Mobile Bottom Nav */
+        .mobile-nav {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex;
+            }
+            .sidebar {
+                display: none !important;
+            }
+            main {
+                margin-left: 0 !important;
+                padding-bottom: 80px;
+            }
+        }
     </style>
 </head>
-<body class="flex flex-col h-screen w-full bg-black text-white">
+<body class="flex flex-col h-screen">
 
-    <div id="app" class="flex flex-col h-full w-full"></div>
+    <!-- Top Navigation (Desktop) -->
+    <nav class="h-14 bg-[#232527] border-b border-[#393b3d] flex items-center justify-between px-4 fixed w-full z-50 shadow-md">
+        <div class="flex items-center gap-6">
+            <h1 class="text-2xl font-extrabold cursor-pointer text-white tracking-tight hover:text-gray-300 transition" onclick="app.navigate('home')">Peyza</h1>
+            <ul class="hidden md:flex gap-6 text-base font-medium text-gray-400">
+                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('home')">Discover</li>
+                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('marketplace')">Marketplace</li>
+                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('devhub')">Create</li>
+                <li class="cursor-pointer hover:text-white transition" onclick="app.navigate('robux')">Robux</li>
+            </ul>
+        </div>
+        <div class="flex-1 max-w-xl mx-4 hidden md:block">
+            <div class="relative">
+                <input id="nav-search" type="text" placeholder="Search experiences..." class="w-full bg-[#1a1c1e] border border-[#393b3d] rounded-full py-2 px-4 text-sm text-white focus:outline-none focus:border-gray-500">
+                <i class="fas fa-search absolute right-4 top-2.5 text-gray-500 text-xs"></i>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-1 bg-[#2b2d31] px-3 py-1 rounded-full cursor-pointer hover:bg-[#393b3d] transition border border-[#393b3d]" onclick="app.navigate('robux')">
+                <i class="fas fa-hexagon text-white text-xs"></i>
+                <span id="nav-robux" class="font-bold text-sm text-white">0</span>
+            </div>
+            <div class="flex items-center gap-2 cursor-pointer" onclick="app.navigate('profile')">
+                <div class="w-9 h-9 rounded-full bg-gray-600 overflow-hidden border border-[#393b3d]">
+                    <img id="nav-avatar-img" src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" alt="Avatar" class="w-full h-full object-cover">
+                </div>
+                <span id="nav-username" class="text-sm font-semibold text-white hidden sm:block">User</span>
+            </div>
+        </div>
+    </nav>
 
-    <input type="file" id="global-file-input" class="hidden" accept="image/*">
-    <input type="file" id="global-audio-input" class="hidden" accept="audio/*">
-    <input type="file" id="import-file-input" class="hidden" accept=".json">
+    <!-- Sidebar (Desktop) -->
+    <aside class="sidebar fixed left-0 top-14 w-60 h-full bg-[#191b1d] border-r border-[#393b3d] pt-4 hidden lg:block z-40 overflow-y-auto">
+        <div class="flex flex-col gap-1 px-3">
+            <a onclick="app.navigate('home')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-home w-5"></i> Home</a>
+            <a onclick="app.navigate('profile')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-user w-5"></i> Profile</a>
+            <a onclick="app.navigate('messages')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white">
+                <i class="fas fa-comment-dots w-5"></i> Messages 
+                <span id="msg-badge" class="hidden bg-red-500 text-white text-[10px] px-1.5 rounded-full ml-auto">0</span>
+            </a>
+            <a onclick="app.navigate('groups')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-user-friends w-5"></i> Groups</a>
+            <a onclick="app.navigate('avatar')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-tshirt w-5"></i> Avatar</a>
+            <a onclick="app.navigate('inventory')" class="px-4 py-2 hover:bg-[#2b2d31] rounded-lg cursor-pointer flex items-center gap-3 text-gray-300 font-semibold transition hover:text-white"><i class="fas fa-box w-5"></i> Inventory</a>
+            
+            <div class="mt-4 border-t border-[#393b3d] pt-4 px-4">
+                <h3 class="text-xs font-bold text-gray-500 uppercase mb-2 tracking-wide">My Events</h3>
+                <a onclick="app.navigate('devhub')" class="py-2 hover:bg-[#2b2d31] rounded-lg px-2 -ml-2 cursor-pointer flex items-center gap-3 text-gray-300 font-semibold hover:text-white"><i class="fas fa-pencil-ruler w-5"></i> Developer Hub</a>
+            </div>
+        </div>
+    </aside>
 
-<script>
-    // --- GEMINI API ---
-    const apiKey = ""; 
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav fixed bottom-0 w-full bg-[#232527] border-t border-[#393b3d] h-16 z-50 flex justify-around items-center px-2">
+        <div onclick="app.navigate('home')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
+            <i class="fas fa-home text-xl mb-1"></i>
+            <span class="text-[10px] font-bold">Home</span>
+        </div>
+        <div onclick="app.navigate('devhub')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
+            <i class="fas fa-gamepad text-xl mb-1"></i>
+            <span class="text-[10px] font-bold">Create</span>
+        </div>
+        <div onclick="app.navigate('profile')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
+            <div class="w-8 h-8 rounded-full overflow-hidden border border-gray-500 mb-1">
+                 <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full object-cover">
+            </div>
+        </div>
+        <div onclick="app.navigate('robux')" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white">
+             <i class="fas fa-hexagon text-xl mb-1"></i>
+             <span class="text-[10px] font-bold">Robux</span>
+        </div>
+    </div>
 
-    // --- INDEXED DB ---
-    const DB_NAME = 'PeyzaDB_V9_Profile';
-    const STORE_NAME = 'images';
-    let db;
-    const IMAGE_CACHE = {}; 
+    <!-- Main Content -->
+    <main id="main-content" class="lg:ml-60 mt-14 p-4 md:p-8 flex-1 overflow-y-auto pb-24">
+        <!-- Dynamic Content Injected Here -->
+    </main>
 
-    const initDB = () => new Promise((resolve) => {
-        const req = indexedDB.open(DB_NAME, 1);
-        req.onupgradeneeded = e => e.target.result.createObjectStore(STORE_NAME);
-        req.onsuccess = e => { db = e.target.result; loadAllImages().then(resolve); };
-    });
+    <!-- 3D Game Overlay -->
+    <div id="game-view" class="relative">
+        <div class="absolute top-4 left-4 z-50 flex gap-4">
+             <button onclick="threeApp.stopGame()" class="bg-red-600 text-white px-4 py-2 rounded font-bold shadow-lg hover:bg-red-700">Leave Game</button>
+             <div class="bg-black bg-opacity-50 text-white px-4 py-2 rounded font-bold backdrop-blur-sm">
+                Playing: <span id="game-playing-name">Game</span>
+             </div>
+        </div>
+        <div class="absolute bottom-10 left-10 z-50 text-white pointer-events-none select-none">
+            <p class="text-2xl font-bold mb-1">Controls</p>
+            <p class="text-sm opacity-80">Click/Drag to look around</p>
+            <p class="text-sm opacity-80">You earn +1 visit/sec while here</p>
+        </div>
+        <canvas id="game-canvas" class="w-full h-full block"></canvas>
+    </div>
 
-    const saveImageToDB = (id, dataUrl) => new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).put(dataUrl, id);
-        tx.oncomplete = () => { IMAGE_CACHE[id] = dataUrl; resolve(id); };
-    });
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-20 md:bottom-5 right-5 flex flex-col gap-2 z-[60]"></div>
 
-    const loadAllImages = () => new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readonly');
-        tx.objectStore(STORE_NAME).openCursor().onsuccess = e => {
-            const cursor = e.target.result;
-            if (cursor) { IMAGE_CACHE[cursor.key] = cursor.value; cursor.continue(); }
-            else resolve();
+    <script>
+        // --- Persistence Helpers ---
+        const storage = {
+            save: () => {
+                const data = {
+                    state: appState,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('peyza_save_v6', JSON.stringify(data));
+            },
+            load: () => {
+                const data = localStorage.getItem('peyza_save_v6');
+                if (data) return JSON.parse(data);
+                return null;
+            }
         };
-    });
 
-    const getImgSrc = (key, fallback) => IMAGE_CACHE[key] || fallback || 'https://via.placeholder.com/150/121212/333?text=No+Img';
-
-    // --- AI Helper ---
-    async function callGemini(prompt) {
-        if (!apiKey) { alert("API Key missing."); return null; }
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text;
-        } catch (error) { console.error(error); return null; }
-    }
-
-    async function generateTracklist() {
-        const { title, type } = state.releaseForm;
-        const artist = state.artists.find(a => a.id === state.activeArtistId);
-        const btn = document.getElementById('btn-gen-tracks');
-        if(btn) btn.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>`;
-        const count = type === 'Single' ? 1 : 8;
-        const text = await callGemini(`Generate ${count} cool song titles for a ${type} named "${title}" by "${artist.name}". Return ONLY titles separated by pipes (|).`);
-        if (text) {
-            const newTracks = text.split('|').map(t => ({ title: t.trim(), featArtistId: '', file: null })).filter(t => t.title);
-            state.releaseForm.tracks = [...state.releaseForm.tracks, ...newTracks];
-            render();
-        }
-    }
-
-    async function generateBio() {
-        const name = state.editForm.name;
-        const btn = document.getElementById('btn-gen-bio');
-        if(btn) btn.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>`;
-        const bio = await callGemini(`Write a trendy 2-sentence bio for musician "${name}".`);
-        if (bio) { state.editForm.bio = bio.trim(); render(); }
-    }
-
-    // --- State & Data ---
-    const generateId = () => Math.random().toString(36).substr(2, 9);
-    const formatNumber = n => n.toLocaleString('en-US');
-    const formatDate = d => { const date = new Date(2025, 0, 1); date.setDate(date.getDate() + d); return date.toLocaleDateString('en-US', {month:'short', day:'numeric'}); };
-
-    const saveState = () => localStorage.setItem('peyza_v9_profile', JSON.stringify(state));
-    const exportData = () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
-        const node = document.createElement('a');
-        node.setAttribute("href", dataStr); node.setAttribute("download", "peyza_save.json");
-        document.body.appendChild(node); node.click(); node.remove();
-    };
-    const importData = (file) => {
-        const reader = new FileReader();
-        reader.onload = e => { Object.assign(state, JSON.parse(e.target.result)); saveState(); render(); };
-        reader.readAsText(file);
-    };
-
-    // Mock Data
-    const generateGeoStats = () => ({
-        countries: ['USA', 'UK', 'Brazil', 'Japan', 'Germany'].map(c => ({ name: c, listeners: Math.floor(Math.random() * 50000) })).sort((a,b) => b.listeners - a.listeners),
-        cities: ['Los Angeles, USA', 'London, UK', 'Sao Paulo, BR', 'Tokyo, JP', 'Berlin, DE'].map(c => ({ name: c, listeners: Math.floor(Math.random() * 20000) })).sort((a,b) => b.listeners - a.listeners)
-    });
-
-    const INITIAL_STATE = {
-        view: 'home', activeArtistId: null, activeAlbumId: null, activePlaylistId: null, dashboardArtistId: null, dashboardReleaseId: null, searchQuery: '', activeTrackIdx: null, aboutArtistId: null,
-        user: { name: 'Guest User', followers: 120, image: null, bio: 'Music Lover' },
-        artists: [
-            { id: 'a1', name: 'Neon Horizon', bio: 'Synthwave legends from the future.', followers: 125000, monthlyListeners: 450000, momentum: 80, lastReleaseDay: -20, lastReleaseType: 'Album', image: null, banner: null, verified: true, color: 'from-purple-900', geoStats: generateGeoStats(), managerInsight: null },
-            { id: 'a2', name: 'Luna Drift', bio: 'Ethereal vocals meeting heavy bass.', followers: 3200, monthlyListeners: 8900, momentum: 95, lastReleaseDay: -5, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-blue-900', geoStats: generateGeoStats(), managerInsight: null }
-        ],
-        albums: [
-            { id: 'al1', artistId: 'a1', title: 'Nightcall', year: 2024, cover: null, type: 'Album' },
-            { id: 'al2', artistId: 'a2', title: 'Phases', year: 2025, cover: null, type: 'Single' }
-        ],
-        songs: [
-            { id: 's1', artistId: 'a1', albumId: 'al1', title: 'Midnight City', streams: 154020, dailyStreams: 1200, history: [1000, 1100, 1200], saves: 12040, duration: '3:45', cover: null, audioUrl: null, featArtistId: null, releaseDay: 0 },
-            { id: 's2', artistId: 'a1', albumId: 'al1', title: 'Cyber Heart', streams: 89000, dailyStreams: 800, history: [750, 780, 800], saves: 5000, duration: '2:50', cover: null, audioUrl: null, featArtistId: null, releaseDay: 0 },
-            { id: 's3', artistId: 'a2', albumId: 'al2', title: 'Moonlight', streams: 12000, dailyStreams: 450, history: [400, 420, 450], saves: 1200, duration: '4:12', cover: null, audioUrl: null, featArtistId: null, releaseDay: 0 }
-        ],
-        playlists: [{id:'p1', name:'My Mix', songs:['s1'], cover:null, saves: 42}],
-        charts: [],
-        currentSong: null, currentSongReview: null, isPlaying: false, day: 0, dailyLog: [], showDailyLog: false, modal: null, fullScreenPlayer: false,
-        editForm: {}, releaseForm: { title: '', type: 'Single', cover: '', tracks: [] }, userForm: {}, playlistForm: { id: null, name: '' }
-    };
-
-    let state = INITIAL_STATE;
-    let loaded = localStorage.getItem('peyza_v9_profile');
-    if (!loaded) loaded = localStorage.getItem('peyza_v8_spotify');
-    if (loaded) try { state = { ...INITIAL_STATE, ...JSON.parse(loaded) }; } catch(e){}
-
-    const audioPlayer = new Audio();
-    audioPlayer.addEventListener('timeupdate', () => renderPlayer());
-    audioPlayer.addEventListener('ended', () => { state.isPlaying = false; render(); });
-
-    // --- Core Actions ---
-    function setView(view, id = null) {
-        state.view = view;
-        state.fullScreenPlayer = false;
-        if (view === 'artist') state.activeArtistId = id;
-        if (view === 'playlist') state.activePlaylistId = id;
-        if (view === 'album') state.activeAlbumId = id;
-        if (view === 'dashboard-detail') state.dashboardArtistId = id;
-        if (view === 'dashboard-release') state.dashboardReleaseId = id;
-        window.scrollTo(0, 0);
-        render();
-    }
-
-    function togglePlay() {
-        if (!state.currentSong) return;
-        state.isPlaying = !state.isPlaying;
-        state.isPlaying && state.currentSong.audioUrl ? audioPlayer.play() : audioPlayer.pause();
-        render();
-    }
-
-    function playSong(songId) {
-        const song = state.songs.find(s => s.id === songId);
-        if (!song) return;
-        state.currentSong = song;
-        state.currentSongReview = null;
-        state.isPlaying = true;
-        if (song.audioUrl) { audioPlayer.src = song.audioUrl; audioPlayer.play(); } else { audioPlayer.pause(); audioPlayer.src = ""; }
-        render();
-    }
-
-    // --- SIMULATION ENGINE ---
-    function handleNextDay() {
-        state.day++;
-        const newLogs = [];
-
-        // 1. Artist & Song Logic (Existing)
-        state.artists.forEach(artist => {
-            const daysSince = state.day - artist.lastReleaseDay;
-            const threshold = artist.lastReleaseType === 'Album' ? 10 : 6;
+        // --- Data Generators ---
+        const generateDemoGames = () => {
+            const adjectives = ["Super", "Mega", "Ultimate", "Royal", "Dark", "Crazy", "Happy", "Speed", "Ninja", "Pixel", "Blox", "Build", "Escape"];
+            const nouns = ["City", "Tycoon", "Simulator", "Obby", "Wars", "Survival", "Life", "World", "Tower", "Legends", "Mystery", "School", "Island"];
+            const bots = ["Builderman", "Roblox", "NoobMaster", "ProGamer", "DevKing", "ScriptNinja", "PolyHex", "BlockSmith", "PixelArt"];
             
-            if (daysSince > threshold) artist.momentum = Math.max(0, artist.momentum - 1.5);
-            if (daysSince > threshold + 20) artist.momentum = Math.max(0, artist.momentum - 3);
-
-            let change = 0;
-            if (artist.momentum < 40) {
-                change = -Math.floor(Math.max(10, artist.monthlyListeners * 0.02)); 
-            } else {
-                const growthRate = (artist.momentum / 100) * 0.01; 
-                change = Math.floor(artist.monthlyListeners * growthRate);
+            const games = [];
+            for (let i = 0; i < 40; i++) {
+                const seed = Math.floor(Math.random() * 10000);
+                games.push({
+                    id: `demo_${i}`,
+                    name: `${adjectives[Math.floor(Math.random()*adjectives.length)]} ${nouns[Math.floor(Math.random()*nouns.length)]}`,
+                    description: "Experience the thrill in this amazing world! Play with friends, unlock items, and explore vast landscapes.",
+                    visits: Math.floor(Math.random() * 5000000) + 10000,
+                    active: Math.floor(Math.random() * 15000) + 50,
+                    favorites: Math.floor(Math.random() * 100000),
+                    likes: Math.floor(Math.random() * 50000),
+                    dislikes: Math.floor(Math.random() * 5000),
+                    created: "1/12/2024",
+                    genre: ["Adventure", "Tycoon", "Simulator", "Obby"][Math.floor(Math.random()*4)],
+                    icon: `https://picsum.photos/seed/${seed}/300/300`,
+                    thumbnail: `https://picsum.photos/seed/${seed}/768/432`,
+                    creatorName: bots[Math.floor(Math.random()*bots.length)],
+                    isDemo: true,
+                    gamepasses: [],
+                    events: []
+                });
             }
-            artist.monthlyListeners = Math.max(0, artist.monthlyListeners + change);
-        });
+            return games;
+        };
 
-        state.songs.forEach(song => {
-            const artist = state.artists.find(a => a.id === song.artistId);
-            if (!artist) return;
+        // --- Game State & Data ---
+        const initialGame = {
+            id: 'game_1',
+            name: "Mega Fun Obby!",
+            description: "Welcome to the most fun obstacle course on Peyza! Can you beat all 100 stages? Updates every Friday!",
+            visits: 15420,
+            active: 42,
+            favorites: 1200,
+            likes: 450,
+            dislikes: 12,
+            created: new Date().toLocaleDateString(),
+            genre: "Adventure",
+            icon: "https://picsum.photos/seed/icon1/300/300",
+            thumbnail: "https://picsum.photos/seed/thumb1/768/432",
+            creatorName: "PeyzaDev_2025",
+            ownerId: 'user', // 'user' or groupID
+            isDemo: false,
+            gamepasses: [
+                { id: 'gp_1', name: "Speed Coil", price: 99, sales: 12, image: "https://via.placeholder.com/150" }
+            ],
+            events: [] 
+        };
 
-            const calcListeners = Math.max(100, artist.monthlyListeners);
-            const songCount = state.songs.filter(s => s.artistId === artist.id).length;
-            const base = Math.floor(calcListeners / Math.max(1, songCount * 2)); 
-            const volatility = 0.8 + Math.random() * 0.6; 
-            const momentumMult = Math.max(0.2, artist.momentum / 50);
-            const collabBonus = song.featArtistId ? 1.5 : 1.0;
-            const age = state.day - (song.releaseDay || 0);
-            const newReleaseBoost = age < 7 ? 500 : (age < 30 ? 50 : 0);
+        const defaultState = {
+            view: 'home',
+            user: {
+                username: "PeyzaDev_2025",
+                followers: 95000,
+                robux: 450,
+                usd: 0.00,
+                status: "Developing the next big hit!",
+                joinDate: "2/14/2021",
+                usedFreeSponsor: false,
+                avatarColor: '#1e1e1e'
+            },
+            groups: [],
+            messages: [
+                { id: 1, from: "Builderman", subject: "Welcome to Peyza!", body: "Welcome to the future of imagination. Start building today!", read: false },
+                { id: 2, from: "System", subject: "Premium Payout", body: "You earned 45 Robux from Premium Payouts yesterday.", read: true }
+            ],
+            games: [initialGame],
+            demoGames: [],
+            currentGameId: null,
+            currentGroupId: null,
+            eventsLog: [],
+            searchTerm: "",
+            inventory: []
+        };
 
-            let daily = Math.floor(base * volatility * momentumMult * collabBonus) + newReleaseBoost;
+        let appState = defaultState;
+
+        // --- Core Application Logic ---
+
+        const app = {
+            init: () => {
+                const saved = storage.load();
+                if (saved) {
+                    appState = saved.state;
+                    if (!appState.groups) appState.groups = [];
+                    if (!appState.messages) appState.messages = defaultState.messages;
+                    appState.games.forEach(g => { if(!g.events) g.events = []; });
+                    appState.groups.forEach(g => { if(!g.announcements) g.announcements = []; });
+
+                    if (!appState.demoGames || appState.demoGames.length === 0) appState.demoGames = generateDemoGames();
+                    app.calculateOfflineProgress(saved.timestamp);
+                } else {
+                    appState.demoGames = generateDemoGames();
+                }
+                
+                app.startSimulation();
+                app.render();
+                app.updateHeader();
+
+                // Listeners
+                document.getElementById('nav-search').addEventListener('input', (e) => {
+                    appState.searchTerm = e.target.value.toLowerCase();
+                    if(appState.view === 'home') app.render(); 
+                });
+                
+                // Auto-save
+                setInterval(storage.save, 5000);
+                window.addEventListener('beforeunload', storage.save);
+            },
+
+            calculateOfflineProgress: (lastTime) => {
+                const now = Date.now();
+                const diffSeconds = (now - lastTime) / 1000;
+                
+                if (diffSeconds > 10) {
+                    let totalVisits = 0;
+                    let totalMembersGained = 0;
+
+                    appState.games.forEach(game => {
+                        const oldActive = game.active;
+                        const decay = Math.pow(0.999, diffSeconds); 
+                        game.active = Math.floor(game.active * decay);
+                        
+                        // Offline visits from decayed active players
+                        const avgActive = (oldActive + game.active) / 2;
+                        let offlineVisits = Math.floor(avgActive * 0.5 * diffSeconds);
+                        
+                        // Passive Group Visits (Members checking out game)
+                        if (game.ownerId !== 'user') {
+                            const group = appState.groups.find(g => g.id === game.ownerId);
+                            if (group) {
+                                // e.g. 5% of members visit per hour
+                                const memberVisits = Math.floor(group.members * (0.015 * diffSeconds)); 
+                                offlineVisits += memberVisits;
+
+                                // Visits -> New Members (Offline)
+                                const newMembers = Math.floor(offlineVisits / 800);
+                                group.members += newMembers;
+                                totalMembersGained += newMembers;
+                            }
+                        }
+
+                        game.visits += offlineVisits;
+                        totalVisits += offlineVisits;
+
+                        if (offlineVisits > 0 && !game.isDemo) {
+                            appState.user.followers += Math.floor(offlineVisits / 150);
+                        }
+                    });
+                    
+                    if (totalVisits > 0) {
+                        setTimeout(() => {
+                            let msg = `Welcome back! +${app.formatNumber(totalVisits)} Visits`;
+                            if(totalMembersGained > 0) msg += `, +${totalMembersGained} Group Members`;
+                            app.showToast(msg);
+                        }, 1000);
+                    }
+                }
+            },
+
+            navigate: (page, param = null) => {
+                appState.view = page;
+                if (page === 'game') appState.currentGameId = param;
+                if (page === 'group_details') appState.currentGroupId = param;
+                window.scrollTo(0,0);
+                app.render();
+            },
+
+            startSimulation: () => {
+                setInterval(() => {
+                    const allGames = [...appState.games, ...appState.demoGames];
+                    let unreadMsg = appState.messages.filter(m => !m.read).length;
+                    const badge = document.getElementById('msg-badge');
+                    if(badge) {
+                        badge.innerText = unreadMsg;
+                        badge.style.display = unreadMsg > 0 ? 'inline-block' : 'none';
+                    }
+
+                    allGames.forEach(game => {
+                        // 1. Natural Fluctuation
+                        const drift = (Math.random() - 0.49) * 2; 
+                        
+                        // 2. Determine Active Players
+                        let groupBoost = 0;
+                        
+                        // Group Synergy: Members provide a base floor of active players
+                        if (game.ownerId !== 'user') {
+                            const group = appState.groups.find(g => g.id === game.ownerId);
+                            if (group) {
+                                // 1 active player per 500 members guaranteed
+                                const baseActive = Math.floor(group.members / 500);
+                                if (game.active < baseActive) {
+                                    // Recover fast if below base
+                                    game.active += Math.ceil((baseActive - game.active) * 0.1);
+                                }
+                                
+                                // Visits -> Members (Realtime conversion)
+                                // If people are visiting, some join the group
+                                if(game.active > 0 && Math.random() < 0.005) {
+                                    group.members++;
+                                }
+                            }
+                        }
+
+                        if (game.active === 0) {
+                             if(Math.random() < 0.001) game.active = Math.floor(Math.random() * 20); 
+                        } else {
+                            const maxChange = Math.max(1, game.active * 0.03); 
+                            const actualChange = drift * maxChange;
+                            game.active = Math.floor(Math.max(0, game.active + actualChange));
+                        }
+                        
+                        // 3. Visits Accumulation
+                        const newVisits = Math.ceil(game.active * 0.5);
+                        game.visits += newVisits;
+
+                        // 4. Stats Growth 
+                        if (newVisits > 0) {
+                            if (Math.random() < 0.02) game.likes++;
+                            if (Math.random() < 0.01) game.favorites++;
+                            if (Math.random() < 0.001) game.dislikes++;
+                        }
+
+                        // 5. Followers from Visits
+                        if (!game.isDemo && newVisits > 0 && Math.random() < 0.02) { 
+                             appState.user.followers++;
+                        }
+
+                        // 6. Events Simulation
+                        if (game.events && game.events.length > 0) {
+                            game.events.forEach(ev => {
+                                if(Math.random() < 0.05) {
+                                    ev.interested += Math.floor(Math.random() * 5) + 1;
+                                    // Events drive group members heavily
+                                    if(game.ownerId !== 'user' && Math.random() < 0.6) {
+                                        const grp = appState.groups.find(g => g.id === game.ownerId);
+                                        if(grp) grp.members++;
+                                    }
+                                }
+                            });
+                        }
+
+                        // 7. Visits -> Robux
+                        if (!game.isDemo && game.active > 0 && Math.random() < 0.05) {
+                            appState.user.robux++;
+                        }
+
+                        // LIVE DOM UPDATE
+                        const activeEl = document.getElementById(`live-active-${game.id}`);
+                        if (activeEl) activeEl.innerText = app.formatNumber(game.active);
+                        const visitEl = document.getElementById(`live-visits-${game.id}`);
+                        if (visitEl) visitEl.innerText = `${app.formatNumber(game.visits)} Visits`;
+                    });
+
+                    // Simulate Groups (Bot Reactions)
+                    appState.groups.forEach(group => {
+                        if(group.announcements) {
+                            group.announcements.forEach(ann => {
+                                const age = Date.now() - ann.timestamp;
+                                if(age < 600000) { 
+                                    if(Math.random() < 0.1) ann.likes++;
+                                    if(Math.random() < 0.05) {
+                                        const bots = ["Noob123", "Guest99", "FanBoy", "RbxLover", "CoolGuy", "Sniper", "Gamer"];
+                                        ann.comments.push({
+                                            user: bots[Math.floor(Math.random()*bots.length)],
+                                            text: ["Awesome!", "Hype!", "Can't wait!", "Finally!", "Best group ever!"][Math.floor(Math.random()*5)]
+                                        });
+                                        if(appState.view === 'group_details' && appState.currentGroupId === group.id) app.render(false);
+                                    }
+                                }
+                            });
+                        }
+                        // Random organic group growth
+                        if(Math.random() < 0.01) group.members++;
+                    });
+
+                    app.updateHeader();
+                }, 1000);
+            },
+
+            // Actions
+            createGame: (name, genre, description, ownerId, iconFile, thumbFile) => {
+                const isGroup = ownerId !== 'user';
+                let creatorName = appState.user.username;
+                if(isGroup) {
+                    const g = appState.groups.find(gr => gr.id === ownerId);
+                    if(g) creatorName = g.name;
+                }
+
+                const seed = name.replace(/\s/g, '') + Date.now(); 
+
+                const newGame = {
+                    id: `game_${Date.now()}`,
+                    name: name || "Untitled Game",
+                    description: description || "No description provided.",
+                    genre: genre,
+                    visits: 0,
+                    active: 0,
+                    favorites: 0,
+                    likes: 0,
+                    dislikes: 0,
+                    created: new Date().toLocaleDateString(),
+                    icon: iconFile ? URL.createObjectURL(iconFile) : `https://picsum.photos/seed/${seed}/300/300`,
+                    thumbnail: thumbFile ? URL.createObjectURL(thumbFile) : `https://picsum.photos/seed/${seed}_thumb/768/432`,
+                    creatorName: creatorName,
+                    ownerId: ownerId,
+                    isDemo: false,
+                    gamepasses: [],
+                    events: []
+                };
+                appState.games.push(newGame);
+                app.showToast("Game Created Successfully!");
+                if(isGroup) app.navigate('group_details', ownerId);
+                else app.navigate('devhub');
+            },
+
+            createEvent: (gameId, title, desc) => {
+                const game = appState.games.find(g => g.id === gameId);
+                if(game) {
+                    if(!game.events) game.events = [];
+                    game.events.unshift({
+                        id: Date.now(),
+                        title,
+                        description: desc,
+                        interested: 1,
+                        date: new Date().toLocaleDateString()
+                    });
+                    game.active += 50; 
+                    app.showToast("Event Published!");
+                    app.render();
+                }
+            },
+
+            createGroup: (name, desc) => {
+                if(appState.user.robux < 100) {
+                    app.showToast("Need 100 Robux to create a group!", "error");
+                    return;
+                }
+                appState.user.robux -= 100;
+                const newGroup = {
+                    id: `group_${Date.now()}`,
+                    name: name,
+                    description: desc,
+                    members: 1,
+                    icon: `https://picsum.photos/seed/${name}/150/150`,
+                    announcements: []
+                };
+                appState.groups.push(newGroup);
+                app.showToast(`Group "${name}" created!`);
+                app.navigate('groups');
+            },
+
+            postAnnouncement: (groupId, text) => {
+                const group = appState.groups.find(g => g.id === groupId);
+                if(group && text.trim().length > 0) {
+                    group.announcements.unshift({
+                        id: Date.now(),
+                        text: text,
+                        author: appState.user.username,
+                        timestamp: Date.now(),
+                        likes: 0,
+                        comments: []
+                    });
+                    app.showToast("Announcement Posted!");
+                    app.render();
+                }
+            },
+
+            createGamepass: (gameId, name, price) => {
+                const game = appState.games.find(g => g.id === gameId);
+                if (game) {
+                    game.gamepasses.push({
+                        id: `gp_${Date.now()}`,
+                        name: name,
+                        price: parseInt(price),
+                        sales: 0,
+                        image: "https://via.placeholder.com/150"
+                    });
+                    app.showToast("Gamepass Created!");
+                    app.render(); 
+                }
+            },
+
+            buyGamepass: (gameId, gpId) => {
+                const allGames = [...appState.games, ...appState.demoGames];
+                const game = allGames.find(g => g.id === gameId);
+                if(!game) return;
+                const gp = game.gamepasses.find(p => p.id === gpId);
+                
+                if (appState.user.robux >= gp.price) {
+                    appState.user.robux -= gp.price;
+                    gp.sales++;
+                    if (!game.isDemo) {
+                        const revenue = Math.floor(gp.price * 0.7);
+                        appState.user.robux += revenue; 
+                        app.showToast(`Sale! +${revenue} R$ from ${gp.name}`);
+                    } else {
+                        app.showToast(`Bought ${gp.name}!`);
+                    }
+                    app.updateHeader();
+                    app.render(); 
+                } else {
+                    app.showToast("Not enough Robux!", "error");
+                }
+            },
             
-            if (Math.random() > 0.99 && daily > 0) {
-                const viral = Math.floor(Math.random() * 20000 + 5000);
-                daily += viral;
-                newLogs.push(`"${song.title}" went viral! +${formatNumber(viral)} streams`);
-                artist.momentum = Math.min(100, artist.momentum + 15);
-            }
+            runAd: (gameId, type) => {
+                const game = appState.games.find(g => g.id === gameId);
+                
+                if (type === 'free') {
+                    if (appState.user.usedFreeSponsor) {
+                        app.showToast("You already used your One-Time Free Sponsor!", "error");
+                        return;
+                    }
+                    appState.user.usedFreeSponsor = true;
+                    game.active += 5000; 
+                    game.visits += 10000;
+                    app.showToast(`MEGA SPONSOR ACTIVE! ${game.name} is blowing up!`);
+                    app.updateHeader();
+                    return;
+                }
 
-            if (song.featArtistId && daily > 0) {
-                const feat = state.artists.find(a => a.id === song.featArtistId);
-                if (feat) {
-                    feat.monthlyListeners += Math.floor(daily * 0.4);
-                    feat.momentum = Math.min(100, feat.momentum + 0.5);
+                if (appState.user.robux >= 50) {
+                    appState.user.robux -= 50;
+                    game.active += Math.floor(Math.random() * 100) + 50; 
+                    app.showToast(`Ad Campaign Started for ${game.name}!`);
+                    app.updateHeader();
+                } else {
+                    app.showToast("Need 50 R$ to run ad", "error");
+                }
+            },
+
+            convertRobux: (amount) => {
+                const rate = 0.0035; 
+                if (appState.user.robux >= amount && amount > 0) {
+                    appState.user.robux -= amount;
+                    appState.user.usd += (amount * rate);
+                    app.showToast(`Cashed out ${amount} R$ for $${(amount*rate).toFixed(2)} USD`);
+                    app.render();
+                    app.updateHeader();
+                }
+            },
+
+            launchGame3D: (gameId) => {
+                const allGames = [...appState.games, ...appState.demoGames];
+                const game = allGames.find(g => g.id === gameId);
+                if(!game) return;
+                
+                document.getElementById('game-view').style.display = 'block';
+                document.getElementById('game-playing-name').innerText = game.name;
+                threeApp.init(gameId);
+            },
+
+            markMessageRead: (id) => {
+                const msg = appState.messages.find(m => m.id === id);
+                if(msg) {
+                    msg.read = true;
+                    app.render();
+                }
+            },
+
+            changeAvatarColor: (color) => {
+                appState.user.avatarColor = color;
+                app.showToast("Avatar Updated!");
+                const navImg = document.getElementById('nav-avatar-img');
+                if(navImg) navImg.style.filter = `hue-rotate(${Math.random() * 360}deg)`; 
+                app.render();
+            },
+
+            formatNumber: (num) => {
+                if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B+';
+                if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M+';
+                if (num >= 1000) return (num / 1000).toFixed(1) + 'K+';
+                return Math.floor(num).toString();
+            },
+
+            showToast: (msg, type = 'success') => {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                let colorClass = 'bg-[#00b06f]';
+                if (type === 'error') colorClass = 'bg-red-500';
+                
+                toast.className = `px-4 py-3 rounded-lg shadow-xl text-white text-sm font-bold animate-bounce ${colorClass} flex items-center gap-2 border border-white/10`;
+                toast.innerHTML = msg;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            },
+
+            updateHeader: () => {
+                const rbEl = document.getElementById('nav-robux');
+                if(rbEl) rbEl.innerText = app.formatNumber(appState.user.robux);
+                const userEl = document.getElementById('nav-username');
+                if(userEl) userEl.innerText = appState.user.username;
+            },
+
+            // --- Renderers ---
+            
+            render: (fullRender = true) => {
+                const container = document.getElementById('main-content');
+                if(document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+
+                let html = '';
+
+                switch(appState.view) {
+                    case 'home': html = app.views.home(); break;
+                    case 'profile': html = app.views.profile(); break;
+                    case 'devhub': html = app.views.devhub(); break;
+                    case 'game': html = app.views.game(appState.currentGameId); break;
+                    case 'robux': html = app.views.robux(); break;
+                    case 'messages': html = app.views.messages(); break;
+                    case 'groups': html = app.views.groups(); break;
+                    case 'group_details': html = app.views.group_details(appState.currentGroupId); break;
+                    case 'avatar': html = app.views.avatar(); break;
+                    case 'marketplace': html = app.views.marketplace(); break;
+                    case 'inventory': html = `<div class="text-center text-gray-500 mt-10">Inventory Empty</div>`; break;
+                }
+                container.innerHTML = html;
+            },
+
+            views: {
+                home: () => {
+                    const allGames = [...appState.games, ...appState.demoGames];
+                    const filtered = allGames.filter(g => g.name.toLowerCase().includes(appState.searchTerm));
+
+                    return `
+                        <div class="max-w-7xl mx-auto">
+                            <h2 class="text-3xl font-bold mb-6 text-white">Home</h2>
+                            
+                            <h3 class="text-xl font-bold mb-4 text-white">Recommended for You</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                ${filtered.length > 0 ? filtered.map(game => `
+                                    <div class="cursor-pointer group" onclick="app.navigate('game', '${game.id}')">
+                                        <div class="aspect-square rounded-xl overflow-hidden relative mb-2 shadow-sm bg-[#2b2d31]">
+                                            <img src="${game.icon}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100" loading="lazy">
+                                        </div>
+                                        <h4 class="font-bold text-white text-base truncate group-hover:underline">${game.name}</h4>
+                                        <div class="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                                            <i class="fas fa-thumbs-up text-[10px]"></i> ${(game.likes / (game.likes + game.dislikes || 1) * 100).toFixed(0)}%
+                                            <span class="ml-2 flex items-center gap-1">
+                                                <i class="fas fa-user text-[10px]"></i> 
+                                                <span id="live-active-${game.id}">${app.formatNumber(game.active)}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                `).join('') : '<div class="col-span-full text-center text-gray-500 py-10">No games found.</div>'}
+                            </div>
+                        </div>
+                    `;
+                },
+
+                group_details: (groupId) => {
+                    const group = appState.groups.find(g => g.id === groupId);
+                    if(!group) return "Group Not Found";
+                    
+                    const groupGames = appState.games.filter(g => g.ownerId === groupId);
+
+                    return `
+                        <div class="max-w-5xl mx-auto">
+                            <div class="rbx-card p-6 mb-6">
+                                <div class="flex gap-6 items-center">
+                                    <div class="w-32 h-32 bg-black rounded-lg overflow-hidden border border-[#393b3d]">
+                                        <img src="${group.icon}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-1">
+                                        <h2 class="text-3xl font-bold text-white mb-2">${group.name}</h2>
+                                        <div class="text-gray-400 mb-2">${group.description}</div>
+                                        <div class="text-sm text-gray-500">${app.formatNumber(group.members)} Members</div>
+                                        <div class="mt-4 flex gap-3">
+                                            <button onclick="document.getElementById('create-modal').classList.remove('hidden')" class="bg-[#00b06f] hover:bg-[#009960] text-white px-4 py-1.5 rounded font-bold text-sm">Create Experience</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="md:col-span-2 space-y-6">
+                                    <div class="rbx-card p-4">
+                                        <h3 class="font-bold text-lg mb-3">Shout</h3>
+                                        <div class="flex gap-2">
+                                            <input id="shout-input" type="text" placeholder="Enter shout..." class="flex-1 rbx-input p-2 text-sm">
+                                            <button onclick="app.postAnnouncement('${group.id}', document.getElementById('shout-input').value); document.getElementById('shout-input').value=''" class="bg-[#393b3d] hover:bg-[#45484d] text-white px-4 py-1 rounded font-bold text-sm">Post</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        ${group.announcements && group.announcements.length > 0 ? group.announcements.map(ann => `
+                                            <div class="rbx-card p-4">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <div class="w-8 h-8 bg-gray-600 rounded-full overflow-hidden">
+                                                        <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full">
+                                                    </div>
+                                                    <div>
+                                                        <div class="font-bold text-sm text-blue-400 hover:underline cursor-pointer">${ann.author}</div>
+                                                        <div class="text-xs text-gray-500">${new Date(ann.timestamp).toLocaleTimeString()}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="text-gray-300 text-sm mb-3 pl-11">
+                                                    ${ann.text}
+                                                </div>
+                                                <div class="flex gap-4 pl-11 text-xs text-gray-500">
+                                                    <span><i class="fas fa-heart mr-1"></i> ${ann.likes} Likes</span>
+                                                    <span>${ann.comments.length} Comments</span>
+                                                </div>
+                                                ${ann.comments.length > 0 ? `
+                                                    <div class="mt-3 pl-11 space-y-2 border-t border-[#393b3d] pt-2">
+                                                        ${ann.comments.slice(-3).map(c => `
+                                                            <div class="text-xs text-gray-400"><span class="font-bold text-white">${c.user}:</span> ${c.text}</div>
+                                                        `).join('')}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        `).join('') : '<div class="text-center text-gray-500 py-4">No shouts yet.</div>'}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-bold text-lg mb-3">Experiences</h3>
+                                    <div class="space-y-3">
+                                        ${groupGames.length > 0 ? groupGames.map(g => `
+                                            <div class="rbx-card p-2 flex gap-3 cursor-pointer hover:bg-[#323438]" onclick="app.navigate('game', '${g.id}')">
+                                                <div class="w-16 h-16 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0">
+                                                    <img src="${g.icon}" class="w-full h-full object-cover">
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="font-bold text-sm truncate">${g.name}</div>
+                                                    <div class="text-xs text-green-400">${app.formatNumber(g.active)} Active</div>
+                                                </div>
+                                            </div>
+                                        `).join('') : '<div class="text-gray-500 text-sm">No games yet.</div>'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Create Game Modal Reused but pre-filled -->
+                        <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31] shadow-2xl">
+                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
+                                <h3 class="text-2xl font-bold mb-6 text-white">Create Group Experience</h3>
+                                <div class="space-y-4">
+                                    <input id="new-game-name" type="text" placeholder="Experience Name" class="w-full rbx-input p-3">
+                                    <textarea id="new-game-desc" placeholder="Description" class="w-full rbx-input p-3 h-24"></textarea>
+                                    <input type="hidden" id="new-game-owner" value="${groupId}">
+                                    <select id="new-game-genre" class="w-full rbx-input p-3">
+                                        <option>Adventure</option>
+                                        <option>Fighting</option>
+                                        <option>Obby</option>
+                                        <option>Tycoon</option>
+                                        <option>Simulator</option>
+                                    </select>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Icon (Optional)</label>
+                                        <input id="new-game-icon" type="file" accept="image/*" class="w-full text-sm text-gray-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Thumbnail (Optional)</label>
+                                        <input id="new-game-thumb" type="file" accept="image/*" class="w-full text-sm text-gray-500">
+                                    </div>
+                                    <button onclick="app.createGame(document.getElementById('new-game-name').value, document.getElementById('new-game-genre').value, document.getElementById('new-game-desc').value, document.getElementById('new-game-owner').value, document.getElementById('new-game-icon').files[0], document.getElementById('new-game-thumb').files[0]); document.getElementById('create-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960] transition shadow-md">Create Experience</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+
+                // ... other views (profile, robux etc same as before)
+                profile: () => {
+                    const isVerified = appState.user.followers >= 100000;
+                    return `
+                        <div class="max-w-5xl mx-auto rbx-card p-6 md:p-8 relative bg-[#2b2d31]">
+                            <div class="flex flex-col md:flex-row gap-8 items-center md:items-start border-b border-[#393b3d] pb-8">
+                                <div class="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-[#393b3d] bg-gray-600">
+                                     <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1 text-center md:text-left">
+                                    <h2 class="text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2 text-white">
+                                        ${appState.user.username} 
+                                        ${isVerified ? '<span class="verified-badge w-6 h-6 text-sm" title="Verified Creator"><i class="fas fa-check"></i></span>' : ''}
+                                    </h2>
+                                    <p class="text-gray-400 mt-1 italic">"${appState.user.status}"</p>
+                                    
+                                    <div class="flex gap-8 mt-6 justify-center md:justify-start text-sm">
+                                        <div class="text-center md:text-left">
+                                            <div class="font-bold text-xl text-white">${app.formatNumber(appState.user.followers)}</div>
+                                            <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Followers</div>
+                                        </div>
+                                        <div class="text-center md:text-left">
+                                            <div class="font-bold text-xl text-white">24</div>
+                                            <div class="text-gray-500 text-xs uppercase tracking-wide font-bold">Following</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-8">
+                                <h3 class="text-xl font-bold mb-6 text-white">Creations</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                     ${appState.games.map(game => `
+                                    <div class="cursor-pointer group" onclick="app.navigate('game', '${game.id}')">
+                                        <div class="aspect-square rounded-xl overflow-hidden mb-3 border border-[#393b3d] shadow-sm relative">
+                                            <img src="${game.icon}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
+                                        </div>
+                                        <h4 class="font-bold text-white text-base truncate group-hover:underline">${game.name}</h4>
+                                        <div class="text-xs text-gray-500 mt-1" id="live-visits-${game.id}">
+                                            ${app.formatNumber(game.visits)} Visits
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                messages: () => {
+                     return `
+                        <div class="max-w-4xl mx-auto rbx-card p-0 overflow-hidden">
+                            <h2 class="text-2xl font-bold p-6 bg-[#2b2d31] border-b border-[#393b3d]">Messages</h2>
+                            <div class="divide-y divide-[#393b3d]">
+                                ${appState.messages.length === 0 ? '<div class="p-6 text-center text-gray-500">No messages</div>' : ''}
+                                ${appState.messages.map(msg => `
+                                    <div class="p-4 hover:bg-[#323438] cursor-pointer transition flex gap-4 ${msg.read ? 'opacity-60' : 'bg-[#2b2d31] border-l-4 border-blue-500'}" onclick="app.markMessageRead(${msg.id})">
+                                        <div class="w-12 h-12 bg-gray-600 rounded-full flex-shrink-0 overflow-hidden">
+                                            <img src="https://tr.rbxcdn.com/38c6edcb50633730ff4cf39ac8859840/150/150/AvatarHeadshot/Png" class="w-full h-full">
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <span class="font-bold text-white">${msg.subject}</span>
+                                                <span class="text-xs text-gray-500">Yesterday</span>
+                                            </div>
+                                            <div class="text-sm text-gray-400">From: ${msg.from}</div>
+                                            <div class="text-sm text-gray-300 mt-1">${msg.body}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                },
+                groups: () => {
+                    return `
+                        <div class="max-w-4xl mx-auto">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-3xl font-bold text-white">My Groups</h2>
+                                <button onclick="document.getElementById('create-group-modal').classList.remove('hidden')" class="bg-[#00b06f] text-white px-4 py-2 rounded font-bold hover:bg-[#009960]">Create Group (100 R$)</button>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${appState.groups.length === 0 ? '<div class="col-span-full text-center py-10 text-gray-500">You are not in any groups.</div>' : ''}
+                                ${appState.groups.map(group => `
+                                    <div class="rbx-card p-4 flex gap-4 items-center cursor-pointer hover:bg-[#323438]" onclick="app.navigate('group_details', '${group.id}')">
+                                        <div class="w-20 h-20 bg-gray-700 rounded-lg overflow-hidden">
+                                            <img src="${group.icon}" class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="flex-1">
+                                            <h3 class="font-bold text-xl text-white">${group.name}</h3>
+                                            <div class="text-sm text-gray-400">${app.formatNumber(group.members)} Members</div>
+                                            <div class="text-xs text-gray-500 mt-1">${group.description}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Create Group Modal -->
+                        <div id="create-group-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
+                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
+                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-group-modal').classList.add('hidden')"><i class="fas fa-times"></i></button>
+                                <h3 class="text-xl font-bold mb-4 text-white">Create New Group</h3>
+                                <input id="new-group-name" type="text" placeholder="Group Name" class="w-full rbx-input p-3 mb-3">
+                                <textarea id="new-group-desc" placeholder="Description" class="w-full rbx-input p-3 mb-3 h-24"></textarea>
+                                <button onclick="app.createGroup(document.getElementById('new-group-name').value, document.getElementById('new-group-desc').value); document.getElementById('create-group-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded font-bold text-white hover:bg-[#009960]">Purchase (100 R$)</button>
+                            </div>
+                        </div>
+                    `;
+                },
+                marketplace: () => {
+                     return `
+                         <div class="max-w-6xl mx-auto">
+                            <h2 class="text-3xl font-bold mb-6 text-white">Marketplace</h2>
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                ${[...Array(12)].map((_, i) => `
+                                    <div class="rbx-card p-2 cursor-pointer hover:bg-[#323438] transition">
+                                        <div class="aspect-square bg-gray-700 rounded-lg mb-2 overflow-hidden">
+                                             <img src="https://picsum.photos/seed/item${i}/200/200" class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="font-bold text-sm text-white truncate">Cool Item ${i+1}</div>
+                                        <div class="text-xs text-gray-400">By Peyza</div>
+                                        <div class="font-bold text-sm text-white mt-1"><i class="fas fa-hexagon text-xs"></i> ${50 + i * 10}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                },
+                avatar: () => {
+                    return `
+                        <div class="max-w-4xl mx-auto">
+                            <h2 class="text-3xl font-bold mb-6 text-white">Avatar Editor</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="flex justify-center">
+                                    <div class="w-64 h-80 bg-[#1a1c1e] rounded-lg border border-[#393b3d] flex items-center justify-center relative overflow-hidden">
+                                        <div class="w-32 h-32 bg-gray-300 rounded-full mb-10 relative z-10" style="background-color: ${appState.user.avatarColor}"></div>
+                                        <div class="w-40 h-48 bg-gray-700 absolute bottom-0 rounded-t-3xl"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl mb-4">Body Colors</h3>
+                                    <div class="flex gap-2 flex-wrap mb-8">
+                                        ${['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#ecf0f1', '#34495e'].map(c => `
+                                            <div class="w-10 h-10 rounded-full cursor-pointer hover:scale-110 transition border-2 border-transparent hover:border-white" style="background-color: ${c}" onclick="app.changeAvatarColor('${c}')"></div>
+                                        `).join('')}
+                                    </div>
+                                    <h3 class="font-bold text-xl mb-4">Recent Items</h3>
+                                    <div class="text-gray-500 italic">No items available. Visit Marketplace.</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                game: (gameId) => {
+                    const allGames = [...appState.games, ...appState.demoGames];
+                    const game = allGames.find(g => g.id === gameId);
+                    if (!game) return "Game not found";
+                    const isOwner = game.ownerId === 'user' || appState.groups.find(gr => gr.id === game.ownerId);
+
+                    const likeRatio = Math.round((game.likes / (game.likes + game.dislikes || 1)) * 100);
+
+                    return `
+                        <div class="max-w-6xl mx-auto">
+                            <div class="flex flex-col lg:flex-row gap-8 mb-8">
+                                <div class="w-full lg:w-[700px] aspect-video bg-[#000] rounded-xl overflow-hidden shadow-lg relative group border border-[#393b3d]">
+                                    <img src="${game.thumbnail}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition">
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black bg-opacity-40 pointer-events-none">
+                                        <i class="fas fa-play text-white text-6xl shadow-xl drop-shadow-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <h2 class="text-3xl md:text-4xl font-extrabold mb-2 text-white leading-tight">${game.name}</h2>
+                                    <div class="text-sm text-gray-400 mb-6 font-medium">By <a href="#" class="text-blue-400 hover:underline">@${game.creatorName}</a></div>
+                                    
+                                    <div class="flex gap-8 mb-8 border-t border-b border-[#393b3d] py-4">
+                                        <div class="flex flex-col items-center">
+                                            <div class="text-2xl font-bold text-white" id="live-active-${game.id}">${app.formatNumber(game.active)}</div>
+                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Active</div>
+                                        </div>
+                                        <div class="flex flex-col items-center">
+                                            <div class="text-2xl font-bold text-white" id="live-visits-${game.id}">${app.formatNumber(game.visits)}</div>
+                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Visits</div>
+                                        </div>
+                                        <div class="flex flex-col items-center">
+                                            <div class="text-2xl font-bold text-white flex items-center gap-1">
+                                                <i class="fas fa-thumbs-up text-lg text-[#00b06f]"></i> ${likeRatio}%
+                                            </div>
+                                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">Rating</div>
+                                        </div>
+                                    </div>
+
+                                    <button class="w-full bg-[#00b06f] hover:bg-[#009960] text-white py-4 rounded-xl font-bold text-xl shadow-lg mb-6 flex items-center justify-center gap-3 transform transition hover:-translate-y-1 active:scale-95 active:translate-y-0" onclick="app.launchGame3D('${game.id}')">
+                                        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center"><i class="fas fa-play text-sm"></i></div>
+                                        Play
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div class="lg:col-span-2">
+                                    ${isOwner ? `
+                                        <div class="rbx-card p-4 mb-6 border-blue-500/30 bg-blue-900/10">
+                                            <h3 class="font-bold text-lg mb-2 text-blue-300">Developer Controls</h3>
+                                            <div class="flex gap-2">
+                                                <input id="event-title" type="text" placeholder="Event Title (e.g. Double XP)" class="flex-1 rbx-input p-2 text-sm">
+                                                <button onclick="app.createEvent('${game.id}', document.getElementById('event-title').value, 'Limited time event!'); document.getElementById('event-title').value=''" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1 rounded font-bold text-sm">Publish Event</button>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    <div class="rbx-card p-6 mb-6">
+                                        <h3 class="font-bold text-xl mb-4 text-white">About</h3>
+                                        <p class="text-gray-300 whitespace-pre-line leading-relaxed">${game.description}</p>
+                                    </div>
+
+                                    ${game.events && game.events.length > 0 ? `
+                                        <div class="rbx-card p-6 mb-6">
+                                            <h3 class="font-bold text-xl mb-4 text-white">Events</h3>
+                                            <div class="space-y-4">
+                                                ${game.events.map(ev => `
+                                                    <div class="bg-[#1a1c1e] p-3 rounded-lg border border-[#393b3d]">
+                                                        <div class="flex justify-between">
+                                                            <div class="font-bold text-blue-400">${ev.title}</div>
+                                                            <div class="text-xs text-gray-500">${ev.date}</div>
+                                                        </div>
+                                                        <div class="text-sm text-gray-300 mt-1">${ev.description}</div>
+                                                        <div class="text-xs text-gray-500 mt-2"><i class="fas fa-star text-yellow-500"></i> ${ev.interested} Interested</div>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    `: ''}
+                                    
+                                    <h3 class="font-bold text-xl mb-4 text-white">Store</h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        ${game.gamepasses.length > 0 ? game.gamepasses.map(gp => `
+                                            <div class="rbx-card p-4 flex gap-4 items-center shadow-sm hover:bg-[#323438] transition border border-[#393b3d]">
+                                                <div class="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden">
+                                                    <img src="${gp.image}" class="w-full h-full object-cover">
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="font-bold text-white truncate">${gp.name}</div>
+                                                    <button class="mt-2 bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg w-full hover:bg-gray-200 transition" onclick="app.buyGamepass('${game.id}', '${gp.id}')">
+                                                        <i class="fas fa-hexagon text-[10px] mr-1"></i> ${gp.price}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        `).join('') : '<div class="col-span-full text-gray-500 italic">No items for sale.</div>'}
+                                        
+                                        ${!game.isDemo ? `
+                                        <div class="rbx-card p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-[#323438] border-2 border-dashed border-[#393b3d] text-gray-500 hover:text-gray-300 transition" onclick="app.navigate('devhub')">
+                                            <i class="fas fa-plus text-2xl mb-1"></i>
+                                            <span class="text-sm font-bold">Add Pass</span>
+                                        </div>` : ''}
+                                    </div>
+                                </div>
+                                
+                                <div class="hidden lg:block">
+                                    <div class="rbx-card p-6 sticky top-20">
+                                        <h4 class="font-bold text-white mb-4">Game Stats</h4>
+                                        <ul class="text-sm text-gray-400 space-y-3 font-medium">
+                                            <li class="flex justify-between border-b border-[#393b3d] pb-2"><span>Favorites</span> <span class="text-white">${app.formatNumber(game.favorites)}</span></li>
+                                            <li class="flex justify-between border-b border-[#393b3d] pb-2"><span>Likes</span> <span class="text-white">${app.formatNumber(game.likes)}</span></li>
+                                            <li class="flex justify-between"><span>Dislikes</span> <span class="text-white">${app.formatNumber(game.dislikes)}</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                devhub: () => {
+                    return `
+                        <div class="max-w-6xl mx-auto">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-3xl font-extrabold text-white">Developer Hub</h2>
+                                <button onclick="document.getElementById('create-modal').classList.remove('hidden')" class="bg-[#00b06f] text-white px-5 py-2.5 rounded-lg font-bold hover:bg-[#009960] shadow-md transition transform active:scale-95">
+                                    <i class="fas fa-plus mr-2"></i> Create Experience
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                <div class="col-span-1 space-y-4">
+                                    <div class="rbx-card p-5 border-l-4 border-blue-500 shadow-sm">
+                                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">Total Visits</div>
+                                        <div class="text-3xl font-bold text-white mt-1">
+                                            ${app.formatNumber(appState.games.reduce((acc, g) => acc + g.visits, 0))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-span-1 md:col-span-3">
+                                    <h3 class="text-xl font-bold mb-4 text-white">My Experiences</h3>
+                                    <div class="space-y-4">
+                                        ${appState.games.map(game => `
+                                            <div class="rbx-card p-5 flex gap-5 items-start hover:shadow-md transition bg-[#2b2d31]">
+                                                <div class="w-24 h-24 bg-black rounded-lg overflow-hidden flex-shrink-0 border border-[#393b3d]">
+                                                    <img src="${game.icon}" class="w-full h-full object-cover">
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex justify-between items-start">
+                                                        <h4 class="font-bold text-lg text-white hover:text-blue-400 cursor-pointer truncate" onclick="app.navigate('game', '${game.id}')">${game.name}</h4>
+                                                        <span class="text-xs bg-green-900 text-green-200 px-2 py-1 rounded font-bold">Public</span>
+                                                    </div>
+                                                    <div class="text-sm text-gray-400 mt-1 mb-4 line-clamp-2">${game.description}</div>
+                                                    
+                                                    <div class="flex flex-wrap gap-2">
+                                                        <button class="px-4 py-1.5 bg-[#393b3d] text-gray-300 text-xs font-bold rounded-lg hover:bg-gray-600 transition" onclick="app.navigate('game', '${game.id}')">View Page</button>
+                                                        <button class="px-4 py-1.5 bg-[#393b3d] text-gray-300 text-xs font-bold rounded-lg hover:bg-gray-600 transition" onclick="app.runAd('${game.id}', 'paid')">Run Ad (50 R$)</button>
+                                                        <button class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition" 
+                                                            onclick="document.getElementById('gp-modal-gameid').value='${game.id}'; document.getElementById('gp-modal').classList.remove('hidden')">
+                                                            + Add Pass
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Create Game Modal (Main Hub Version) -->
+                        <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31] shadow-2xl">
+                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('create-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
+                                <h3 class="text-2xl font-bold mb-6 text-white">Create New Experience</h3>
+                                <div class="space-y-4">
+                                    <input id="new-game-name" type="text" placeholder="Experience Name" class="w-full rbx-input p-3">
+                                    <textarea id="new-game-desc" placeholder="Description" class="w-full rbx-input p-3 h-24"></textarea>
+                                    <select id="new-game-owner" class="w-full rbx-input p-3">
+                                        <option value="user">Me (User)</option>
+                                        ${appState.groups.map(g => `<option value="${g.id}">Group: ${g.name}</option>`).join('')}
+                                    </select>
+                                    <select id="new-game-genre" class="w-full rbx-input p-3">
+                                        <option>Adventure</option>
+                                        <option>Fighting</option>
+                                        <option>Obby</option>
+                                        <option>Tycoon</option>
+                                        <option>Simulator</option>
+                                    </select>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Icon (Optional)</label>
+                                        <input id="new-game-icon" type="file" accept="image/*" class="w-full text-sm text-gray-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Thumbnail (Optional)</label>
+                                        <input id="new-game-thumb" type="file" accept="image/*" class="w-full text-sm text-gray-500">
+                                    </div>
+                                    <button onclick="app.createGame(document.getElementById('new-game-name').value, document.getElementById('new-game-genre').value, document.getElementById('new-game-desc').value, document.getElementById('new-game-owner').value, document.getElementById('new-game-icon').files[0], document.getElementById('new-game-thumb').files[0]); document.getElementById('create-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960] transition shadow-md">Create Experience</button>
+                                </div>
+                            </div>
+                        </div>
+
+                         <!-- Create Gamepass Modal -->
+                        <div id="gp-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center p-4">
+                            <div class="rbx-card p-6 w-full max-w-md relative bg-[#2b2d31]">
+                                <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="document.getElementById('gp-modal').classList.add('hidden')"><i class="fas fa-times text-xl"></i></button>
+                                <h3 class="text-2xl font-bold mb-6 text-white">Create Gamepass</h3>
+                                <input type="hidden" id="gp-modal-gameid">
+                                <div class="space-y-4">
+                                    <input id="gp-name" type="text" placeholder="Pass Name" class="w-full rbx-input p-3">
+                                    <input id="gp-price" type="number" placeholder="Price (Robux)" class="w-full rbx-input p-3">
+                                    <button onclick="app.createGamepass(document.getElementById('gp-modal-gameid').value, document.getElementById('gp-name').value, document.getElementById('gp-price').value); document.getElementById('gp-modal').classList.add('hidden')" class="w-full bg-[#00b06f] py-3 rounded-lg font-bold text-white hover:bg-[#009960]">Put On Sale</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                robux: () => {
+                    const canCashOut = appState.user.robux >= 50000;
+                    return `
+                        <div class="max-w-4xl mx-auto text-center pt-10">
+                            <div class="mb-12">
+                                <i class="fas fa-hexagon text-7xl text-white mb-6"></i>
+                                <h2 class="text-4xl font-extrabold mb-2 text-white">My Balance</h2>
+                                <div class="text-6xl font-bold text-[#00b06f] flex items-center justify-center gap-3">
+                                    ${app.formatNumber(appState.user.robux)} <span class="text-3xl text-gray-500 font-medium self-end mb-2">Robux</span>
+                                </div>
+                                <div class="text-xl text-gray-500 mt-2 font-medium">$${appState.user.usd.toFixed(2)} USD Earned</div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                                <div class="rbx-card p-8 bg-[#2b2d31]">
+                                    <h3 class="text-xl font-bold mb-6 text-white">Buy Robux</h3>
+                                    <div class="space-y-4">
+                                        <button class="w-full flex justify-between items-center p-4 border border-[#393b3d] rounded-xl hover:bg-[#323438] transition group" onclick="appState.user.robux+=400; app.render(); app.updateHeader();">
+                                            <span class="font-bold text-gray-300 group-hover:text-white">400 Robux</span>
+                                            <span class="bg-white text-black px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm">$4.99</span>
+                                        </button>
+                                        <button class="w-full flex justify-between items-center p-4 border border-[#393b3d] rounded-xl hover:bg-[#323438] transition group" onclick="appState.user.robux+=800; app.render(); app.updateHeader();">
+                                            <span class="font-bold text-gray-300 group-hover:text-white">800 Robux</span>
+                                            <span class="bg-white text-black px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm">$9.99</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="rbx-card p-8 bg-gradient-to-br from-[#1a1c1e] to-[#2b2d31] relative overflow-hidden">
+                                    <h3 class="text-xl font-bold mb-2 text-white">Developer Exchange</h3>
+                                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">Convert your earned Robux into real cash. Minimum 50,000 Robux required.</p>
+                                    <div class="mb-6 relative z-10">
+                                        <div class="flex gap-2">
+                                            <input id="devex-amount" type="number" value="50000" class="flex-1 rbx-input p-3 font-bold">
+                                            <button class="bg-[#00b06f] text-white font-bold px-6 rounded-lg shadow-md transition ${!canCashOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#009960]'}" 
+                                                onclick="${canCashOut ? "app.convertRobux(parseInt(document.getElementById('devex-amount').value))" : "app.showToast('Minimum 50K Robux required', 'error')" }">
+                                                Cash Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-center text-gray-500 font-medium">Current Rate: 1,000 R$ = $3.50 USD</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
             }
-
-            song.dailyStreams = daily;
-            song.streams += daily;
-            song.saves += Math.floor(daily * 0.06); 
-            if(!song.history) song.history = [];
-            song.history.push(daily);
-            if (song.history.length > 14) song.history.shift();
-        });
-
-        // 2. Playlist Logic (New)
-        state.playlists.forEach(pl => {
-            if (!pl.saves) pl.saves = 0;
-            // Organic growth based on song quality (avg daily streams of songs in playlist)
-            let avgDaily = 0;
-            if (pl.songs.length > 0) {
-                const plSongs = state.songs.filter(s => pl.songs.includes(s.id));
-                const totalDaily = plSongs.reduce((acc, s) => acc + (s.dailyStreams || 0), 0);
-                avgDaily = totalDaily / pl.songs.length;
-            }
-            
-            let dailySaves = 0;
-            // Base growth from quality
-            if (avgDaily > 100) dailySaves += Math.floor(Math.random() * 5);
-            if (avgDaily > 1000) dailySaves += Math.floor(Math.random() * 15);
-
-            // Artist Pick Boost
-            // Find if this playlist is picked by any artist
-            const pickingArtist = state.artists.find(a => a.artistPickPlaylistId === pl.id);
-            if (pickingArtist) {
-                // Boost depends on artist listeners & momentum
-                const artistPower = (pickingArtist.monthlyListeners / 10000) * (pickingArtist.momentum / 100);
-                const pickBoost = Math.ceil(artistPower * (Math.random() * 0.5 + 0.5)); // Random variation
-                dailySaves += pickBoost;
-            }
-
-            pl.saves += dailySaves;
-        });
-
-        // 3. User Follower Logic (New)
-        // User gains followers based on total playlist saves performance
-        const totalPlaylistSaves = state.playlists.reduce((acc, pl) => acc + (pl.saves || 0), 0);
-        // Conversion rate: 1 follower per ~50 new saves roughly
-        const followerGrowth = Math.floor(totalPlaylistSaves * 0.005 * Math.random());
-        if (followerGrowth > 0) {
-            state.user.followers += followerGrowth;
-            if (followerGrowth > 10) newLogs.push(`You gained ${followerGrowth} new followers!`);
-        }
-
-        updateCharts();
-
-        if (newLogs.length > 0) {
-            state.dailyLog = newLogs; state.showDailyLog = true;
-            setTimeout(() => { state.showDailyLog = false; render(); }, 4000);
-        }
-        saveState();
-        render();
-    }
-
-    function updateCharts() {
-        const sorted = [...state.songs].sort((a,b) => b.dailyStreams - a.dailyStreams).slice(0, 50);
-        state.charts = sorted.map((song, index) => {
-            const rank = index + 1;
-            const prev = state.charts.find(c => c.songId === song.id);
-            return { songId: song.id, rank, lastRank: prev ? prev.rank : null, peak: prev ? Math.min(prev.peak, rank) : rank, weeks: prev ? prev.weeks + (state.day % 7 === 0 ? 1 : 0) : 1, daily: song.dailyStreams };
-        });
-    }
-
-    // --- CRUD ---
-    function createArtist(name) {
-        if (!name) return;
-        const newArtist = {
-            id: generateId(), name: name, bio: 'New artist.', followers: 0, monthlyListeners: 0, momentum: 100,
-            lastReleaseDay: state.day, lastReleaseType: 'Single', image: null, banner: null, verified: false, color: 'from-gray-900', geoStats: generateGeoStats()
         };
-        state.artists.push(newArtist); saveState(); setView('artist', newArtist.id);
-    }
-    
-    function createPlaylist() {
-        const newId = generateId();
-        // Initial saves boost based on user followers (your fans check out your new playlist)
-        const initialSaves = Math.floor(state.user.followers * 0.15) + Math.floor(Math.random() * 5); 
-        state.playlists.push({ id: newId, name: `Playlist #${state.playlists.length + 1}`, songs: [], cover: null, saves: initialSaves });
-        saveState(); setView('playlist', newId);
-    }
 
-    function triggerFileUpload(type) {
-        const input = document.getElementById(type === 'audio' ? 'global-audio-input' : type === 'import' ? 'import-file-input' : 'global-file-input');
-        input.onchange = (e) => { 
-            if(e.target.files[0]) {
-                const f = e.target.files[0];
-                if(type === 'import') return importData(f);
-                const reader = new FileReader();
-                reader.onload = async (ev) => {
-                    const id = generateId() + '_' + type;
-                    if(type !== 'audio') await saveImageToDB(id, ev.target.result);
-                    if (state.modal === 'edit-artist') {
-                        if (type === 'image') state.editForm.image = id;
-                        if (type === 'banner') state.editForm.banner = id;
-                    } else if (state.modal === 'release') {
-                        if (type === 'image') state.releaseForm.cover = id;
-                        if (type === 'audio') { 
-                            const trackIdx = state.activeTrackIdx; 
-                            if(trackIdx >= 0) state.releaseForm.tracks[trackIdx].file = ev.target.result;
-                        }
-                    } else if (state.modal === 'edit-user') {
-                        if (type === 'image') state.userForm.image = id;
+        const threeApp = {
+            scene: null, camera: null, renderer: null, animationId: null, cubes: [], activeGameId: null,
+            init: (gameId) => {
+                threeApp.activeGameId = gameId;
+                const container = document.getElementById('game-canvas');
+                threeApp.scene = new THREE.Scene();
+                threeApp.scene.background = new THREE.Color(0x87CEEB);
+                threeApp.scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
+                threeApp.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                threeApp.camera.position.set(0, 5, 10);
+                threeApp.renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true });
+                threeApp.renderer.setSize(window.innerWidth, window.innerHeight);
+                threeApp.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight.position.set(10, 20, 10);
+                threeApp.scene.add(dirLight);
+                const plane = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({ color: 0x2F4F4F }));
+                plane.rotation.x = -Math.PI / 2;
+                threeApp.scene.add(plane);
+                threeApp.scene.add(new THREE.GridHelper(100, 20));
+                threeApp.cubes = [];
+                for(let i=0; i<15; i++) {
+                    const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
+                    cube.position.set((Math.random() - 0.5) * 40, 1, (Math.random() - 0.5) * 40);
+                    cube.userData = { speed: 0.05 + Math.random() * 0.1, direction: Math.random() * Math.PI * 2, jumpOffset: Math.random() * 10 };
+                    threeApp.scene.add(cube);
+                    threeApp.cubes.push(cube);
+                }
+                threeApp.setupControls(container);
+                threeApp.animate();
+            },
+            setupControls: (container) => {
+                let isDragging = false, prev = { x: 0, y: 0 };
+                const handleStart = (x, y) => { isDragging = true; prev = { x, y }; };
+                const handleMove = (x, y) => {
+                    if(isDragging) {
+                        const deltaX = x - prev.x;
+                        const angle = deltaX * 0.01;
+                        const cx = threeApp.camera.position.x, cz = threeApp.camera.position.z;
+                        threeApp.camera.position.x = cx * Math.cos(angle) - cz * Math.sin(angle);
+                        threeApp.camera.position.z = cx * Math.sin(angle) + cz * Math.cos(angle);
+                        threeApp.camera.lookAt(0, 0, 0);
+                        prev = { x, y };
                     }
-                    render();
                 };
-                reader.readAsDataURL(f);
+                container.onmousedown = (e) => handleStart(e.offsetX, e.offsetY);
+                container.onmousemove = (e) => handleMove(e.offsetX, e.offsetY);
+                window.onmouseup = () => isDragging = false;
+                container.ontouchstart = (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY);
+                container.ontouchmove = (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY);
+                container.ontouchend = () => isDragging = false;
+            },
+            animate: () => {
+                threeApp.animationId = requestAnimationFrame(threeApp.animate);
+                const time = Date.now() * 0.001;
+                threeApp.cubes.forEach(c => {
+                    c.position.x += Math.cos(c.userData.direction) * c.userData.speed;
+                    c.position.z += Math.sin(c.userData.direction) * c.userData.speed;
+                    c.position.y = 1 + Math.abs(Math.sin(time * 3 + c.userData.jumpOffset));
+                    if(Math.abs(c.position.x)>20 || Math.abs(c.position.z)>20) c.userData.direction += Math.PI;
+                });
+                if (Math.random() < 0.05) {
+                     const game = [...appState.games, ...appState.demoGames].find(g => g.id === threeApp.activeGameId);
+                     if(game) { game.visits++; if(!game.isDemo && Math.random() < 0.2) appState.user.followers++; }
+                }
+                threeApp.renderer.render(threeApp.scene, threeApp.camera);
+            },
+            stopGame: () => {
+                cancelAnimationFrame(threeApp.animationId);
+                document.getElementById('game-view').style.display = 'none';
+                threeApp.scene = null;
+                app.render();
+                app.showToast("Thanks for playing!");
             }
-            input.value=''; 
         };
-        input.click();
-    }
 
-    // --- Modal Logic ---
-    function openEditArtist(id) { state.editForm = { ...state.artists.find(a => a.id === id) }; state.modal = 'edit-artist'; render(); }
-    function openAboutModal(id) { state.aboutArtistId = id; state.modal = 'about-artist'; render(); }
-    function openEditUser() { state.userForm = { ...state.user }; state.modal = 'edit-user'; render(); }
-    
-    // Playlist Modal Actions
-    function openPlaylistMenu(id) {
-        state.activePlaylistId = id;
-        state.modal = 'playlist-menu';
-        render();
-    }
-    
-    function openRenamePlaylist() {
-        const p = state.playlists.find(pl => pl.id === state.activePlaylistId);
-        state.playlistForm = { ...p };
-        state.modal = 'rename-playlist';
-        render();
-    }
-    
-    function openAddSongs() {
-        state.modal = 'add-songs';
-        render();
-    }
-    
-    function savePlaylistName() {
-        const idx = state.playlists.findIndex(pl => pl.id === state.playlistForm.id);
-        if(idx !== -1) {
-            state.playlists[idx].name = state.playlistForm.name;
-            saveState();
-            state.modal = null;
-            render();
-        }
-    }
-    
-    function addSongToCurrentPlaylist(songId) {
-        const p = state.playlists.find(pl => pl.id === state.activePlaylistId);
-        if(p && !p.songs.includes(songId)) {
-            p.songs.push(songId);
-            saveState();
-            render(); 
-        }
-    }
-    
-    function saveArtistEdit() {
-        const idx = state.artists.findIndex(a => a.id === state.editForm.id);
-        if (idx !== -1) {
-            const verifiedInput = document.getElementById('edit-verified');
-            if (verifiedInput) state.editForm.verified = verifiedInput.checked;
-            state.artists[idx] = { ...state.artists[idx], ...state.editForm };
-        }
-        state.modal = null; saveState(); render();
-    }
-    
-    function saveUserEdit() {
-        state.user = { ...state.user, ...state.userForm };
-        state.modal = null; saveState(); render();
-    }
-
-    function openReleaseModal() { state.releaseForm = { title: '', type: 'Single', cover: '', tracks: [] }; state.modal = 'release'; render(); }
-    function addTrack() { state.releaseForm.tracks.push({title:'', featArtistId:'', file:null}); render(); }
-    
-    function finalizeRelease() {
-        if (!state.releaseForm.title) return;
-        const newAlbumId = generateId();
-        const newAlbum = { id: newAlbumId, artistId: state.activeArtistId, title: state.releaseForm.title, year: 2025, cover: state.releaseForm.cover, type: state.releaseForm.type };
-        state.albums.unshift(newAlbum);
-        const newSongs = state.releaseForm.tracks.map(t => ({
-            id: generateId(), artistId: state.activeArtistId, albumId: newAlbumId, title: t.title || 'Untitled',
-            duration: '3:00', streams: 0, dailyStreams: 0, history: [], saves: 0, cover: newAlbum.cover, audioUrl: t.file, featArtistId: t.featArtistId || null, releaseDay: state.day
-        }));
-        state.songs.push(...newSongs);
-        const aIdx = state.artists.findIndex(a => a.id === state.activeArtistId);
-        if (aIdx !== -1) {
-            state.artists[aIdx].lastReleaseDay = state.day;
-            state.artists[aIdx].lastReleaseType = state.releaseForm.type;
-            state.artists[aIdx].momentum = Math.min(100, state.artists[aIdx].momentum + (newSongs.some(s=>s.featArtistId) ? 30 : 20));
-        }
-        state.modal = null; saveState(); render();
-    }
-    
-    function openEditUser() { state.userForm = { ...state.user }; state.modal = 'edit-user'; render(); }
-    function openAboutModal(id) { state.aboutArtistId = id; state.modal = 'about-artist'; render(); }
-    function openEditArtist(id) { state.editForm = { ...state.artists.find(a => a.id === id) }; state.modal = 'edit-artist'; render(); }
-
-    // --- RENDERERS ---
-
-    function renderGraph(dataPoints, width=300, height=100, color="#1db954") {
-        if (!dataPoints || dataPoints.length < 2) return `<div class="h-[100px] flex items-center justify-center text-gray-600 text-xs">Not enough data</div>`;
-        const max = Math.max(...dataPoints) || 1;
-        const min = Math.min(...dataPoints) || 0;
-        const range = max - min || 1;
-        const step = width / (dataPoints.length - 1);
-        let path = `M 0 ${height - ((dataPoints[0] - min) / range * height)}`;
-        dataPoints.forEach((pt, i) => { path += ` L ${i * step} ${height - ((pt - min) / range * height)}`; });
-        return `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="overflow-visible"><path d="${path}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" /><circle cx="${width}" cy="${height - ((dataPoints[dataPoints.length-1]-min)/range*height)}" r="4" fill="${color}" /></svg>`;
-    }
-
-    function SongRow(song, index, showArtist, showStreams) {
-        const artist = state.artists.find(a => a.id === song.artistId);
-        const feat = song.featArtistId ? state.artists.find(a => a.id === song.featArtistId) : null;
-        const isCurrent = state.currentSong && state.currentSong.id === song.id;
-        const coverSrc = getImgSrc(song.cover);
-        
-        const isNew = (state.day - (song.releaseDay || 0)) < 3;
-        const dailyChange = song.dailyStreams > 0 ? `+${formatNumber(song.dailyStreams)}` : '';
-
-        return `
-            <div onclick="playSong('${song.id}')" class="group flex items-center p-2 rounded hover:bg-white/10 cursor-pointer transition-colors text-sm ${isCurrent ? 'text-spotify' : 'text-gray-400 hover:text-white'}">
-                <div class="w-6 md:w-8 text-center mr-3 flex items-center justify-center">
-                    ${isCurrent && state.isPlaying ? '<i data-lucide="bar-chart-2" class="h-4 w-4 animate-pulse text-spotify"></i>' : `<span class="text-xs md:text-sm group-hover:hidden font-mono">${index + 1}</span><i data-lucide="play" class="hidden group-hover:block w-3 h-3 fill-current text-white"></i>`}
-                </div>
-                <div class="flex-1 flex items-center overflow-hidden">
-                    <img src="${coverSrc}" class="w-10 h-10 md:w-10 md:h-10 mr-3 rounded-sm bg-[#282828] object-cover shrink-0">
-                    <div class="flex flex-col truncate">
-                        <div class="font-medium text-sm truncate ${isCurrent ? 'text-spotify' : 'text-white'}">
-                            ${song.title} ${feat ? `<span class="text-gray-400 font-normal text-xs">ft. ${feat.name}</span>` : ''}
-                            ${isNew ? '<span class="ml-2 text-[9px] bg-blue-500 text-white px-1.5 rounded-sm font-bold uppercase">New</span>' : ''}
-                        </div>
-                        <div class="text-xs text-gray-400 truncate flex gap-2"><span>${artist ? artist.name : 'Unknown'}</span></div>
-                    </div>
-                </div>
-                ${showStreams ? `
-                    <div class="hidden md:flex flex-col items-end w-32 mr-8">
-                        <span class="text-xs font-mono text-gray-300">${formatNumber(song.streams)}</span>
-                        ${song.dailyStreams > 0 ? `<span class="text-[10px] text-gray-500 font-bold flex items-center gap-0.5"><i data-lucide="trending-up" class="w-3 h-3"></i> ${dailyChange}</span>` : ''}
-                    </div>
-                    <div class="md:hidden flex flex-col items-end mr-3">
-                        <span class="text-[10px] text-gray-400">${formatNumber(song.streams)}</span>
-                    </div>
-                ` : ''}
-                <div class="w-12 text-right text-xs font-mono text-gray-500 hidden md:block">${song.duration}</div>
-                <i data-lucide="more-horizontal" class="w-4 h-4 ml-2 text-gray-500 hover:text-white"></i>
-            </div>
-        `;
-    }
-
-    function RenderCharts() {
-        return `
-            <div class="p-6 md:p-8 pt-12 pb-32">
-                <div class="h-48 bg-gradient-to-br from-green-800 to-black rounded-lg p-6 mb-8 flex items-end relative overflow-hidden shadow-2xl">
-                    <div class="relative z-10"><div class="text-xs font-bold uppercase tracking-widest text-white mb-2">Global Top 50</div><h1 class="text-4xl md:text-6xl font-black text-white tracking-tighter">The Peyza 50</h1><p class="text-gray-300 mt-2 text-sm">Your daily update of the most played tracks.</p></div>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <div class="flex text-xs text-gray-400 uppercase font-bold border-b border-gray-800 pb-2 px-4"><div class="w-8 text-center">#</div><div class="flex-1">Title</div><div class="w-24 text-right hidden md:block">Daily Streams</div></div>
-                    ${state.charts.length === 0 ? '<div class="text-gray-500 text-center py-10">Charts update tomorrow.</div>' : 
-                      state.charts.map(c => {
-                          const song = state.songs.find(s => s.id === c.songId);
-                          const artist = state.artists.find(a => a.id === song.artistId);
-                          if(!song || !artist) return '';
-                          let changeIcon = '<span class="text-gray-500">-</span>';
-                          if(!c.lastRank) changeIcon = '<span class="text-blue-500 text-[9px] font-bold">NEW</span>';
-                          else if(c.rank < c.lastRank) changeIcon = `<div class="text-green-500 flex items-center justify-center gap-0.5"><i data-lucide="triangle" class="w-2 h-2 fill-current"></i> ${c.lastRank - c.rank}</div>`;
-                          else if(c.rank > c.lastRank) changeIcon = `<div class="text-red-500 flex items-center justify-center gap-0.5"><i data-lucide="triangle" class="w-2 h-2 fill-current rotate-180"></i> ${c.rank - c.lastRank}</div>`;
-                          
-                          return `
-                            <div onclick="playSong('${song.id}')" class="flex items-center p-2 hover:bg-[#2a2a2a] rounded cursor-pointer group transition-colors">
-                                <div class="w-8 text-center text-lg font-bold text-white mr-4">${c.rank}</div>
-                                <div class="w-12 text-center flex justify-center items-center mr-4 text-xs font-bold">${changeIcon}</div>
-                                <img src="${getImgSrc(song.cover)}" class="w-10 h-10 rounded mr-4 bg-[#282828] object-cover">
-                                <div class="flex-1 overflow-hidden">
-                                    <div class="text-white font-bold truncate ${state.currentSong?.id === song.id ? 'text-spotify' : ''}">${song.title}</div>
-                                    <div class="text-xs text-gray-400 truncate">${artist.name}</div>
-                                </div>
-                                <div class="w-24 text-right text-xs font-mono text-gray-400 hidden md:block">${formatNumber(c.daily)}</div>
-                            </div>
-                          `;
-                      }).join('')
-                    }
-                </div>
-            </div>
-        `;
-    }
-
-    function RenderPlayerHTML() {
-        if (state.fullScreenPlayer) return RenderFullScreenPlayer();
-        if (!state.currentSong) return `<div class="h-full flex items-center px-4 justify-center md:justify-start bg-[#181818] border-t border-[#282828]"><div class="text-gray-500 text-xs md:text-sm">Select a song</div></div>`;
-        const artist = state.artists.find(a => a.id === state.currentSong.artistId);
-        const progress = (audioPlayer.currentTime / (audioPlayer.duration || 1)) * 100;
-        const coverSrc = getImgSrc(state.currentSong.cover);
-
-        return `
-            <div class="flex md:hidden items-center justify-between w-full h-full px-3 bg-[#121212] border-t border-[#282828] rounded-t-lg" onclick="state.fullScreenPlayer=true; render()">
-                <div class="flex items-center gap-3 overflow-hidden flex-1"><img src="${coverSrc}" class="h-10 w-10 rounded object-cover shrink-0"><div class="flex flex-col truncate"><div class="text-white text-sm font-bold truncate">${state.currentSong.title}</div><div class="text-gray-400 text-xs truncate">${artist.name}</div></div></div>
-                <div class="flex items-center gap-4 pr-1"><button onclick="event.stopPropagation(); togglePlay()" class="text-white">${state.isPlaying ? '<i data-lucide="pause" class="w-6 h-6 fill-white"></i>' : '<i data-lucide="play" class="w-6 h-6 fill-white"></i>'}</button></div>
-                <div class="absolute bottom-0 left-0 w-full h-[2px] bg-gray-800"><div class="h-full bg-spotify" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div>
-            </div>
-            <div class="hidden md:flex w-full h-full items-center justify-between bg-[#181818] border-t border-[#282828] px-4">
-                <div class="w-[30%] flex items-center gap-4"><div class="relative group cursor-pointer" onclick="state.fullScreenPlayer=true; render()"><img src="${coverSrc}" class="h-14 w-14 rounded shadow-md object-cover"><div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded"><i data-lucide="chevron-up" class="text-white"></i></div></div><div><div class="text-white text-sm font-medium hover:underline cursor-pointer flex items-center gap-2">${state.currentSong.title}</div><div class="text-xs text-gray-400 hover:text-white cursor-pointer hover:underline">${artist.name}</div></div><i data-lucide="heart" class="text-gray-400 hover:text-spotify cursor-pointer w-4 h-4"></i></div>
-                <div class="w-[40%] flex flex-col items-center max-w-2xl"><div class="flex items-center gap-6 mb-2"><i data-lucide="shuffle" class="text-gray-400 hover:text-white cursor-pointer w-4 h-4"></i><i data-lucide="skip-back" class="text-gray-400 hover:text-white cursor-pointer w-5 h-5 fill-current"></i><button onclick="togglePlay()" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform">${state.isPlaying ? '<i data-lucide="pause" class="text-black fill-black w-5 h-5"></i>' : '<i data-lucide="play" class="text-black fill-black w-5 h-5 ml-0.5"></i>'}</button><i data-lucide="skip-forward" class="text-gray-400 hover:text-white cursor-pointer w-5 h-5 fill-current"></i><i data-lucide="repeat" class="text-gray-400 hover:text-white cursor-pointer w-4 h-4"></i></div><div class="w-full flex items-center gap-2 text-xs text-gray-400 font-mono"><span>${!state.isPlaying && !audioPlayer.currentTime ? '0:00' : '0:xx'}</span><div class="h-1 bg-gray-600 rounded-full flex-1 group cursor-pointer overflow-hidden"><div class="h-full bg-white group-hover:bg-spotify relative" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div><span>${state.currentSong.duration}</span></div></div>
-                <div class="w-[30%] flex justify-end items-center gap-4 text-gray-400"><i data-lucide="mic-2" class="hover:text-white cursor-pointer w-4 h-4"></i><i data-lucide="list-music" class="hover:text-white cursor-pointer w-4 h-4"></i><i data-lucide="volume-2" class="hover:text-white cursor-pointer w-4 h-4"></i><div class="w-24 h-1 bg-gray-600 rounded-full"><div class="h-full w-2/3 bg-white hover:bg-spotify"></div></div></div>
-            </div>
-        `;
-    }
-
-    function renderPlayer() {
-        const el = document.getElementById('player-bar');
-        if(el) {
-            el.innerHTML = RenderPlayerHTML();
-            lucide.createIcons({ root: el });
-        }
-    }
-
-    function RenderFullScreenPlayer() {
-        const artist = state.artists.find(a => a.id === state.currentSong.artistId);
-        const progress = (audioPlayer.currentTime / (audioPlayer.duration || 1)) * 100;
-        const coverSrc = getImgSrc(state.currentSong.cover);
-        return `
-            <div class="fixed inset-0 z-[100] bg-gradient-to-b from-gray-900 to-black flex flex-col animate-slide-up h-full w-full">
-                <div class="flex justify-between items-center p-6 text-white"><button onclick="state.fullScreenPlayer=false; render()"><i data-lucide="chevron-down" class="w-8 h-8"></i></button><span class="text-xs font-bold tracking-widest uppercase opacity-70">Playing from Artist</span><i data-lucide="more-horizontal" class="w-6 h-6"></i></div>
-                <div class="flex-1 flex items-center justify-center p-6 relative"><div class="w-full max-w-md aspect-square relative shadow-2xl overflow-hidden"><img src="${coverSrc}" class="w-full h-full object-cover"></div></div>
-                <div class="p-8 pb-12 w-full max-w-2xl mx-auto space-y-8">
-                    ${state.currentSongReview ? `<div class="bg-gray-800/80 p-4 rounded border-l-4 border-spotify text-sm text-gray-300"><h4 class="font-bold text-white text-xs uppercase mb-1">Critic's Take</h4>"${state.currentSongReview}"</div>` : ''}
-                    <div class="flex justify-between items-end"><div><h2 class="text-3xl font-bold text-white mb-2 flex items-center gap-2">${state.currentSong.title}</h2><p class="text-xl text-gray-400">${artist.name}</p></div><div class="flex gap-4"><button id="btn-gen-review" onclick="generateSongReview('${state.currentSong.id}')" class="text-gray-400 hover:text-white"><i data-lucide="message-square" class="w-6 h-6"></i></button><i data-lucide="heart" class="w-8 h-8 text-spotify fill-spotify"></i></div></div>
-                    <div class="w-full h-1 bg-gray-600 rounded-full overflow-hidden"><div class="h-full bg-white" style="width: ${state.currentSong.audioUrl ? progress : (state.isPlaying ? (state.day*10)%100 : 0)}%"></div></div>
-                    <div class="flex justify-between items-center px-4"><i data-lucide="shuffle" class="w-6 h-6 text-gray-400 hover:text-white"></i><i data-lucide="skip-back" class="w-10 h-10 text-white fill-white hover:text-gray-300"></i><button onclick="togglePlay()" class="w-20 h-20 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg">${state.isPlaying ? '<i data-lucide="pause" class="text-black fill-black w-8 h-8"></i>' : '<i data-lucide="play" class="text-black fill-black w-8 h-8 ml-1"></i>'}</button><i data-lucide="skip-forward" class="w-10 h-10 text-white fill-white hover:text-gray-300"></i><i data-lucide="repeat" class="w-6 h-6 text-gray-400 hover:text-white"></i></div>
-                </div>
-            </div>`;
-    }
-
-    function MobileBottomNav() {
-        const isActive = (v) => state.view === v ? 'text-white' : 'text-gray-500';
-        return `
-            <div class="fixed bottom-0 w-full h-16 bg-[#121212]/95 backdrop-blur border-t border-[#282828] md:hidden z-[60] flex items-center justify-around pb-safe">
-                <button onclick="setView('home')" class="flex flex-col items-center gap-1 ${isActive('home')}"><i data-lucide="home" class="w-6 h-6"></i><span class="text-[10px]">Home</span></button>
-                <button onclick="setView('search')" class="flex flex-col items-center gap-1 ${isActive('search')}"><i data-lucide="search" class="w-6 h-6"></i><span class="text-[10px]">Search</span></button>
-                <button onclick="setView('charts')" class="flex flex-col items-center gap-1 ${isActive('charts')}"><i data-lucide="bar-chart-2" class="w-6 h-6"></i><span class="text-[10px]">Charts</span></button>
-                <button onclick="setView('library')" class="flex flex-col items-center gap-1 ${isActive('library')}"><i data-lucide="library" class="w-6 h-6"></i><span class="text-[10px]">Library</span></button>
-                <button onclick="setView('peyza-for-artists')" class="flex flex-col items-center gap-1 ${isActive('peyza-for-artists')}"><i data-lucide="mic-2" class="w-6 h-6"></i><span class="text-[10px]">Artists</span></button>
-            </div>
-        `;
-    }
-
-    function RenderMainContent() {
-        if (state.view === 'charts') return RenderCharts();
-        
-        if (state.view === 'search') {
-            const q = state.searchQuery.toLowerCase();
-            const fArtists = state.artists.filter(a => a.name.toLowerCase().includes(q));
-            const fSongs = state.songs.filter(s => s.title.toLowerCase().includes(q));
-            return `<div class="p-6 md:p-8 pt-4 md:pt-12 pb-32"><input id="search-input" value="${state.searchQuery}" oninput="state.searchQuery=this.value; render()" placeholder="What do you want to play?" class="w-full bg-[#242424] border-transparent p-4 rounded-full text-white font-bold mb-8 outline-none focus:ring-2 focus:ring-white text-lg placeholder-gray-500">${!q ? '<div class="text-center text-gray-500 mt-20"><i data-lucide="search" class="w-16 h-16 mx-auto mb-4 opacity-50"></i><p class="font-bold">Play what you love.</p></div>' : `${fArtists.length ? `<h2 class="text-xl font-bold mb-4 text-white">Artists</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">${fArtists.map(a => `<div onclick="setView('artist','${a.id}')" class="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer text-center"><img src="${getImgSrc(a.image)}" class="w-32 h-32 rounded-full mb-3 object-cover mx-auto shadow-lg"><div class="font-bold text-white text-lg">${a.name}</div><div class="text-sm text-gray-400">Artist</div></div>`).join('')}</div>` : ''}${fSongs.length ? `<h2 class="text-xl font-bold mb-4 text-white">Songs</h2><div>${fSongs.map((s,i) => SongRow(s, i, true, true)).join('')}</div>` : ''}`}</div>`;
-        }
-
-        if (state.view === 'album') {
-            const album = state.albums.find(a => a.id === state.activeAlbumId);
-            if (!album) return '<div class="p-8">Album not found.</div>';
-            const artist = state.artists.find(a => a.id === album.artistId);
-            const tracks = state.songs.filter(s => s.albumId === album.id);
-            return `
-                <div class="pb-32">
-                    <div class="h-[40vh] flex flex-col justify-end p-6 md:p-8 bg-gradient-to-b from-[#404040] to-[#121212] relative">
-                        <div class="flex flex-col md:flex-row items-end gap-6 relative z-10">
-                            <img src="${getImgSrc(album.cover)}" class="w-40 h-40 md:w-56 md:h-56 shadow-2xl object-cover">
-                            <div class="mb-2">
-                                <div class="text-xs uppercase font-bold text-white mb-1 tracking-widest">${album.type}</div>
-                                <h1 class="text-3xl md:text-7xl font-black text-white mb-2 leading-none tracking-tight">${album.title}</h1>
-                                <div class="flex items-center gap-2 text-sm font-bold text-white"><img src="${getImgSrc(artist.image)}" class="w-6 h-6 rounded-full object-cover"> ${artist.name} • ${album.year} • ${tracks.length} songs</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-6 md:p-8 bg-[#121212]">
-                        <div class="flex items-center gap-6 mb-8"><button class="w-14 h-14 bg-[#1db954] rounded-full flex items-center justify-center hover:scale-105 shadow-lg text-black"><i data-lucide="play" class="fill-current w-6 h-6 ml-1"></i></button><i data-lucide="heart" class="w-8 h-8 text-gray-400 hover:text-white"></i><i data-lucide="more-horizontal" class="w-8 h-8 text-gray-400 hover:text-white"></i></div>
-                        <div>${tracks.map((s,i) => SongRow(s, i, false, true)).join('')}</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        if (state.view === 'dashboard-detail') {
-            const a = state.artists.find(art => art.id === state.dashboardArtistId);
-            const totalStreams = state.songs.filter(s => s.artistId === a.id).reduce((sum, s) => sum + s.streams, 0);
-            const releases = state.albums.filter(alb => alb.artistId === a.id);
-            const historyLength = 14;
-            const aggHistory = new Array(historyLength).fill(0);
-            state.songs.filter(s => s.artistId === a.id).forEach(s => { if(s.history) s.history.forEach((val, idx) => { const revIdx = s.history.length - 1 - idx; if (revIdx < historyLength) aggHistory[historyLength - 1 - revIdx] += val; }); });
-
-            return `
-                <div class="p-6 md:p-8 space-y-8 pb-32">
-                    <button onclick="setView('peyza-for-artists')" class="text-gray-400 text-sm flex items-center gap-2 hover:text-white"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Roster</button>
-                    <div class="flex items-center gap-6"><img src="${getImgSrc(a.image)}" class="w-24 h-24 rounded-full shadow-lg object-cover"><h1 class="text-4xl font-bold text-white">${a.name} <span class="text-gray-500 text-lg font-normal block mt-1">Analytics</span></h1></div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Total Streams</div><div class="text-4xl font-black">${formatNumber(totalStreams)}</div></div>
-                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Listeners</div><div class="text-4xl font-black">${formatNumber(a.monthlyListeners)}</div></div>
-                        <div class="dashboard-card"><div class="text-xs text-gray-400 uppercase font-bold mb-2">Momentum</div><div class="text-4xl font-black">${Math.round(a.momentum)}</div></div>
-                    </div>
-                    <div class="dashboard-card"><h3 class="text-sm font-bold text-white mb-4">Stream Velocity (Last 14 Days)</h3><div class="h-32 w-full">${renderGraph(aggHistory, 800, 100, '#1db954')}</div></div>
-                    <h2 class="text-xl font-bold mt-8">Releases</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${releases.map(r => { const rSongs = state.songs.filter(s => s.albumId === r.id); const rStreams = rSongs.reduce((acc, s) => acc + s.streams, 0); const rDaily = rSongs.reduce((acc, s) => acc + s.dailyStreams, 0); return `<div onclick="setView('dashboard-release', '${r.id}')" class="bg-[#181818] p-4 rounded flex items-center gap-4 cursor-pointer hover:bg-[#282828]"><img src="${getImgSrc(r.cover)}" class="w-16 h-16 object-cover shadow"><div class="flex-1"><div class="font-bold text-white">${r.title}</div><div class="text-xs text-gray-400">${r.type}</div></div><div class="text-right"><div class="text-sm font-bold text-white">${formatNumber(rStreams)}</div><div class="text-xs text-green-500">+${formatNumber(rDaily)}</div></div></div>`; }).join('')}</div>
-                </div>
-            `;
-        }
-
-        if (state.view === 'dashboard-release') {
-            const r = state.albums.find(alb => alb.id === state.dashboardReleaseId);
-            const artist = state.artists.find(a => a.id === r.artistId);
-            const rSongs = state.songs.filter(s => s.albumId === r.id).sort((a,b) => b.streams - a.streams);
-            return `
-                <div class="p-6 md:p-8 space-y-8 pb-32">
-                    <button onclick="setView('dashboard-detail', '${artist.id}')" class="text-gray-400 text-sm flex items-center gap-2 hover:text-white"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Artist</button>
-                    <div class="flex items-center gap-6"><img src="${getImgSrc(r.cover)}" class="w-32 h-32 shadow-xl object-cover border border-white/10"><div><div class="text-xs uppercase font-bold text-gray-400">${r.type} Analytics</div><h1 class="text-4xl font-black text-white mb-2">${r.title}</h1><div class="text-lg text-gray-300">by ${artist.name}</div></div></div>
-                    <div class="dashboard-card"><h3 class="text-sm font-bold text-white mb-4 border-b border-gray-800 pb-2">Track Breakdown</h3><div class="grid grid-cols-[1fr_1fr_1fr] text-xs text-gray-500 font-bold uppercase mb-2"><div>Title</div><div class="text-right">Total</div><div class="text-right">Saves</div></div>${rSongs.map(s => `<div class="grid grid-cols-[1fr_1fr_1fr] py-3 border-b border-gray-800 text-sm hover:bg-white/5 px-2 -mx-2"><div class="text-white truncate pr-2 font-medium">${s.title}</div><div class="text-right font-mono text-gray-300">${formatNumber(s.streams)}</div><div class="text-right font-mono text-gray-300">${formatNumber(s.saves)}</div></div>`).join('')}</div>
-                </div>
-            `;
-        }
-
-        if (state.view === 'artist') {
-            const artist = state.artists.find(a => a.id === state.activeArtistId);
-            const artistSongs = state.songs.filter(s => s.artistId === artist.id);
-            const featuredSongs = state.songs.filter(s => s.featArtistId === artist.id);
-            
-            const popularSongs = [...artistSongs].sort((a,b) => {
-                if (a.streams === 0 && b.streams === 0) return 0;
-                if (a.streams === 0) return -1;
-                if (b.streams === 0) return 1;
-                return b.streams - a.streams;
-            }).slice(0, 5);
-            
-            const artistAlbums = state.albums.filter(a => a.artistId === artist.id).sort((a,b) => b.year - a.year);
-            const pick = artist.artistPickPlaylistId ? state.playlists.find(p => p.id === artist.artistPickPlaylistId) : null;
-            return `
-                <div class="pb-32">
-                    <div class="relative h-[40vh] min-h-[300px] flex flex-col justify-end p-6 bg-gradient-to-b from-gray-900 to-[#121212]"><div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay z-0" style="background-image: url('${getImgSrc(artist.banner)}')"></div><div class="relative z-10 animate-slide-up">${artist.verified ? `<div class="flex items-center gap-1 text-white mb-2"><i data-lucide="badge-check" class="text-blue-400 fill-blue-400 w-5 h-5"></i> <span class="text-sm font-medium">Verified Artist</span></div>` : ''}<h1 class="text-5xl md:text-9xl font-black text-white mb-4 tracking-tighter shadow-xl">${artist.name}</h1><p class="text-white text-sm md:text-lg font-bold drop-shadow-md">${formatNumber(artist.monthlyListeners)} monthly listeners</p></div></div>
-                    <div class="p-6 sticky top-14 md:top-16 z-20 bg-[#121212]/90 backdrop-blur flex items-center gap-4 border-b border-gray-900"><button class="w-14 h-14 bg-[#1db954] text-black rounded-full hover:scale-105 transition-transform flex items-center justify-center shadow-lg"><i data-lucide="play" class="fill-current w-7 h-7 ml-1"></i></button><button class="px-6 py-2 border border-gray-500 rounded-full text-xs font-bold uppercase tracking-widest hover:border-white hover:text-white transition-colors">Follow</button><button onclick="openEditArtist('${artist.id}')" class="px-6 py-2 border border-gray-500 rounded-full text-xs font-bold uppercase tracking-widest hover:border-white hover:text-white">Edit</button><button onclick="openReleaseModal()" class="px-6 py-2 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest ml-auto shadow-lg hover:bg-gray-200">Release</button></div>
-                    <div class="px-6 md:px-8 mt-8 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-12 bg-[#121212]">
-                        <div>
-                            ${pick ? `<div class="mb-12"><h2 class="text-2xl font-bold text-white mb-4">Artist Pick</h2><div onclick="setView('playlist', '${pick.id}')" class="flex gap-4 cursor-pointer hover:bg-[#282828] p-4 rounded transition-colors group"><div class="w-20 h-20 bg-[#282828] flex items-center justify-center text-gray-500 rounded"><i data-lucide="music" class="w-8 h-8"></i></div><div class="flex flex-col justify-center"><div class="bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded-full w-fit mb-1 flex items-center gap-1"><img src="${getImgSrc(artist.image)}" class="w-3 h-3 rounded-full"> Posted By ${artist.name}</div><div class="font-bold text-white group-hover:underline text-lg">${pick.name}</div><div class="text-sm text-gray-400">Playlist</div></div></div></div>` : ''}
-                            
-                            <div class="mb-12"><h2 class="text-2xl font-bold text-white mb-6">Popular</h2><div class="flex flex-col">${popularSongs.map((s, i) => SongRow(s, i, false, true)).join('')}</div></div>
-                            
-                            ${featuredSongs.length > 0 ? `<div class="mb-12"><h2 class="text-2xl font-bold text-white mb-6">Appears On</h2><div class="flex flex-col">${featuredSongs.map((s, i) => SongRow(s, i, true, true)).join('')}</div></div>` : ''}
-                            
-                            <div class="mb-12"><h2 class="text-2xl font-bold text-white mb-6">Discography</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">${artistAlbums.map(a => `<div onclick="setView('album', '${a.id}')" class="group bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors cursor-pointer"><div class="relative mb-3 shadow-lg"><img src="${getImgSrc(a.cover)}" class="w-full aspect-square object-cover rounded shadow-black"><div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:scale-105 text-black"><i data-lucide="play" class="ml-1 fill-current w-6 h-6"></i></div></div><h3 class="text-white font-bold truncate text-sm">${a.title}</h3><p class="text-xs text-gray-400 mt-1">${a.year} • ${a.type}</p></div>`).join('')}</div></div>
-                        </div>
-                        <div class="space-y-8" onclick="openAboutModal('${artist.id}')">
-                            <h2 class="text-2xl font-bold text-white hover:underline cursor-pointer">About</h2>
-                            <div class="relative h-80 rounded-lg overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform shadow-xl">
-                                <img src="${getImgSrc(artist.image)}" class="absolute inset-0 w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
-                                <div class="absolute bottom-0 left-0 p-6 w-full">
-                                    <div class="font-bold text-white text-2xl mb-2">${formatNumber(artist.monthlyListeners)} Monthly Listeners</div>
-                                    <p class="text-white text-sm line-clamp-4 leading-relaxed opacity-90">${artist.bio}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-        }
-
-        if (state.view === 'profile') {
-            return `
-                <div class="pb-32">
-                    <div class="relative h-[40vh] min-h-[300px] flex flex-col justify-end p-6 bg-gradient-to-b from-[#2a2a2a] to-[#121212]">
-                        <div class="flex flex-col md:flex-row items-end gap-6 relative z-10 animate-slide-up">
-                            <div onclick="openEditUser()" class="w-40 h-40 md:w-56 md:h-56 rounded-full shadow-2xl relative group cursor-pointer overflow-hidden border-4 border-[#121212]">
-                                <img src="${getImgSrc(state.user.image, 'https://via.placeholder.com/200/555/fff?text=User')}" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><i data-lucide="edit-2" class="text-white w-8 h-8"></i></div>
-                            </div>
-                            <div class="mb-2">
-                                <div class="text-xs uppercase font-bold text-white mb-1 tracking-widest">Profile</div>
-                                <h1 class="text-4xl md:text-8xl font-black text-white mb-4 tracking-tighter" onclick="openEditUser()">${state.user.name}</h1>
-                                <div class="flex items-center gap-2 text-sm font-bold text-white">${formatNumber(state.user.followers)} Followers • ${state.playlists.length} Public Playlists</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-6 md:p-8 bg-[#121212]">
-                        <h2 class="text-2xl font-bold text-white mb-6">Public Playlists</h2>
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                            ${state.playlists.map(p => `
-                                <div onclick="setView('playlist', '${p.id}')" class="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group">
-                                    <div class="mb-4 relative shadow-lg">
-                                        <div class="w-full aspect-square bg-[#333] flex items-center justify-center rounded shadow-black"><i data-lucide="music" class="w-12 h-12 text-gray-500"></i></div>
-                                        <div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"><i data-lucide="play" class="ml-1 text-black fill-black w-6 h-6"></i></div>
-                                    </div>
-                                    <h3 class="font-bold text-white truncate">${p.name}</h3>
-                                    <p class="text-xs text-gray-400 mt-1 flex items-center gap-1"><i data-lucide="heart" class="w-3 h-3"></i> ${formatNumber(p.saves || 0)} Saves</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Standard Views
-        if (state.view === 'peyza-for-artists') return `<div class="p-6 pt-12 pb-32"><div class="flex justify-between items-center mb-8"><h1 class="text-3xl font-black text-white flex items-center gap-3"><i data-lucide="bar-chart-2" class="text-blue-500"></i> Peyza for Artists</h1><button onclick="setView('create-artist')" class="md:hidden bg-white text-black px-4 py-2 rounded-full text-xs font-bold shadow">+ Create</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${state.artists.map(a => `<div onclick="setView('dashboard-detail', '${a.id}')" class="bg-[#181818] p-6 rounded-xl border border-gray-800 hover:border-blue-500 cursor-pointer group"><div class="flex items-center gap-4 mb-4"><img src="${getImgSrc(a.image)}" class="w-16 h-16 rounded-full object-cover"><div><h2 class="font-bold text-white text-xl group-hover:underline">${a.name}</h2><div class="text-sm text-gray-400 font-mono">${formatNumber(a.monthlyListeners)} Listeners</div></div></div><div class="text-xs text-${a.momentum > 70 ? 'green' : 'yellow'}-500 font-bold uppercase tracking-widest mt-2">Momentum: ${Math.round(a.momentum)}%</div></div>`).join('')}</div></div>`;
-        
-        if (state.view === 'home') return `<div class="pb-32"><div class="h-64 bg-gradient-to-b from-indigo-900 to-[#121212] p-6 flex flex-col justify-end"><h2 class="text-3xl font-bold text-white mb-6">Good evening</h2><div class="grid grid-cols-2 md:grid-cols-3 gap-3">${[...state.playlists, ...state.artists.slice(0, 4)].map(i => `<div onclick="${i.followers ? `setView('artist', '${i.id}')` : `setView('playlist', '${i.id}')`}" class="bg-white/10 hover:bg-white/20 transition-colors rounded flex items-center overflow-hidden h-16 cursor-pointer"><img src="${getImgSrc(i.image || i.cover)}" class="h-full aspect-square object-cover"><span class="font-bold text-white px-4 text-sm truncate">${i.name}</span></div>`).join('')}</div></div><div class="px-6 mt-8"><h2 class="text-xl font-bold text-white mb-4">Your Artists</h2><div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">${state.artists.map(a => `<div onclick="setView('artist', '${a.id}')" class="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group"><div class="mb-4 relative"><img src="${getImgSrc(a.image)}" class="w-full aspect-square object-cover rounded-full shadow-lg shadow-black"><div class="absolute bottom-2 right-2 w-12 h-12 bg-[#1db954] rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"><i data-lucide="play" class="ml-1 text-black fill-black w-6 h-6"></i></div></div><h3 class="font-bold text-white truncate">${a.name}</h3><p class="text-sm text-gray-400 mt-1">Artist</p></div>`).join('')}</div></div></div>`;
-        
-        if (state.view === 'library') return `<div class="p-6 md:p-8 pt-12 pb-32"><h1 class="text-4xl font-bold text-white mb-8">Your Library</h1><div class="flex gap-4 mb-8 overflow-x-auto pb-2"><button class="bg-[#2a2a2a] px-4 py-1.5 rounded-full text-sm font-bold text-white whitespace-nowrap">Playlists</button><button class="bg-[#2a2a2a] px-4 py-1.5 rounded-full text-sm font-bold text-white whitespace-nowrap">Artists</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${state.playlists.map(p => `<div onclick="setView('playlist', '${p.id}')" class="flex items-center gap-4 bg-[#181818] hover:bg-[#282828] p-4 rounded-lg cursor-pointer transition-colors"><div class="w-16 h-16 bg-[#2a2a2a] flex items-center justify-center rounded shadow-lg"><i data-lucide="music" class="text-gray-500"></i></div><div><div class="font-bold text-white">${p.name}</div><div class="text-xs text-gray-400">Playlist • You</div></div></div>`).join('')}</div><div class="mt-12 border-t border-gray-800 pt-8"><h2 class="text-xl font-bold text-white mb-4">Data Management</h2><div class="flex gap-4"><button onclick="exportData()" class="bg-blue-600 px-6 py-2 rounded-full font-bold text-sm hover:bg-blue-500">Download Save</button><button onclick="triggerFileUpload('import')" class="bg-gray-700 px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-600">Upload Save</button></div></div></div>`;
-        
-        if (state.view === 'playlist') { const p = state.playlists.find(pl => pl.id === state.activePlaylistId); return `<div class="pb-32 pt-20 px-4 md:px-8 bg-gradient-to-b from-gray-900 to-[#121212] min-h-full"><div class="flex justify-between items-start mb-4"><h1 class="text-3xl md:text-6xl font-black text-white">${p.name}</h1><button onclick="openPlaylistMenu('${p.id}')" class="text-gray-400 hover:text-white p-2"><i data-lucide="more-horizontal" class="w-8 h-8"></i></button></div><div class="flex items-center gap-2 mb-6 text-sm font-bold text-gray-400"><i data-lucide="heart" class="w-4 h-4"></i> ${formatNumber(p.saves || 0)} Saves</div><div class="bg-black/20 rounded-lg p-2 md:p-4">${p.songs.length === 0 ? '<div class="text-gray-500 p-4 text-center">No songs</div>' : p.songs.map((sid, i) => { const s = state.songs.find(x => x.id === sid); return s ? SongRow(s, i, true, false) : ''; }).join('')}</div></div>`; }
-        
-        if (state.view === 'create-artist') return `<div class="p-8 max-w-2xl mx-auto mt-20 pb-32"><h2 class="text-3xl md:text-5xl font-black text-white mb-10 text-center">Start a Legacy</h2><div class="bg-[#181818] p-6 md:p-10 rounded-xl shadow-2xl space-y-6 md:space-y-8 border border-gray-800"><div><label class="text-white font-bold block mb-3 text-lg">Artist Name</label><input id="new-artist-name-input" class="w-full bg-[#2a2a2a] text-white p-4 rounded-lg text-lg md:text-2xl" placeholder="e.g. The Weeknd"></div><button onclick="createArtist(document.getElementById('new-artist-name-input').value)" class="w-full bg-[#1db954] text-black font-black py-4 md:py-5 rounded-full text-lg uppercase">Launch Career</button></div></div>`;
-        
-        return '';
-    }
-
-    function Sidebar() {
-        const navItem = (id, icon, label) => `
-            <button onclick="setView('${id}')" class="w-full flex items-center gap-4 px-4 py-2 rounded font-bold transition-colors ${state.view === id ? 'text-white' : 'text-gray-400 hover:text-white'}">
-                <i data-lucide="${icon}" class="w-6 h-6"></i> ${label}
-            </button>`;
-            
-        return `
-            <div class="hidden md:flex w-[240px] bg-black flex-col h-full flex-shrink-0 relative z-30 border-r border-[#121212]">
-                <div class="p-6 pb-2">
-                    <div onclick="setView('home')" class="flex items-center gap-2 mb-8 cursor-pointer text-white">
-                        <i data-lucide="disc" class="w-8 h-8"></i> <span class="font-bold text-xl tracking-tight">Peyza</span>
-                    </div>
-                    <nav class="space-y-2">
-                        ${navItem('home', 'home', 'Home')}
-                        ${navItem('search', 'search', 'Search')}
-                        ${navItem('charts', 'bar-chart-big', 'Charts')}
-                        ${navItem('library', 'library', 'Library')}
-                        ${navItem('peyza-for-artists', 'mic-2', 'For Artists')}
-                    </nav>
-                </div>
-                <div class="px-6 mt-4 mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest">Playlists</div>
-                <div class="flex-1 overflow-y-auto px-4 scrollbar-hide space-y-1">
-                    <button onclick="createPlaylist()" class="w-full flex items-center gap-3 px-2 py-2 text-gray-400 hover:text-white font-bold text-sm transition-colors group">
-                        <div class="w-6 h-6 bg-white flex items-center justify-center rounded-sm"><i data-lucide="plus" class="w-4 h-4 text-black"></i></div> 
-                        Create Playlist
-                    </button>
-                    ${state.playlists.map(p => `
-                        <div onclick="setView('playlist', '${p.id}')" class="text-gray-400 hover:text-white px-2 py-2 cursor-pointer truncate text-sm font-medium transition-colors ${state.activePlaylistId === p.id ? 'text-white' : ''}">
-                            ${p.name}
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="p-4 border-t border-[#121212]">
-                    <button onclick="setView('create-artist')" class="w-full bg-[#1db954] text-black font-bold py-2 rounded-full text-sm">Sign New Artist</button>
-                </div>
-            </div>
-        `;
-    }
-
-    function RenderModals() {
-        if (!state.modal) return '';
-        
-        if (state.modal === 'playlist-menu') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4" onclick="state.modal=null; render()"><div class="bg-[#282828] rounded-xl w-64 p-2" onclick="event.stopPropagation()"><button onclick="openRenamePlaylist()" class="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] rounded text-white text-sm font-bold">Rename Playlist</button><button onclick="openAddSongs()" class="w-full text-left px-4 py-3 hover:bg-[#3e3e3e] rounded text-white text-sm font-bold">Add Songs</button></div></div>`;
-        
-        if (state.modal === 'rename-playlist') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-sm p-6 space-y-4"><h3 class="text-xl font-bold text-white">Rename Playlist</h3><input oninput="state.playlistForm.name=this.value" value="${state.playlistForm.name}" class="w-full bg-[#3e3e3e] p-3 rounded text-white outline-none focus:ring-2 focus:ring-white" placeholder="Playlist Name"><div class="flex justify-end gap-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold px-4 py-2">Cancel</button><button onclick="savePlaylistName()" class="bg-white text-black px-6 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
-        
-        if (state.modal === 'add-songs') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-6"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white">Add Songs</h3><button onclick="state.modal=null; render()"><i data-lucide="x"></i></button></div><div class="space-y-2">${state.songs.map(s => { const isIn = state.playlists.find(p=>p.id===state.activePlaylistId).songs.includes(s.id); return `<div class="flex items-center justify-between p-2 hover:bg-[#3e3e3e] rounded"><div class="flex items-center gap-3"><img src="${getImgSrc(s.cover)}" class="w-10 h-10 rounded"><div class="text-sm font-bold text-white">${s.title}</div></div>${isIn ? '<span class="text-green-500 text-xs font-bold">Added</span>' : `<button onclick="addSongToCurrentPlaylist('${s.id}')" class="border border-gray-500 rounded-full px-3 py-1 text-xs font-bold hover:border-white">Add</button>`}</div>` }).join('')}</div></div></div>`;
-
-        if (state.modal === 'edit-user') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg p-6 space-y-4"><h3 class="text-xl font-bold text-white">Edit Profile</h3><div onclick="triggerFileUpload('image')" class="aspect-square w-32 mx-auto bg-black/50 rounded-full flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.userForm.image, 'https://via.placeholder.com/200')}" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"><i data-lucide="upload" class="text-white"></i></div></div><div class="space-y-2"><label class="text-xs font-bold text-gray-400">Name</label><input oninput="state.userForm.name=this.value" value="${state.userForm.name}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" placeholder="Name"></div><div class="space-y-2"><label class="text-xs font-bold text-gray-400">Bio</label><textarea oninput="state.userForm.bio=this.value" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" rows="3" placeholder="Tell us about yourself">${state.userForm.bio || ''}</textarea></div><div class="flex justify-end gap-2 pt-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="saveUserEdit()" class="bg-white text-black px-4 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
-
-        if (state.modal === 'about-artist') {
-            const a = state.artists.find(art => art.id === state.aboutArtistId);
-            return `
-            <div class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 md:p-8 animate-fade-in" onclick="state.modal=null; render()">
-                <div class="bg-[#181818] w-full max-w-4xl h-[85vh] rounded-xl overflow-hidden flex flex-col md:flex-row relative shadow-2xl" onclick="event.stopPropagation()">
-                    <button class="absolute top-4 right-4 z-20 bg-black/50 rounded-full p-2 hover:bg-black transition-colors" onclick="state.modal=null; render()"><i data-lucide="x" class="w-6 h-6 text-white"></i></button>
-                    
-                    <div class="w-full md:w-[45%] relative h-64 md:h-full flex-shrink-0">
-                        <img src="${getImgSrc(a.image)}" class="absolute inset-0 w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#181818]"></div>
-                        <div class="absolute bottom-6 left-6 right-6">
-                            <div class="font-bold text-white text-4xl mb-2">${formatNumber(a.monthlyListeners)}</div>
-                            <div class="text-xs font-bold text-gray-300 uppercase tracking-widest mb-4">Monthly Listeners</div>
-                        </div>
-                    </div>
-
-                    <div class="flex-1 p-6 md:p-10 overflow-y-auto bg-[#181818]">
-                        <h2 class="text-3xl font-bold text-white mb-6 hidden md:block">About</h2>
-                        <p class="text-gray-300 text-base leading-relaxed mb-10 whitespace-pre-wrap">${a.bio}</p>
-                        
-                        <div class="space-y-6">
-                            <h3 class="text-white font-bold text-lg">Where people listen</h3>
-                            ${a.geoStats.cities.slice(0, 5).map(c => `
-                                <div class="flex justify-between items-center group cursor-default p-2 rounded hover:bg-white/5 transition-colors">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-10 h-10 rounded-full bg-[#333] flex items-center justify-center text-gray-400 group-hover:bg-white group-hover:text-black transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
-                                        <span class="text-sm font-bold text-gray-200">${c.name}</span>
-                                    </div>
-                                    <span class="text-sm text-gray-400 font-mono font-bold">${formatNumber(c.listeners)}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        }
-
-        if (state.modal === 'edit-artist') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-4"><h3 class="text-xl font-bold text-white">Edit Profile</h3><div class="grid grid-cols-2 gap-4"><div onclick="triggerFileUpload('image')" class="aspect-square bg-black/50 rounded flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.editForm.image)}" class="absolute inset-0 w-full h-full object-cover"><span class="relative z-10 bg-black/50 px-2 py-1 rounded">Photo</span></div><div onclick="triggerFileUpload('banner')" class="aspect-square bg-black/50 rounded flex items-center justify-center text-xs text-gray-400 cursor-pointer overflow-hidden relative"><img src="${getImgSrc(state.editForm.banner)}" class="absolute inset-0 w-full h-full object-cover opacity-50"><span class="relative z-10 bg-black/50 px-2 py-1 rounded">Banner</span></div></div><input oninput="state.editForm.name=this.value" value="${state.editForm.name}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" placeholder="Name"><div class="flex justify-between"><label class="text-xs text-gray-400">Bio</label><button id="btn-gen-bio" onclick="generateBio()" class="text-[10px] bg-purple-600 px-2 rounded text-white flex items-center gap-1">AI Write</button></div><textarea oninput="state.editForm.bio=this.value" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white" rows="3">${state.editForm.bio}</textarea><div class="flex items-center gap-2 mt-2"><input type="checkbox" id="edit-verified" ${state.editForm.verified ? 'checked' : ''} onchange="state.editForm.verified = this.checked" class="w-4 h-4 accent-[#1db954]"><label for="edit-verified" class="text-sm font-bold text-white cursor-pointer">Verified Artist</label></div><div><label class="text-xs text-gray-400 block mb-1">Pick</label><select onchange="state.editForm.artistPickPlaylistId = this.value" class="w-full bg-[#3e3e3e] text-white text-sm p-2 rounded"><option value="">None</option>${state.playlists.map(p => `<option value="${p.id}" ${state.editForm.artistPickPlaylistId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}</select></div><div class="grid grid-cols-2 gap-4"><div><label class="text-xs text-gray-400">Listeners</label><input type="number" oninput="state.editForm.monthlyListeners=parseInt(this.value)" value="${state.editForm.monthlyListeners}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white"></div><div><label class="text-xs text-gray-400">Followers</label><input type="number" oninput="state.editForm.followers=parseInt(this.value)" value="${state.editForm.followers}" class="w-full bg-[#3e3e3e] p-2 rounded text-sm text-white"></div></div><div class="flex justify-end gap-2 pt-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="saveArtistEdit()" class="bg-white text-black px-4 py-2 rounded-full text-sm font-bold">Save</button></div></div></div>`;
-        if (state.modal === 'release') return `<div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"><div class="bg-[#282828] rounded-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6"><h3 class="text-xl font-bold text-white mb-4">New Release</h3><div class="flex gap-4 mb-4"><div onclick="triggerFileUpload('image')" class="w-24 h-24 bg-black/50 shrink-0 cursor-pointer flex items-center justify-center relative overflow-hidden">${state.releaseForm.cover ? `<img src="${getImgSrc(state.releaseForm.cover)}" class="w-full h-full object-cover">` : '<i data-lucide="upload" class="w-6 h-6 text-gray-400"></i>'}</div><div class="flex-1 space-y-2"><input oninput="state.releaseForm.title=this.value" value="${state.releaseForm.title}" class="w-full bg-[#3e3e3e] p-2 rounded text-white" placeholder="Title"><div class="flex gap-4 text-sm text-white"><label><input type="radio" name="type" checked onclick="state.releaseForm.type='Single'"> Single</label><label><input type="radio" name="type" onclick="state.releaseForm.type='Album'"> Album</label></div></div></div><div class="space-y-2 mb-4"><div class="flex justify-between items-center text-xs text-gray-400 font-bold"><span>Tracks</span> <div class="flex gap-2"><button id="btn-gen-tracks" onclick="generateTracklist()" class="text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded text-[10px]">AI Auto-Fill</button><button onclick="addTrack()" class="bg-gray-800 px-2 py-0.5 rounded text-white">+ Add</button></div></div>${state.releaseForm.tracks.map((t,i) => `<div class="flex gap-2 items-center"><span class="text-gray-500 text-xs w-4">${i+1}</span><input oninput="state.releaseForm.tracks[${i}].title=this.value" value="${t.title}" class="bg-[#3e3e3e] p-1.5 rounded text-sm text-white flex-1" placeholder="Name"><select onchange="state.releaseForm.tracks[${i}].featArtistId=this.value" class="bg-[#3e3e3e] text-white text-xs rounded p-1.5 w-20"><option value="">No Feat</option>${state.artists.filter(a => a.id !== state.activeArtistId).map(a => `<option value="${a.id}" ${t.featArtistId===a.id?'selected':''}>${a.name}</option>`).join('')}</select><button onclick="state.activeTrackIdx=${i}; triggerFileUpload('audio')" class="bg-gray-700 text-white text-xs px-2 py-1.5 rounded">${t.file ? 'MP3' : 'Upload'}</button><button onclick="state.releaseForm.tracks.splice(${i},1); render()"><i data-lucide="x" class="w-4 h-4 text-gray-500"></i></button></div>`).join('')}</div><div class="flex justify-end gap-2"><button onclick="state.modal=null; render()" class="text-white text-sm font-bold">Cancel</button><button onclick="finalizeRelease()" class="bg-[#1db954] text-black px-6 py-2 rounded-full text-sm font-bold">Release</button></div></div></div>`;
-        return '';
-    }
-
-    function render() {
-        const app = document.getElementById('app');
-        if (!app) return;
-
-        // Maintain Focus for Search
-        const focusedId = document.activeElement ? document.activeElement.id : null;
-        const selectionStart = document.activeElement ? document.activeElement.selectionStart : null;
-
-        app.innerHTML = `
-            <div class="flex flex-1 overflow-hidden">
-                ${Sidebar()} 
-                <div class="flex-1 bg-black m-0 md:m-2 rounded-none md:rounded-lg overflow-hidden flex flex-col relative">
-                    <!-- Header -->
-                    <div class="h-16 bg-gradient-to-b from-black/80 to-transparent absolute top-0 w-full z-20 px-4 md:px-8 flex items-center justify-between pointer-events-none">
-                         <div class="flex gap-4 pointer-events-auto">
-                            <button onclick="setView('home')" class="w-8 h-8 bg-black/70 rounded-full flex items-center justify-center text-gray-300 hover:text-white"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                            <button class="w-8 h-8 bg-black/70 rounded-full flex items-center justify-center text-gray-300 hover:text-white"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
-                         </div>
-                         <div class="flex items-center gap-4 pointer-events-auto">
-                             <div class="text-xs font-mono text-white bg-black/40 px-3 py-1 rounded-full border border-gray-800 flex items-center gap-2">
-                                <i data-lucide="calendar" class="w-3 h-3 text-spotify"></i> ${formatDate(state.day)}
-                             </div>
-                             <button onclick="handleNextDay()" class="bg-white text-black px-4 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform flex items-center gap-1">Next Day <i data-lucide="trending-up" class="w-3 h-3"></i></button>
-                             <div onclick="setView('profile')" class="w-8 h-8 bg-[#282828] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#3e3e3e] transition-colors overflow-hidden">
-                                ${state.user.image ? `<img src="${getImgSrc(state.user.image)}" class="w-full h-full object-cover">` : `<i data-lucide="user" class="w-4 h-4 text-gray-400"></i>`}
-                             </div>
-                         </div>
-                    </div>
-
-                    <!-- Main Content -->
-                    <div class="flex-1 overflow-y-auto scrollbar-hide pt-16">
-                        ${state.showDailyLog && state.dailyLog.length > 0 ? `
-                            <div class="fixed top-20 right-8 z-[60] bg-[#1db954] text-black p-4 rounded shadow-2xl max-w-xs animate-bounce-in text-xs font-bold border-2 border-white">
-                                <ul class="list-disc pl-4">${state.dailyLog.slice(0,3).map(l=>`<li>${l}</li>`).join('')}</ul>
-                            </div>` : ''}
-                        ${RenderMainContent()}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Player Bar -->
-            <div id="player-bar" class="fixed bottom-16 md:bottom-0 w-full h-14 md:h-[90px] bg-[#181818] border-t border-[#282828] z-50 transition-all duration-300">
-                ${RenderPlayerHTML()}
-            </div>
-            
-            <!-- Mobile Nav -->
-            ${MobileBottomNav()}
-            
-            <!-- Modals -->
-            ${RenderModals()}
-        `;
-        
-        // Restore Focus
-        if (focusedId) {
-            const el = document.getElementById(focusedId);
-            if(el) {
-                el.focus();
-                if (selectionStart !== null && el.setSelectionRange) el.setSelectionRange(selectionStart, selectionStart);
-            }
-        }
-        
-        lucide.createIcons();
-    }
-
-    initDB().then(() => render());
-    setInterval(() => { if (state.isPlaying && !state.currentSong?.audioUrl) renderPlayer(); }, 1000);
-</script>
+        window.addEventListener('DOMContentLoaded', app.init);
+    </script>
 </body>
 </html>
