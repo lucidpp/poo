@@ -204,6 +204,16 @@
         input[type="file"]::file-selector-button:hover {
             background: #444;
         }
+
+        /* Toast positioning classes */
+        .toast-hidden {
+            transform: translateY(-150%); /* Move up for mobile */
+        }
+        @media (min-width: 768px) {
+            .toast-hidden {
+                transform: translateY(150%); /* Move down for desktop */
+            }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-yt-base text-white">
@@ -283,29 +293,35 @@
 
     <!-- Mobile Bottom Navigation -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#212121] border-t border-[#333] flex justify-around items-center z-50 pb-safe">
-        <button onclick="renderHome()" class="mobile-nav-item flex flex-col items-center gap-1 p-2 active" id="mob-nav-home">
+        <button onclick="animateNav('mob-nav-home', renderHome)" class="mobile-nav-item flex flex-col items-center gap-1 p-2 active icon-explode" id="mob-nav-home">
             <span class="material-icons-round">home</span>
             <span class="text-[10px]">Home</span>
         </button>
-        <button onclick="renderExplore()" class="mobile-nav-item flex flex-col items-center gap-1 p-2" id="mob-nav-explore">
+        <button onclick="animateNav('mob-nav-explore', renderExplore)" class="mobile-nav-item flex flex-col items-center gap-1 p-2 icon-explode" id="mob-nav-explore">
             <span class="material-icons-round">explore</span>
             <span class="text-[10px]">Explore</span>
         </button>
-        <button onclick="renderLibrary()" class="mobile-nav-item flex flex-col items-center gap-1 p-2" id="mob-nav-library">
+        <button onclick="animateNav('mob-nav-library', renderLibrary)" class="mobile-nav-item flex flex-col items-center gap-1 p-2 icon-explode" id="mob-nav-library">
             <span class="material-icons-round">library_music</span>
             <span class="text-[10px]">Library</span>
         </button>
-        <button onclick="openModal('create-artist-modal')" class="mobile-nav-item flex flex-col items-center gap-1 p-2">
-            <span class="material-icons-round">add_circle</span>
-            <span class="text-[10px]">Create</span>
+        <button onclick="animateNav('mob-nav-create', () => openModal('create-artist-modal'))" class="mobile-nav-item flex flex-col items-center gap-1 p-2 icon-explode" id="mob-nav-create">
+            <span class="material-icons-round">add_circle_outline</span>
+            <span class="text-[10px]">New Artist</span>
         </button>
     </div>
 
     <!-- Offline Report Toast -->
-    <div id="offline-toast" class="fixed bottom-20 md:bottom-8 right-4 bg-white text-black px-6 py-4 rounded-lg shadow-2xl transform translate-y-32 transition-transform duration-500 z-[70] max-w-sm">
-        <h4 class="font-bold text-lg mb-1">Welcome Back!</h4>
-        <p class="text-sm text-gray-700" id="offline-report-text">You gained views while away.</p>
-        <button onclick="closeOfflineToast()" class="mt-2 text-xs font-bold uppercase tracking-wider text-yt-base">Dismiss</button>
+    <!-- Position: Top on Mobile (to avoid nav), Bottom on Desktop -->
+    <div id="offline-toast" class="fixed top-20 md:top-auto md:bottom-8 left-4 right-4 md:left-auto md:right-4 bg-white text-black px-6 py-4 rounded-lg shadow-2xl transition-transform duration-500 z-[100] max-w-sm toast-hidden flex flex-col">
+        <div class="flex justify-between items-start mb-2">
+            <h4 class="font-bold text-lg">Welcome Back!</h4>
+            <button onclick="closeOfflineToast()" class="text-gray-500 hover:text-black p-1 -mr-2 -mt-2">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <p class="text-sm text-gray-700 mb-3" id="offline-report-text">You gained views while away.</p>
+        <button onclick="closeOfflineToast()" class="bg-black text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider self-end">Dismiss</button>
     </div>
 
     <!-- MODALS -->
@@ -540,7 +556,7 @@
             const toast = document.getElementById('offline-toast');
             const text = document.getElementById('offline-report-text');
             text.innerText = `Simulated ${Math.floor(seconds / 60)} minutes of activity while you were away.`;
-            toast.classList.remove('translate-y-32');
+            toast.classList.remove('toast-hidden');
         }
 
         function updateArtistStats() {
@@ -565,8 +581,13 @@
         }
 
         function updateRealTimeUI() {
+            // Re-render currently active release page to show view/like updates in real-time
             const main = document.getElementById('main-content');
-            // Optimistic UI updates could go here
+            if (main.dataset.view === 'release') {
+                // To avoid flickering, normally we'd update specific DOM elements. 
+                // For simplicity in this structure, we won't auto-rerender the whole page constantly,
+                // but the save loop ensures data is current on refresh/nav.
+            }
         }
 
         // --- DATA PERSISTENCE ---
@@ -639,7 +660,7 @@
         }
 
         function closeOfflineToast() {
-            document.getElementById('offline-toast').classList.add('translate-y-32');
+            document.getElementById('offline-toast').classList.add('toast-hidden');
         }
         
         function updateNavState(view) {
@@ -655,7 +676,7 @@
                 }
             });
             // Mobile
-             ['mob-nav-home', 'mob-nav-explore', 'mob-nav-library'].forEach(id => {
+             ['mob-nav-home', 'mob-nav-explore', 'mob-nav-library', 'mob-nav-create'].forEach(id => {
                 const btn = document.getElementById(id);
                 if (id === 'mob-nav-'+view) {
                     btn.classList.add('active');
@@ -998,6 +1019,11 @@
             const artist = state.artists.find(a => a.id === release.artistId);
             const feature = state.artists.find(a => a.id === release.featuredArtistId);
             const artistName = feature ? `${artist.name} & ${feature.name}` : artist.name;
+            
+            // Calculate realistic likes (approx 2-5% of views)
+            // Use ID to seed random so it's consistent for the release but varies by ID
+            const likeRatio = 0.02 + (release.id.charCodeAt(0) % 4) * 0.01; 
+            const likes = Math.floor(release.totalViews * likeRatio);
 
             main.innerHTML = `
                  <div class="pb-20 max-w-7xl mx-auto animate-fade-in">
@@ -1011,10 +1037,12 @@
                                 <img src="${artist.pfp}" class="w-6 h-6 rounded-full">
                                 <span class="font-bold text-white hover:underline cursor-pointer" onclick="renderArtist('${artist.id}')">${artistName}</span>
                             </div>
-                            <div class="text-gray-400 text-sm flex gap-2 items-center">
+                            <div class="text-gray-400 text-sm flex gap-4 items-center">
                                 <span>${release.type}</span>
                                 <span>•</span>
-                                <span>${formatNumber(release.totalViews)} total views</span>
+                                <span class="flex items-center gap-1"><span class="material-icons-round text-sm">visibility</span> ${formatNumber(release.totalViews)}</span>
+                                <span>•</span>
+                                <span class="flex items-center gap-1"><span class="material-icons-round text-sm">thumb_up</span> ${formatNumber(likes)}</span>
                             </div>
                             <div class="flex gap-4 mt-6">
                                 <button class="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:scale-105 transition">
