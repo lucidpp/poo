@@ -27,7 +27,8 @@
                             text: '#ffffff',
                             textSec: '#aaaaaa',
                             red: '#ff0000',
-                            accent: '#ffffff'
+                            accent: '#ffffff',
+                            player: '#212121' 
                         }
                     },
                     fontFamily: {
@@ -35,7 +36,9 @@
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out',
-                        'explode': 'explode 0.6s ease-out forwards'
+                        'explode': 'explode 0.6s ease-out forwards',
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.2, 0.0, 0, 1.0) forwards',
+                        'slide-down': 'slideDown 0.3s cubic-bezier(0.2, 0.0, 0, 1.0) forwards'
                     },
                     keyframes: {
                         fadeIn: {
@@ -46,6 +49,14 @@
                             '0%': { transform: 'scale(1)', opacity: '1' },
                             '50%': { transform: 'scale(1.5)', opacity: '0.8' },
                             '100%': { transform: 'scale(2)', opacity: '0' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        slideDown: {
+                            '0%': { transform: 'translateY(0)', opacity: '1' },
+                            '100%': { transform: 'translateY(100%)', opacity: '0' }
                         }
                     }
                 }
@@ -214,6 +225,32 @@
                 transform: translateY(150%); /* Move down for desktop */
             }
         }
+        
+        /* Player Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            margin-top: -4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #4d4d4d;
+            border-radius: 2px;
+        }
+        input[type=range]:hover::-webkit-slider-thumb {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-yt-base text-white">
@@ -311,9 +348,81 @@
         </button>
     </div>
 
+    <!-- FULL SCREEN PLAYER -->
+    <div id="music-player" class="fixed inset-0 z-[100] bg-[#030303] hidden flex flex-col h-[100dvh]">
+        <!-- Background Gradient -->
+        <div id="player-bg-gradient" class="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black opacity-95 pointer-events-none"></div>
+        
+        <!-- Top Bar -->
+        <div class="relative z-10 flex items-center justify-between p-4 shrink-0">
+            <button onclick="closePlayer()" class="p-2 text-white hover:bg-white/10 rounded-full transition"><span class="material-icons-round text-3xl">keyboard_arrow_down</span></button>
+            <div class="text-xs uppercase tracking-widest text-gray-400 font-bold">Now Playing</div>
+            <button class="p-2 text-white hover:bg-white/10 rounded-full transition"><span class="material-icons-round text-2xl">more_vert</span></button>
+        </div>
+
+        <!-- Main Content (Centered and responsive) -->
+        <div class="relative z-10 flex-1 flex flex-col items-center justify-center w-full px-6 pb-8 overflow-hidden">
+            
+            <!-- Art Container (Responsive sizing - shrinks if needed) -->
+            <div class="relative w-full max-w-sm md:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden mb-6 md:mb-10 flex-shrink min-h-0">
+                <img id="player-img" src="" class="w-full h-full object-cover">
+            </div>
+
+            <!-- Metadata & Actions Row -->
+            <div class="w-full max-w-2xl flex items-center justify-between mb-2 shrink-0">
+                <div class="flex flex-col min-w-0 pr-4">
+                    <h2 id="player-title" class="text-2xl md:text-3xl font-bold text-white truncate leading-tight">Song Title</h2>
+                    <p id="player-artist" class="text-lg text-gray-400 truncate">Artist Name</p>
+                </div>
+                <!-- Like/Dislike Actions -->
+                <div class="flex items-center gap-4 flex-shrink-0">
+                     <button class="text-gray-400 hover:text-white transition"><span class="material-icons-round text-2xl">thumb_down</span></button>
+                     <div class="flex flex-col items-center">
+                        <button class="text-white hover:text-gray-200 transition"><span class="material-icons-round text-2xl">thumb_up</span></button>
+                        <span id="player-likes" class="text-[10px] text-gray-400 font-medium mt-0.5">0</span>
+                    </div>
+                </div>
+            </div>
+
+             <!-- View Count (Subtle) -->
+             <div class="w-full max-w-2xl text-xs text-gray-500 mb-6 flex items-center gap-1 shrink-0">
+                <span id="player-views">0</span> views
+             </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full max-w-2xl mb-4 shrink-0 group">
+                <input type="range" id="player-seek" value="0" min="0" max="100" class="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer hover:h-1.5 transition-all accent-white">
+                <div class="flex justify-between text-xs text-gray-400 mt-2 font-medium">
+                    <span id="player-time-current">0:00</span>
+                    <span id="player-time-total">0:00</span>
+                </div>
+            </div>
+
+            <!-- Main Controls -->
+            <div class="w-full max-w-2xl flex items-center justify-between shrink-0 px-2 md:px-8">
+                <button class="text-gray-400 hover:text-white transition"><span class="material-icons-round text-2xl">shuffle</span></button>
+                
+                <div class="flex items-center gap-6 md:gap-10">
+                    <button id="player-prev" class="text-white hover:text-gray-300 transition active:scale-90"><span class="material-icons-round text-4xl md:text-5xl">skip_previous</span></button>
+                    
+                    <button id="player-play-btn" onclick="togglePlay()" class="w-16 h-16 md:w-20 md:h-20 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg active:scale-95">
+                        <span class="material-icons-round text-4xl md:text-5xl" id="player-play-icon">play_arrow</span>
+                    </button>
+                    
+                    <button id="player-next" class="text-white hover:text-gray-300 transition active:scale-90"><span class="material-icons-round text-4xl md:text-5xl">skip_next</span></button>
+                </div>
+                
+                <button class="text-gray-400 hover:text-white transition"><span class="material-icons-round text-2xl">repeat</span></button>
+            </div>
+        </div>
+
+        <!-- Hidden Audio Element -->
+        <audio id="audio-element"></audio>
+        <input type="file" id="mp3-upload" accept="audio/*" class="hidden">
+    </div>
+
     <!-- Offline Report Toast -->
-    <!-- Position: Top on Mobile (to avoid nav), Bottom on Desktop -->
-    <div id="offline-toast" class="fixed top-20 md:top-auto md:bottom-8 left-4 right-4 md:left-auto md:right-4 bg-white text-black px-6 py-4 rounded-lg shadow-2xl transition-transform duration-500 z-[100] max-w-sm toast-hidden flex flex-col">
+    <div id="offline-toast" class="fixed top-20 md:top-auto md:bottom-8 left-4 right-4 md:left-auto md:right-4 bg-white text-black px-6 py-4 rounded-lg shadow-2xl transition-transform duration-500 z-[90] max-w-sm toast-hidden flex flex-col">
         <div class="flex justify-between items-start mb-2">
             <h4 class="font-bold text-lg">Welcome Back!</h4>
             <button onclick="closeOfflineToast()" class="text-gray-500 hover:text-black p-1 -mr-2 -mt-2">
@@ -405,7 +514,7 @@
                 <h2 class="text-xl font-bold">Release Music</h2>
                 <button onclick="closeModal('release-music-modal')" class="text-gray-400 hover:text-white"><span class="material-icons-round">close</span></button>
             </div>
-            <div class="p-6 space-y-4">
+            <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                 <input type="hidden" id="release-artist-id">
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">Title (Single or Album Name)</label>
@@ -427,8 +536,16 @@
                 </div>
                 
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1">Featured Artist (Optional)</label>
-                    <select id="release-feature" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
+                    <label class="block text-xs text-gray-400 mb-1">Featured Artist 1</label>
+                    <select id="release-feature-1" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none mb-2">
+                        <option value="">None</option>
+                    </select>
+                    <label class="block text-xs text-gray-400 mb-1">Featured Artist 2</label>
+                    <select id="release-feature-2" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none mb-2">
+                        <option value="">None</option>
+                    </select>
+                    <label class="block text-xs text-gray-400 mb-1">Featured Artist 3</label>
+                    <select id="release-feature-3" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
                         <option value="">None</option>
                     </select>
                 </div>
@@ -466,6 +583,18 @@
             lastSaveTime: Date.now()
         };
 
+        // Player State
+        let playerState = {
+            isPlaying: false,
+            currentReleaseId: null,
+            currentTrackIndex: 0,
+            audioUrl: null,
+            release: null,
+            track: null
+        };
+
+        const audioElement = document.getElementById('audio-element');
+
         const generateId = () => Math.random().toString(36).substr(2, 9);
         
         const formatNumber = (num) => {
@@ -488,19 +617,17 @@
                     reader.readAsDataURL(fileInput.files[0]);
                 });
             }
-            return urlInput.value || ''; // Fallback to URL or empty
+            return urlInput.value || ''; 
         }
 
         // --- INIT ---
         function init() {
             loadFromLocal();
             
-            // If empty, seed data
             if (state.artists.length === 0) {
                 createArtistInternal("The Midnight Echo", "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=300&auto=format&fit=crop", "An electronic synthwave duo from the future.", 250000, 15000);
             }
             
-            // Calculate Offline Progress
             const now = Date.now();
             const elapsedSeconds = (now - state.lastSaveTime) / 1000;
             if (elapsedSeconds > 60) {
@@ -510,15 +637,148 @@
             renderHome();
             updateSidebar();
             
-            // Start Real-Time Loop
             setInterval(() => {
                 simulateRealTime(2);
                 saveToLocal();
                 updateRealTimeUI(); 
+                updatePlayerUIStats();
             }, 2000);
+
+            // Audio Listeners
+            audioElement.addEventListener('timeupdate', () => {
+                const current = audioElement.currentTime;
+                const duration = audioElement.duration || 0;
+                document.getElementById('player-seek').value = (current / duration) * 100 || 0;
+                document.getElementById('player-time-current').innerText = formatTime(current);
+                document.getElementById('player-time-total').innerText = formatTime(duration);
+            });
+            audioElement.addEventListener('ended', playNext);
+            
+            document.getElementById('player-seek').addEventListener('input', (e) => {
+                const percent = e.target.value;
+                const duration = audioElement.duration;
+                if(duration) audioElement.currentTime = (percent / 100) * duration;
+            });
         }
 
-        // --- SIMULATION ENGINE (REAL TIME) ---
+        function formatTime(seconds) {
+            if(isNaN(seconds)) return "0:00";
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        // --- PLAYER LOGIC ---
+
+        function trackClicked(releaseId, trackIndex) {
+            // Trigger upload if no audio or just allow upload to overwrite
+            document.getElementById('mp3-upload').onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const url = URL.createObjectURL(file);
+                    loadAndPlay(releaseId, trackIndex, url);
+                }
+            };
+            document.getElementById('mp3-upload').click();
+        }
+
+        function loadAndPlay(releaseId, trackIndex, url) {
+            const release = state.releases.find(r => r.id === releaseId);
+            if (!release) return;
+
+            playerState.currentReleaseId = releaseId;
+            playerState.currentTrackIndex = trackIndex;
+            playerState.release = release;
+            playerState.track = release.tracksData[trackIndex];
+            playerState.audioUrl = url;
+            playerState.isPlaying = true;
+
+            // Setup Audio
+            audioElement.src = url;
+            audioElement.play();
+
+            // Setup UI
+            openPlayer();
+            updatePlayerUI();
+        }
+
+        function updatePlayerUI() {
+            const { release, track } = playerState;
+            const artist = state.artists.find(a => a.id === release.artistId);
+            
+            // Handle Multiple Features
+            let featNames = "";
+            if(release.featuredArtistIds && release.featuredArtistIds.length > 0) {
+                const feats = state.artists.filter(a => release.featuredArtistIds.includes(a.id));
+                featNames = feats.length > 0 ? ` ft. ${feats.map(f => f.name).join(', ')}` : "";
+            } else if (release.featuredArtistId) {
+                // Backwards compat
+                const f = state.artists.find(a => a.id === release.featuredArtistId);
+                if(f) featNames = ` ft. ${f.name}`;
+            }
+
+            document.getElementById('player-title').innerText = track.title;
+            document.getElementById('player-artist').innerText = artist.name + featNames;
+            document.getElementById('player-img').src = release.cover;
+            
+            updatePlayerUIStats();
+            updatePlayButton();
+        }
+
+        function updatePlayerUIStats() {
+            if(!playerState.release) return;
+            const likeRatio = 0.02 + (playerState.release.id.charCodeAt(0) % 4) * 0.01; 
+            const likes = Math.floor(playerState.release.totalViews * likeRatio);
+            
+            document.getElementById('player-views').innerText = formatNumber(playerState.release.totalViews);
+            document.getElementById('player-likes').innerText = formatNumber(likes);
+        }
+
+        function togglePlay() {
+            if (audioElement.paused) {
+                audioElement.play();
+                playerState.isPlaying = true;
+            } else {
+                audioElement.pause();
+                playerState.isPlaying = false;
+            }
+            updatePlayButton();
+        }
+
+        function updatePlayButton() {
+            const icon = document.getElementById('player-play-icon');
+            icon.innerText = playerState.isPlaying ? 'pause' : 'play_arrow';
+        }
+
+        function openPlayer() {
+            const p = document.getElementById('music-player');
+            p.classList.remove('hidden');
+            p.classList.add('animate-slide-up');
+            p.classList.remove('animate-slide-down');
+        }
+
+        function closePlayer() {
+            const p = document.getElementById('music-player');
+            p.classList.add('animate-slide-down');
+            p.classList.remove('animate-slide-up');
+            setTimeout(() => {
+                // Don't hide display none if playing, just minimize visually? 
+                // For now, full close implies stop or background play. 
+                // Let's keep it playing in bg but hide UI.
+                p.classList.add('hidden');
+            }, 300);
+        }
+
+        function playNext() {
+            // Simple loop for now
+            if (playerState.currentTrackIndex < playerState.release.tracksData.length - 1) {
+                // We need a file... simulated skip doesn't work well with "upload to play".
+                // We'll just reset or stop since we don't have the next file.
+                alert("Please click the next track to upload/play its file.");
+            }
+        }
+
+        // --- SIMULATION ENGINE ---
 
         function simulateRealTime(seconds) {
             let totalGained = 0;
@@ -535,10 +795,14 @@
                 const baseRate = Math.max(0.1, artist.subscribers * 0.0001); 
                 
                 let featureMult = 1;
-                if(release.featuredArtistId) featureMult = 1.5;
+                // Handle Array Features
+                if(release.featuredArtistIds && release.featuredArtistIds.length > 0) {
+                    featureMult = 1 + (release.featuredArtistIds.length * 0.5);
+                } else if(release.featuredArtistId) {
+                    featureMult = 1.5;
+                }
 
                 const viewsPerSecond = baseRate * release.popularityScore * decayFactor * featureMult;
-                
                 const actualViews = viewsPerSecond * seconds * (0.8 + Math.random() * 0.4);
                 
                 if (actualViews > 0) {
@@ -561,7 +825,14 @@
 
         function updateArtistStats() {
             state.artists.forEach(artist => {
-                const relevantReleases = state.releases.filter(r => r.artistId === artist.id || r.featuredArtistId === artist.id);
+                // Updated filter for multiple features
+                const relevantReleases = state.releases.filter(r => {
+                    const isMain = r.artistId === artist.id;
+                    const isFeatSingle = r.featuredArtistId === artist.id;
+                    const isFeatMulti = r.featuredArtistIds && r.featuredArtistIds.includes(artist.id);
+                    return isMain || isFeatSingle || isFeatMulti;
+                });
+
                 const totalViews = relevantReleases.reduce((sum, r) => sum + r.totalViews, 0);
                 
                 const prevViews = artist.totalViews;
@@ -581,13 +852,8 @@
         }
 
         function updateRealTimeUI() {
-            // Re-render currently active release page to show view/like updates in real-time
-            const main = document.getElementById('main-content');
-            if (main.dataset.view === 'release') {
-                // To avoid flickering, normally we'd update specific DOM elements. 
-                // For simplicity in this structure, we won't auto-rerender the whole page constantly,
-                // but the save loop ensures data is current on refresh/nav.
-            }
+             const main = document.getElementById('main-content');
+             // Keeping it light
         }
 
         // --- DATA PERSISTENCE ---
@@ -596,7 +862,7 @@
             try {
                 localStorage.setItem('yt_sim_save', JSON.stringify(state));
             } catch (e) {
-                console.warn("Save failed, likely storage limit reached due to images.");
+                console.warn("Save failed");
             }
         }
 
@@ -653,7 +919,7 @@
             const btn = document.getElementById(id);
             if (btn) {
                 btn.classList.remove('animating');
-                void btn.offsetWidth; // trigger reflow
+                void btn.offsetWidth; 
                 btn.classList.add('animating');
             }
             callback();
@@ -664,7 +930,6 @@
         }
         
         function updateNavState(view) {
-             // Desktop
             ['nav-home', 'nav-explore', 'nav-library'].forEach(id => {
                 const btn = document.getElementById(id);
                 if (id === 'nav-'+view) {
@@ -675,7 +940,6 @@
                     btn.classList.add('text-yt-textSec');
                 }
             });
-            // Mobile
              ['mob-nav-home', 'mob-nav-explore', 'mob-nav-library', 'mob-nav-create'].forEach(id => {
                 const btn = document.getElementById(id);
                 if (id === 'mob-nav-'+view) {
@@ -709,8 +973,6 @@
         async function createArtist() {
             const name = document.getElementById('new-artist-name').value;
             const bio = document.getElementById('new-artist-bio').value;
-            
-            // Get Image (File or URL)
             let pfp = await getImageUrl('new-artist-pfp-file', 'new-artist-pfp');
             if(!pfp) pfp = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
@@ -718,7 +980,6 @@
             
             const id = createArtistInternal(name, pfp, bio, 0, 0);
             
-            // Clear inputs
             document.getElementById('new-artist-name').value = '';
             document.getElementById('new-artist-pfp').value = '';
             document.getElementById('new-artist-pfp-file').value = '';
@@ -733,9 +994,13 @@
             const title = document.getElementById('release-title').value;
             const type = document.getElementById('release-type').value;
             const trackCount = parseInt(document.getElementById('release-tracks').value);
-            const featureId = document.getElementById('release-feature').value;
             
-            // Get Image
+            // Multiple Features
+            const feat1 = document.getElementById('release-feature-1').value;
+            const feat2 = document.getElementById('release-feature-2').value;
+            const feat3 = document.getElementById('release-feature-3').value;
+            const featuredArtistIds = [feat1, feat2, feat3].filter(id => id && id !== "");
+
             let cover = await getImageUrl('release-cover-file', 'release-cover');
             if(!cover) cover = `https://ui-avatars.com/api/?name=${encodeURIComponent(title)}&size=300&background=222&color=fff`;
 
@@ -759,24 +1024,26 @@
             const newRelease = {
                 id: generateId(),
                 artistId: artistId,
-                featuredArtistId: featureId || null,
+                featuredArtistIds: featuredArtistIds, // Updated
                 title: title,
                 type: type,
                 cover: cover,
                 tracks: trackCount,
                 tracksData: tracksData,
-                releaseTimestamp: Date.now(), // REAL TIME
+                releaseTimestamp: Date.now(), 
                 totalViews: 0,
                 popularityScore: Math.random() * 0.5 + 0.5 
             };
 
             state.releases.unshift(newRelease);
             
-            // Clear
             document.getElementById('release-title').value = '';
             document.getElementById('release-cover').value = '';
             document.getElementById('release-cover-file').value = '';
             document.getElementById('release-tracks').value = 1;
+            document.getElementById('release-feature-1').value = "";
+            document.getElementById('release-feature-2').value = "";
+            document.getElementById('release-feature-3').value = "";
 
             closeModal('release-music-modal');
             saveToLocal();
@@ -922,7 +1189,7 @@
             updateNavState('');
             
             const isSubscribed = state.library.includes(id);
-            const artistReleases = state.releases.filter(r => r.artistId === id || r.featuredArtistId === id).sort((a,b) => b.releaseTimestamp - a.releaseTimestamp);
+            const artistReleases = state.releases.filter(r => r.artistId === id || (r.featuredArtistIds && r.featuredArtistIds.includes(id)) || r.featuredArtistId === id).sort((a,b) => b.releaseTimestamp - a.releaseTimestamp);
             const topSongs = [...artistReleases].sort((a,b) => b.totalViews - a.totalViews).slice(0, 5);
 
             main.innerHTML = `
@@ -962,14 +1229,14 @@
                                 <h2 class="text-2xl font-bold mb-4">Top Songs</h2>
                                 <div class="flex flex-col">
                                     ${topSongs.length > 0 ? topSongs.map((song, index) => `
-                                        <div onclick="renderRelease('${song.id}')" class="flex items-center gap-4 p-3 rounded hover:bg-[#1f1f1f] group cursor-pointer transition">
+                                        <div onclick="trackClicked('${song.id}', 0)" class="flex items-center gap-4 p-3 rounded hover:bg-[#1f1f1f] group cursor-pointer transition">
                                             <span class="text-gray-400 w-4 text-center font-medium">${index + 1}</span>
                                             <img src="${song.cover}" class="w-12 h-12 rounded object-cover">
                                             <div class="flex-1 min-w-0">
                                                 <div class="font-medium text-white truncate">${song.title}</div>
                                                 <div class="text-sm text-gray-400">${formatNumber(song.totalViews)} views</div>
                                             </div>
-                                            <div class="text-sm text-gray-400 mr-4">3:42</div>
+                                            <div class="text-sm text-gray-400 mr-4">Play</div>
                                         </div>
                                     `).join('') : '<div class="text-gray-500 italic">No releases yet.</div>'}
                                 </div>
@@ -1017,11 +1284,17 @@
             updateNavState('');
 
             const artist = state.artists.find(a => a.id === release.artistId);
-            const feature = state.artists.find(a => a.id === release.featuredArtistId);
-            const artistName = feature ? `${artist.name} & ${feature.name}` : artist.name;
             
-            // Calculate realistic likes (approx 2-5% of views)
-            // Use ID to seed random so it's consistent for the release but varies by ID
+            // Handle Feature display on page
+            let featNames = "";
+            if(release.featuredArtistIds && release.featuredArtistIds.length > 0) {
+                const feats = state.artists.filter(a => release.featuredArtistIds.includes(a.id));
+                featNames = feats.length > 0 ? ` & ${feats.map(f => f.name).join(', ')}` : "";
+            } else if (release.featuredArtistId) {
+                 const f = state.artists.find(a => a.id === release.featuredArtistId);
+                 if(f) featNames = ` & ${f.name}`;
+            }
+
             const likeRatio = 0.02 + (release.id.charCodeAt(0) % 4) * 0.01; 
             const likes = Math.floor(release.totalViews * likeRatio);
 
@@ -1035,7 +1308,7 @@
                             <h2 class="text-4xl md:text-5xl font-black mb-4">${release.title}</h2>
                             <div class="flex items-center gap-2 mb-4">
                                 <img src="${artist.pfp}" class="w-6 h-6 rounded-full">
-                                <span class="font-bold text-white hover:underline cursor-pointer" onclick="renderArtist('${artist.id}')">${artistName}</span>
+                                <span class="font-bold text-white hover:underline cursor-pointer" onclick="renderArtist('${artist.id}')">${artist.name}${featNames}</span>
                             </div>
                             <div class="text-gray-400 text-sm flex gap-4 items-center">
                                 <span>${release.type}</span>
@@ -1065,12 +1338,12 @@
                             ${release.tracksData.map((track, i) => {
                                 const trackViews = Math.floor(release.totalViews * track.weight);
                                 return `
-                                <div class="grid grid-cols-[auto_1fr_auto] gap-4 py-3 px-4 hover:bg-[#1f1f1f] rounded group items-center">
+                                <div onclick="trackClicked('${release.id}', ${i})" class="grid grid-cols-[auto_1fr_auto] gap-4 py-3 px-4 hover:bg-[#1f1f1f] rounded group items-center cursor-pointer transition">
                                     <div class="w-6 text-center text-gray-400 group-hover:hidden">${i + 1}</div>
                                     <div class="w-6 text-center hidden group-hover:block"><span class="material-icons-round text-white text-sm">play_arrow</span></div>
                                     <div class="flex flex-col">
                                         <span class="text-white font-medium">${track.title}</span>
-                                        <span class="text-gray-500 text-xs">${artistName}</span>
+                                        <span class="text-gray-500 text-xs">${artist.name}${featNames}</span>
                                     </div>
                                     <div class="text-gray-400 text-sm flex items-center gap-8">
                                         <span>${formatNumber(trackViews)}</span>
@@ -1088,8 +1361,14 @@
 
         function getReleaseCard(release) {
              const artist = state.artists.find(a => a.id === release.artistId);
-             const feature = state.artists.find(a => a.id === release.featuredArtistId);
-             let featureLabel = feature ? `<span class="text-xs text-blue-400 block mt-1">Feat. ${feature.name}</span>` : '';
+             
+             let featureLabel = "";
+             if (release.featuredArtistIds && release.featuredArtistIds.length > 0) {
+                 featureLabel = `<span class="text-xs text-blue-400 block mt-1">+${release.featuredArtistIds.length} Features</span>`;
+             } else if (release.featuredArtistId) {
+                 const f = state.artists.find(a => a.id === release.featuredArtistId);
+                 if(f) featureLabel = `<span class="text-xs text-blue-400 block mt-1">Feat. ${f.name}</span>`;
+             }
              
              return `
                 <div onclick="renderRelease('${release.id}')" class="cursor-pointer group">
@@ -1179,15 +1458,18 @@
             document.getElementById('release-cover').value = '';
             document.getElementById('release-cover-file').value = '';
             
-            const select = document.getElementById('release-feature');
-            select.innerHTML = '<option value="">None</option>';
-            state.artists.forEach(a => {
-                if (a.id !== artistId) {
-                    const option = document.createElement('option');
-                    option.value = a.id;
-                    option.text = a.name + ` (${formatNumber(a.subscribers)} subs)`;
-                    select.appendChild(option);
-                }
+            // Populate multiple features
+            ['release-feature-1', 'release-feature-2', 'release-feature-3'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">None</option>';
+                state.artists.forEach(a => {
+                    if (a.id !== artistId) {
+                        const option = document.createElement('option');
+                        option.value = a.id;
+                        option.text = a.name + ` (${formatNumber(a.subscribers)} subs)`;
+                        select.appendChild(option);
+                    }
+                });
             });
 
             openModal('release-music-modal');
