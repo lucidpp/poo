@@ -1,1513 +1,585 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Peyza Music</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Site Metadata -->
+    <title>Peyza - The Red Social Network</title>
+    <meta name="description" content="Join Peyza, the hottest new social media platform. Experience real-time virality, bot interactions, and community building in a sleek red theme.">
+    <meta name="keywords" content="social media, twitter alternative, simulation, bot social network, peyza">
+    <meta name="author" content="Peyza Inc.">
+    <meta name="theme-color" content="#e11d48">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://peyza.app/">
+    <meta property="og:title" content="Peyza - The Red Social Network">
+    <meta property="og:description" content="Join Peyza, the hottest new social media platform. Experience real-time virality and community building.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://peyza.app/">
+    <meta property="twitter:title" content="Peyza - The Red Social Network">
+    <meta property="twitter:description" content="Join Peyza, the hottest new social media platform. Experience real-time virality and community building.">
+
+    <!-- PWA / Mobile Web App Capable -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="application-name" content="Peyza">
+
+    <!-- Favicon (Data URI) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23e11d48'/%3E%3Ctext x='50' y='75' font-family='Arial, sans-serif' font-weight='900' font-size='70' text-anchor='middle' fill='white'%3EP%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23e11d48'/%3E%3Ctext x='50' y='75' font-family='Arial, sans-serif' font-weight='900' font-size='70' text-anchor='middle' fill='white'%3EP%3C/text%3E%3C/svg%3E">
+
+    <!-- PWA Manifest (Data URI) -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGV5emEiLCJzaG9ydF9uYW1lIjoiUGV5emEiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiI2UxMWQ0OCIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDcmVjdCB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgcng9JzIwJyBmaWxsPSclMjNlMTFkNDgnLyUzRSUzQ3RleHQgeD0nNTAnIHk9Jzc1JyBmb250LWZhbWlseT0nQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtd2VpZ2h0PSc5MDAnIGZvbnQtc2l6ZT0nNzAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJyUzRVAlM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts & Material Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        yt: {
-                            base: '#030303',
-                            sidebar: '#030303',
-                            hover: '#1f1f1f',
-                            text: '#ffffff',
-                            textSec: '#aaaaaa',
-                            red: '#ff0000',
-                            accent: '#ffffff',
-                            player: '#212121' 
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Roboto', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'explode': 'explode 0.6s ease-out forwards',
-                        'slide-up': 'slideUp 0.3s cubic-bezier(0.2, 0.0, 0, 1.0) forwards',
-                        'slide-down': 'slideDown 0.3s cubic-bezier(0.2, 0.0, 0, 1.0) forwards'
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        explode: {
-                            '0%': { transform: 'scale(1)', opacity: '1' },
-                            '50%': { transform: 'scale(1.5)', opacity: '0.8' },
-                            '100%': { transform: 'scale(2)', opacity: '0' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(100%)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' }
-                        },
-                        slideDown: {
-                            '0%': { transform: 'translateY(0)', opacity: '1' },
-                            '100%': { transform: 'translateY(100%)', opacity: '0' }
-                        }
+                        dark: '#000000',
+                        darkSec: '#16181c',
+                        darkText: '#e7e9ea',
+                        darkBorder: '#2f3336'
                     }
                 }
             }
         }
     </script>
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
         body {
-            background-color: #030303;
-            color: white;
-            font-family: 'Roboto', sans-serif;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #030303; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #4d4d4d; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #717171; 
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #be123c; }
 
-        .yt-btn {
-            background: rgba(255,255,255,0.1);
-            transition: all 0.2s;
+        /* Animations */
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
         }
-        .yt-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        .artist-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 24px;
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
         
-        @media (max-width: 768px) {
-            .artist-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 16px;
-            }
+        .nav-item.active i { font-weight: 900; }
+        
+        /* Mobile Nav Animations */
+        .nav-icon { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s; }
+        .nav-icon.active { transform: scale(1.25); }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .mobile-nav { padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* Interaction States */
+        .liked { color: #e11d48 !important; }
+        .reposted { color: #22c55e !important; }
+        .bookmarked { color: #3b82f6 !important; }
+        .liked-fire { color: #f59e0b !important; }
+        
+        /* Post Themes */
+        .post-highlight {
+            border: 2px solid #fbbf24 !important; 
+            background-color: rgba(251, 191, 36, 0.05);
         }
 
-        .discography-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 24px;
+        /* PeyVids Specific */
+        .peyvids-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 60;
+            background: black;
         }
-
-        @media (max-width: 768px) {
-            .discography-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 16px;
-            }
-        }
-
-        /* Modal Animation */
-        .modal {
-            transition: opacity 0.25s ease;
-            pointer-events: none;
-            opacity: 0;
-            backdrop-filter: blur(5px);
-        }
-        .modal.active {
-            pointer-events: auto;
-            opacity: 1;
-        }
-        .modal-content {
-            transform: scale(0.95) translateY(20px);
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .modal.active .modal-content {
-            transform: scale(1) translateY(0);
-        }
-
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+        .peyvid-item {
+            scroll-snap-align: start;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
         }
-
-        /* Button Explode Effect */
-        .icon-explode {
-            position: relative;
-        }
-        .icon-explode::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            opacity: 0;
-            pointer-events: none;
-        }
-        .icon-explode.animating::after {
-            animation: ripple 0.6s ease-out;
-        }
-
-        @keyframes ripple {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
-            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
-        }
-        
-        /* Mobile Nav */
-        .mobile-nav-item.active {
-            color: white;
-        }
-        .mobile-nav-item.active span {
-            color: white;
-        }
-        .mobile-nav-item {
-            color: #aaaaaa;
-        }
-
-        /* Sidebar Transition */
-        aside {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        aside.collapsed {
-            width: 72px;
-        }
-        aside.collapsed .nav-text {
-            display: none;
-        }
-        aside.collapsed .nav-btn {
-            justify-content: center;
-            padding-left: 0;
-            padding-right: 0;
-        }
-
-        /* File Input Styling */
-        input[type="file"]::file-selector-button {
-            border: none;
-            background: #333;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-right: 10px;
-        }
-        input[type="file"]::file-selector-button:hover {
-            background: #444;
-        }
-
-        /* Toast positioning classes */
-        .toast-hidden {
-            transform: translateY(-150%); /* Move up for mobile */
-        }
-        @media (min-width: 768px) {
-            .toast-hidden {
-                transform: translateY(150%); /* Move down for desktop */
-            }
-        }
-        
-        /* Player Range Slider */
-        input[type=range] {
-            -webkit-appearance: none;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #ffffff;
-            cursor: pointer;
-            margin-top: -4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #4d4d4d;
-            border-radius: 2px;
-        }
-        input[type=range]:hover::-webkit-slider-thumb {
-            transform: scale(1.2);
+        .peyvid-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0) 100%);
         }
     </style>
 </head>
-<body class="h-screen flex flex-col bg-yt-base text-white">
+<body class="flex justify-center min-h-screen bg-white text-[#0f1419] dark:bg-dark dark:text-darkText transition-colors duration-200">
 
-    <!-- Desktop Top Navigation -->
-    <nav class="h-16 flex items-center px-4 justify-between border-b border-[#1f1f1f] bg-[#030303] z-50 shrink-0">
-        <div class="flex items-center gap-4">
-            <button onclick="toggleSidebar()" class="p-2 rounded-full hover:bg-yt-hover hidden md:block icon-explode"><span class="material-icons-round text-white">menu</span></button>
-            <div class="flex items-center gap-1 cursor-pointer" onclick="renderHome()">
-                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-                    <span class="material-icons-round text-yt-base text-xl">play_circle_filled</span>
-                </div>
-                <span class="text-xl font-bold tracking-tight hidden md:block">Peyza Music</span>
+    <!-- Left Sidebar (Desktop) -->
+    <header class="hidden sm:flex flex-col w-[80px] xl:w-[275px] h-screen fixed left-0 top-0 border-r border-gray-100 dark:border-darkBorder px-2 xl:px-8 py-4 z-20 bg-white dark:bg-dark justify-between">
+        <div class="space-y-4">
+            <div class="p-3 w-min hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full cursor-pointer transition transform active:scale-90" onclick="app.navigate('home')">
+                <i class="fa-solid fa-p text-3xl text-rose-600"></i>
             </div>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="flex flex-1 max-w-xl mx-4">
-            <div class="bg-[#212121] flex items-center w-full px-4 py-2 rounded-lg border border-[#303030] focus-within:border-white transition-colors">
-                <span class="material-icons-round text-yt-textSec">search</span>
-                <input type="text" placeholder="Search" class="bg-transparent border-none outline-none text-white ml-2 w-full placeholder-gray-500">
-            </div>
-        </div>
-
-        <div class="flex items-center gap-4">
-            <!-- Save/Load Controls -->
-            <div class="relative group">
-                <button class="w-8 h-8 rounded-full hover:bg-[#1f1f1f] flex items-center justify-center">
-                    <span class="material-icons-round text-yt-textSec">save</span>
-                </button>
-                <div class="absolute right-0 top-full mt-2 w-48 bg-[#212121] rounded shadow-xl border border-[#333] hidden group-hover:block z-[60]">
-                    <button onclick="downloadSave()" class="w-full text-left px-4 py-2 hover:bg-[#333] text-sm">Download Save</button>
-                    <label class="w-full text-left px-4 py-2 hover:bg-[#333] text-sm block cursor-pointer">
-                        Load Save
-                        <input type="file" onchange="uploadSave(this)" class="hidden" accept=".json">
-                    </label>
-                    <button onclick="resetData()" class="w-full text-left px-4 py-2 hover:bg-[#333] text-sm text-red-500">Reset All Data</button>
-                </div>
-            </div>
-
-            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 text-white flex items-center justify-center font-bold text-sm shadow-lg">U</div>
-        </div>
-    </nav>
-
-    <div class="flex flex-1 overflow-hidden relative">
-        <!-- Sidebar (Desktop) -->
-        <aside id="sidebar" class="w-64 bg-[#030303] hidden md:flex flex-col p-2 overflow-y-auto border-r border-[#1f1f1f] shrink-0">
-            <div class="flex flex-col gap-1">
-                <button onclick="animateNav('nav-home', renderHome)" class="nav-btn flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-[#1f1f1f] text-white font-medium transition icon-explode" id="nav-home">
-                    <span class="material-icons-round">home</span> <span class="nav-text">Home</span>
-                </button>
-                <button onclick="animateNav('nav-explore', renderExplore)" class="nav-btn flex items-center gap-4 px-4 py-3 rounded-lg text-yt-textSec hover:text-white hover:bg-[#1f1f1f] font-medium transition icon-explode" id="nav-explore">
-                    <span class="material-icons-round">explore</span> <span class="nav-text">Explore</span>
-                </button>
-                <button onclick="animateNav('nav-library', renderLibrary)" class="nav-btn flex items-center gap-4 px-4 py-3 rounded-lg text-yt-textSec hover:text-white hover:bg-[#1f1f1f] font-medium transition icon-explode" id="nav-library">
-                    <span class="material-icons-round">library_music</span> <span class="nav-text">Library</span>
-                </button>
-                <div class="border-t border-[#1f1f1f] my-2"></div>
-                <button onclick="openModal('create-artist-modal')" class="nav-btn flex items-center gap-4 px-4 py-3 rounded-lg text-yt-textSec hover:text-white hover:bg-[#1f1f1f] font-medium transition icon-explode">
-                    <span class="material-icons-round">add_circle_outline</span> <span class="nav-text">New Artist</span>
-                </button>
-            </div>
-            
-            <div class="mt-6 px-4 nav-text">
-                <h3 class="text-xs uppercase font-bold text-yt-textSec mb-3">Your Artists</h3>
-                <div id="sidebar-artist-list" class="flex flex-col gap-1">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-8 relative pb-32 md:pb-8">
-            <!-- Content Injected Here -->
-        </main>
-    </div>
-
-    <!-- Mobile Bottom Navigation -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#212121] border-t border-[#333] flex justify-around items-center z-50 pb-safe">
-        <button onclick="animateNav('mob-nav-home', renderHome)" class="mobile-nav-item flex flex-col items-center gap-1 p-2 active icon-explode" id="mob-nav-home">
-            <span class="material-icons-round">home</span>
-            <span class="text-[10px]">Home</span>
-        </button>
-        <button onclick="animateNav('mob-nav-explore', renderExplore)" class="mobile-nav-item flex flex-col items-center gap-1 p-2 icon-explode" id="mob-nav-explore">
-            <span class="material-icons-round">explore</span>
-            <span class="text-[10px]">Explore</span>
-        </button>
-        <button onclick="animateNav('mob-nav-library', renderLibrary)" class="mobile-nav-item flex flex-col items-center gap-1 p-2 icon-explode" id="mob-nav-library">
-            <span class="material-icons-round">library_music</span>
-            <span class="text-[10px]">Library</span>
-        </button>
-        <button onclick="animateNav('mob-nav-create', () => openModal('create-artist-modal'))" class="mobile-nav-item flex flex-col items-center gap-1 p-2 icon-explode" id="mob-nav-create">
-            <span class="material-icons-round">add_circle_outline</span>
-            <span class="text-[10px]">New Artist</span>
-        </button>
-    </div>
-
-    <!-- FULL SCREEN PLAYER -->
-    <div id="music-player" class="fixed inset-0 z-[100] bg-[#030303] hidden flex flex-col h-[100dvh]">
-        <!-- Background Gradient -->
-        <div id="player-bg-gradient" class="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] to-black opacity-95 pointer-events-none"></div>
-        
-        <!-- Top Bar -->
-        <div class="relative z-10 flex items-center justify-between p-4 shrink-0">
-            <button onclick="closePlayer()" class="p-2 text-white hover:bg-white/10 rounded-full transition"><span class="material-icons-round text-3xl">keyboard_arrow_down</span></button>
-            <div class="text-xs uppercase tracking-widest text-gray-400 font-bold">Now Playing</div>
-            <button class="p-2 text-white hover:bg-white/10 rounded-full transition"><span class="material-icons-round text-2xl">more_vert</span></button>
-        </div>
-
-        <!-- Main Content (Centered and responsive) -->
-        <div class="relative z-10 flex-1 flex flex-col items-center justify-center w-full px-6 pb-8 overflow-hidden">
-            
-            <!-- Art Container (Responsive sizing - shrinks if needed) -->
-            <div class="relative w-full max-w-sm md:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden mb-6 md:mb-10 flex-shrink min-h-0">
-                <img id="player-img" src="" class="w-full h-full object-cover">
-            </div>
-
-            <!-- Metadata & Actions Row -->
-            <div class="w-full max-w-2xl flex items-center justify-between mb-2 shrink-0">
-                <div class="flex flex-col min-w-0 pr-4">
-                    <h2 id="player-title" class="text-2xl md:text-3xl font-bold text-white truncate leading-tight">Song Title</h2>
-                    <p id="player-artist" class="text-lg text-gray-400 truncate">Artist Name</p>
-                </div>
-                <!-- Like/Dislike Actions -->
-                <div class="flex items-center gap-4 flex-shrink-0">
-                     <button class="text-gray-400 hover:text-white transition"><span class="material-icons-round text-2xl">thumb_down</span></button>
-                     <div class="flex flex-col items-center">
-                        <button class="text-white hover:text-gray-200 transition"><span class="material-icons-round text-2xl">thumb_up</span></button>
-                        <span id="player-likes" class="text-[10px] text-gray-400 font-medium mt-0.5">0</span>
-                    </div>
-                </div>
-            </div>
-
-             <!-- View Count (Subtle) -->
-             <div class="w-full max-w-2xl text-xs text-gray-500 mb-6 flex items-center gap-1 shrink-0">
-                <span id="player-views">0</span> views
-             </div>
-
-            <!-- Progress Bar -->
-            <div class="w-full max-w-2xl mb-4 shrink-0 group">
-                <input type="range" id="player-seek" value="0" min="0" max="100" class="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer hover:h-1.5 transition-all accent-white">
-                <div class="flex justify-between text-xs text-gray-400 mt-2 font-medium">
-                    <span id="player-time-current">0:00</span>
-                    <span id="player-time-total">0:00</span>
-                </div>
-            </div>
-
-            <!-- Main Controls -->
-            <div class="w-full max-w-2xl flex items-center justify-between shrink-0 px-2 md:px-8">
-                <button class="text-gray-400 hover:text-white transition"><span class="material-icons-round text-2xl">shuffle</span></button>
-                
-                <div class="flex items-center gap-6 md:gap-10">
-                    <button id="player-prev" class="text-white hover:text-gray-300 transition active:scale-90"><span class="material-icons-round text-4xl md:text-5xl">skip_previous</span></button>
-                    
-                    <button id="player-play-btn" onclick="togglePlay()" class="w-16 h-16 md:w-20 md:h-20 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg active:scale-95">
-                        <span class="material-icons-round text-4xl md:text-5xl" id="player-play-icon">play_arrow</span>
-                    </button>
-                    
-                    <button id="player-next" class="text-white hover:text-gray-300 transition active:scale-90"><span class="material-icons-round text-4xl md:text-5xl">skip_next</span></button>
-                </div>
-                
-                <button class="text-gray-400 hover:text-white transition"><span class="material-icons-round text-2xl">repeat</span></button>
-            </div>
-        </div>
-
-        <!-- Hidden Audio Element -->
-        <audio id="audio-element"></audio>
-        <input type="file" id="mp3-upload" accept="audio/*" class="hidden">
-    </div>
-
-    <!-- Offline Report Toast -->
-    <div id="offline-toast" class="fixed top-20 md:top-auto md:bottom-8 left-4 right-4 md:left-auto md:right-4 bg-white text-black px-6 py-4 rounded-lg shadow-2xl transition-transform duration-500 z-[90] max-w-sm toast-hidden flex flex-col">
-        <div class="flex justify-between items-start mb-2">
-            <h4 class="font-bold text-lg">Welcome Back!</h4>
-            <button onclick="closeOfflineToast()" class="text-gray-500 hover:text-black p-1 -mr-2 -mt-2">
-                <span class="material-icons-round">close</span>
+            <nav class="space-y-2 text-xl">
+                <a onclick="app.navigate('home')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item active" id="nav-home">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="hidden xl:block font-medium">Home</span>
+                </a>
+                <a onclick="app.navigate('explore')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-explore">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span class="hidden xl:block font-medium">Explore</span>
+                </a>
+                <a onclick="app.navigate('notifications')" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="hidden xl:block font-medium">Notifications</span>
+                </a>
+                <a onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item" id="nav-profile">
+                    <i class="fa-regular fa-user"></i>
+                    <span class="hidden xl:block font-medium">Profile</span>
+                </a>
+                <a onclick="app.openSettings()" class="flex items-center gap-4 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer nav-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span class="hidden xl:block font-medium">Settings</span>
+                </a>
+            </nav>
+            <button onclick="app.openComposeModal()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-full p-4 xl:py-3 xl:px-8 w-full shadow-lg transition transform active:scale-95 mt-4">
+                <i class="fa-solid fa-feather sm:hidden"></i>
+                <span class="hidden xl:block font-bold text-lg">Post</span>
             </button>
         </div>
-        <p class="text-sm text-gray-700 mb-3" id="offline-report-text">You gained views while away.</p>
-        <button onclick="closeOfflineToast()" class="bg-black text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider self-end">Dismiss</button>
+        <div onclick="app.navigate('profile', app.user.handle)" class="flex items-center gap-3 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer mb-4 transition" id="sidebar-user">
+            <!-- Injected by JS -->
+        </div>
+    </header>
+
+    <!-- Main Content Feed -->
+    <main class="w-full sm:ml-[80px] xl:ml-[275px] max-w-[600px] border-r border-gray-100 dark:border-darkBorder min-h-screen pb-20 sm:pb-0 relative">
+        <div id="sticky-header" class="sticky top-0 bg-white/80 dark:bg-dark/80 backdrop-blur-md z-10 border-b border-gray-100 dark:border-darkBorder"></div>
+        <div id="main-view" class="animate-fade-in"></div>
+    </main>
+
+    <!-- PeyVids Overlay -->
+    <div id="peyvids-overlay" class="peyvids-container hidden bg-black flex justify-center">
+        <div id="peyvids-feed" class="w-full max-w-[500px] bg-black h-full relative shadow-2xl border-x border-gray-800"></div>
+        <div class="absolute top-4 left-4 z-50 text-white text-3xl cursor-pointer hover:scale-110 transition drop-shadow-md" onclick="app.closePeyVids()"><i class="fa-solid fa-arrow-left"></i></div>
     </div>
 
-    <!-- MODALS -->
+    <!-- Right Sidebar (Desktop) -->
+    <aside class="hidden lg:block w-[350px] pl-8 py-4 h-screen sticky top-0">
+        <div class="relative group mb-6">
+            <div class="absolute left-4 top-3 text-gray-500 group-focus-within:text-rose-500"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <input type="text" placeholder="Search Peyza" onkeyup="if(event.key === 'Enter') { app.navigate('explore', this.value); }" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-3 pl-12 pr-4 outline-none focus:bg-white dark:focus:bg-black focus:ring-1 focus:ring-rose-500 transition border border-transparent dark:border-darkBorder">
+        </div>
+        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4 mb-4">
+            <h3 class="font-extrabold text-xl mb-4">Trends for you</h3>
+            <div class="space-y-4" id="sidebar-trends"></div>
+        </div>
+        <div class="bg-gray-50 dark:bg-darkSec rounded-2xl p-4">
+            <h3 class="font-extrabold text-xl mb-4">Who to follow</h3>
+            <div id="who-to-follow" class="space-y-4"></div>
+        </div>
+    </aside>
 
-    <!-- Create Artist Modal -->
-    <div id="create-artist-modal" class="modal fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4">
-        <div class="modal-content bg-[#212121] w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-[#333]">
-            <div class="p-4 border-b border-[#333] flex justify-between items-center">
-                <h2 class="text-xl font-bold">Create Artist</h2>
-                <button onclick="closeModal('create-artist-modal')" class="text-gray-400 hover:text-white"><span class="material-icons-round">close</span></button>
+    <!-- Mobile Navigation Bottom -->
+    <div class="fixed bottom-0 w-full bg-white dark:bg-dark border-t border-gray-100 dark:border-darkBorder flex justify-around items-center py-3 sm:hidden mobile-nav z-30" id="mobile-nav-bar"></div>
+
+    <!-- Floating Action Button (Mobile) -->
+    <button onclick="app.openComposeModal()" class="fixed bottom-20 right-4 bg-rose-500 text-white rounded-full p-4 shadow-lg sm:hidden z-20 hover:bg-rose-600 active:scale-90 transition animate-pop">
+        <i class="fa-solid fa-feather text-xl"></i>
+    </button>
+
+    <!-- Compose Modal -->
+    <div id="compose-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-[70] hidden flex items-start justify-center pt-16 sm:pt-24 p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[600px] rounded-2xl p-4 shadow-2xl relative animate-pop border dark:border-darkBorder">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="app.closeComposeModal()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <div class="flex gap-4">
+                     <span class="text-rose-500 font-bold text-sm self-center">Drafts</span>
+                     <button onclick="app.publishPost()" class="bg-rose-500 text-white px-4 py-1.5 rounded-full font-bold text-sm hover:bg-rose-600 disabled:opacity-50 transition">Post</button>
+                </div>
             </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Artist Name</label>
-                    <input type="text" id="new-artist-name" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
+            <div class="flex gap-3">
+                <img id="compose-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-darkBorder">
+                <div class="w-full">
+                    <div id="author-selector" class="hidden mb-2">
+                        <select id="post-as-select" class="text-sm font-bold bg-transparent outline-none text-rose-500 cursor-pointer"></select>
+                    </div>
+                    <div id="replying-to-indicator" class="hidden text-sm text-gray-500 mb-1">Replying to <span class="text-rose-500">@post</span></div>
+                    <div id="community-indicator" class="hidden text-sm text-gray-500 mb-1">Posting to <span class="text-rose-500 font-bold" id="community-name-target">Community</span></div>
+
+                    <textarea id="compose-input" class="w-full h-24 resize-none outline-none text-xl placeholder-gray-500 bg-transparent dark:text-white mt-2" placeholder="What is happening?!"></textarea>
+                    
+                    <div id="media-preview" class="hidden relative mb-2">
+                        <img id="media-preview-img" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden">
+                        <video id="media-preview-video" class="rounded-xl max-h-48 border border-gray-200 dark:border-darkBorder hidden" controls></video>
+                        <button onclick="app.clearMedia()" class="absolute top-1 left-1 bg-black/50 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div id="poll-creator" class="hidden border border-gray-200 dark:border-darkBorder rounded-xl p-3 mb-2">
+                        <div class="space-y-2">
+                            <input type="text" id="poll-opt-1" placeholder="Choice 1" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white">
+                            <input type="text" id="poll-opt-2" placeholder="Choice 2" class="w-full border dark:border-darkBorder p-2 rounded text-sm bg-transparent dark:text-white">
+                        </div>
+                        <div class="mt-2 text-rose-500 text-xs font-bold cursor-pointer" onclick="document.getElementById('poll-creator').classList.add('hidden')">Remove Poll</div>
+                    </div>
+
+                    <div class="border-t border-gray-100 dark:border-darkBorder pt-3 flex justify-between items-center text-rose-500 text-lg">
+                        <div class="flex gap-4">
+                            <i class="fa-regular fa-image cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-image-upload').click()"></i>
+                            <i class="fa-solid fa-video cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('post-video-upload').click()"></i>
+                            <i class="fa-solid fa-square-poll-horizontal cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition" onclick="document.getElementById('poll-creator').classList.remove('hidden')"></i>
+                            <i class="fa-regular fa-face-smile cursor-pointer hover:bg-blue-50 dark:hover:bg-darkSec p-2 rounded-full transition"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="post-image-upload" hidden accept="image/*" onchange="app.handlePostMedia(event, 'image')">
+                    <input type="file" id="post-video-upload" hidden accept="video/*" onchange="app.handlePostMedia(event, 'video')">
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Profile Image</label>
-                    <input type="text" id="new-artist-pfp" placeholder="Image URL (optional)" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none mb-2">
-                    <div class="text-center text-xs text-gray-500 mb-2">- OR Upload -</div>
-                    <input type="file" id="new-artist-pfp-file" accept="image/*" class="w-full text-xs text-gray-400">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Bio</label>
-                    <textarea id="new-artist-bio" rows="3" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none"></textarea>
-                </div>
-                <button onclick="createArtist()" class="w-full bg-white text-black font-bold py-2 rounded-full hover:bg-gray-200 mt-2">Create Profile</button>
             </div>
         </div>
     </div>
 
     <!-- Edit Profile Modal -->
-    <div id="edit-profile-modal" class="modal fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4">
-        <div class="modal-content bg-[#212121] w-full max-w-lg rounded-xl shadow-2xl overflow-hidden border border-[#333]">
-            <div class="p-4 border-b border-[#333] flex justify-between items-center">
-                <h2 class="text-xl font-bold">Edit Profile</h2>
-                <button onclick="closeModal('edit-profile-modal')" class="text-gray-400 hover:text-white"><span class="material-icons-round">close</span></button>
+    <div id="edit-profile-modal" class="fixed inset-0 bg-black/40 dark:bg-white/10 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[500px] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-pop border dark:border-darkBorder">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-4">
+                    <button onclick="app.closeEditProfile()" class="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-darkSec p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    <h2 class="font-bold text-xl" id="edit-modal-title">Edit Profile</h2>
+                </div>
+                <button onclick="app.saveProfile()" class="bg-black dark:bg-white dark:text-black text-white px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-800 transition">Save</button>
             </div>
-            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                <input type="hidden" id="edit-artist-id">
+            
+            <input type="file" id="banner-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'banner')">
+            <input type="file" id="avatar-upload" hidden accept="image/*" onchange="app.handleImageUpload(event, 'avatar')">
+
+            <div class="h-32 bg-gray-200 dark:bg-darkSec relative mb-12 rounded-md group cursor-pointer overflow-hidden border dark:border-darkBorder" onclick="document.getElementById('banner-upload').click()">
+                <img id="edit-banner-preview" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    <i class="fa-solid fa-camera text-white text-2xl drop-shadow-md"></i>
+                </div>
+                <!-- Avatar Overlap -->
+                <div class="absolute -bottom-10 left-4 w-24 h-24 rounded-full border-4 border-white dark:border-dark bg-gray-300 dark:bg-darkSec overflow-hidden cursor-pointer group hover:opacity-90" onclick="event.stopPropagation(); document.getElementById('avatar-upload').click()">
+                    <img id="edit-avatar-preview" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <i class="fa-solid fa-camera text-white drop-shadow-md"></i>
+                    </div>
+                </div>
+            </div>
+
+            <form class="space-y-4 mt-8">
+                <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md">
+                    <span class="font-bold text-sm">Dark Mode</span>
+                    <button type="button" onclick="app.toggleTheme()" id="theme-btn" class="text-gray-500 hover:text-rose-500 font-bold text-sm transition">Switch</button>
+                </div>
+
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition">
+                    <label class="block text-xs text-gray-500">Name</label>
+                    <input type="text" id="edit-name" class="w-full outline-none text-sm bg-transparent dark:text-white">
+                </div>
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition">
+                    <label class="block text-xs text-gray-500">Bio</label>
+                    <textarea id="edit-bio" class="w-full outline-none text-sm resize-none h-20 bg-transparent dark:text-white"></textarea>
+                </div>
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500 focus-within:border-transparent transition">
+                    <label class="block text-xs text-gray-500">Location</label>
+                    <input type="text" id="edit-location" class="w-full outline-none text-sm bg-transparent dark:text-white">
+                </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Name</label>
-                        <input type="text" id="edit-artist-name" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
+                <div id="bot-control-panel" class="hidden flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md">
+                    <span class="font-bold text-sm">Auto-Posting</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="bot-auto-post" class="sr-only peer">
+                      <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+                    </label>
+                </div>
+                
+                <hr class="border-gray-100 dark:border-darkBorder my-4">
+                
+                <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-rose-500">
+                    <label class="block text-xs text-gray-500">Secret PIN</label>
+                    <input type="password" id="secret-pin" oninput="app.checkPin()" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent" placeholder="Enter code">
+                </div>
+
+                <div id="god-mode-panel" class="hidden space-y-4 bg-rose-50 dark:bg-rose-900/10 p-4 rounded-lg border border-rose-100 dark:border-rose-900/30">
+                    <h3 class="font-bold text-rose-600 mb-2">⚡ God Mode Active</h3>
+                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-1 bg-white dark:bg-dark">
+                        <label class="block text-xs text-gray-500">Follower Count (Cheat)</label>
+                        <input type="number" id="edit-followers" class="w-full outline-none text-sm font-mono text-rose-600 bg-transparent">
                     </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Subscribers</label>
-                        <input type="number" id="edit-artist-subs" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
+                    <div class="flex items-center justify-between p-2 border border-gray-200 dark:border-darkBorder rounded-md bg-white dark:bg-dark">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-sm">Force Verify</span>
+                            <span class="text-xs text-gray-500">Bypass requirements</span>
+                        </div>
+                        <button type="button" id="btn-verify" onclick="app.requestVerification(true)" class="bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition">Get Badge</button>
                     </div>
-                </div>
+                    
+                    <button type="button" onclick="app.openCreateBotModal()" class="w-full bg-rose-500 text-white font-bold py-2 rounded-md hover:bg-rose-600 transition">
+                        <i class="fa-solid fa-robot mr-2"></i> Create New Bot
+                    </button>
 
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Monthly Listeners Estimate</label>
-                    <input type="number" id="edit-artist-monthly" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Profile Picture</label>
-                    <input type="text" id="edit-artist-pfp" placeholder="Image URL" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none mb-2">
-                    <input type="file" id="edit-artist-pfp-file" accept="image/*" class="w-full text-xs text-gray-400">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Banner Image</label>
-                    <input type="text" id="edit-artist-banner" placeholder="Image URL" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none mb-2">
-                    <input type="file" id="edit-artist-banner-file" accept="image/*" class="w-full text-xs text-gray-400">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Bio</label>
-                    <textarea id="edit-artist-bio" rows="4" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none"></textarea>
-                </div>
-                <button onclick="saveArtistProfile()" class="w-full bg-white text-black font-bold py-2 rounded-full hover:bg-gray-200 mt-2">Save Changes</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Release Music Modal -->
-    <div id="release-music-modal" class="modal fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4">
-        <div class="modal-content bg-[#212121] w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-[#333]">
-            <div class="p-4 border-b border-[#333] flex justify-between items-center">
-                <h2 class="text-xl font-bold">Release Music</h2>
-                <button onclick="closeModal('release-music-modal')" class="text-gray-400 hover:text-white"><span class="material-icons-round">close</span></button>
-            </div>
-            <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-                <input type="hidden" id="release-artist-id">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Title (Single or Album Name)</label>
-                    <input type="text" id="release-title" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Type</label>
-                        <select id="release-type" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
-                            <option value="Single">Single</option>
-                            <option value="Album">Album</option>
-                            <option value="EP">EP</option>
+                    <div class="border border-gray-300 dark:border-darkBorder rounded-md px-2 py-2 bg-white dark:bg-dark">
+                        <label class="block text-xs text-gray-500 mb-2">Virality Speed</label>
+                        <select id="edit-virality" class="w-full outline-none text-sm bg-transparent dark:text-white">
+                            <option value="0.1">Slow (Realistic)</option>
+                            <option value="1">Normal</option>
+                            <option value="5">Fast</option>
+                            <option value="20">Superfast (Viral)</option>
+                            <option value="2000">Ultra Fast (Godspeed)</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Track Count</label>
-                        <input type="number" id="release-tracks" value="1" min="1" max="50" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
-                    </div>
                 </div>
-                
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Featured Artist 1</label>
-                    <select id="release-feature-1" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none mb-2">
-                        <option value="">None</option>
-                    </select>
-                    <label class="block text-xs text-gray-400 mb-1">Featured Artist 2</label>
-                    <select id="release-feature-2" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none mb-2">
-                        <option value="">None</option>
-                    </select>
-                    <label class="block text-xs text-gray-400 mb-1">Featured Artist 3</label>
-                    <select id="release-feature-3" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none">
-                        <option value="">None</option>
-                    </select>
-                </div>
+            </form>
+        </div>
+    </div>
 
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Cover Art</label>
-                    <input type="text" id="release-cover" placeholder="Image URL (optional)" class="w-full bg-[#121212] border border-[#333] rounded p-2 text-white focus:border-white outline-none mb-2">
-                    <div class="text-center text-xs text-gray-500 mb-2">- OR Upload -</div>
-                    <input type="file" id="release-cover-file" accept="image/*" class="w-full text-xs text-gray-400">
-                </div>
-                <button onclick="confirmRelease()" class="w-full bg-white text-black font-bold py-2 rounded-full hover:bg-gray-200 mt-2">Release Now</button>
+    <!-- Create Bot Modal -->
+    <div id="create-bot-modal" class="fixed inset-0 bg-black/50 z-[90] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark w-full max-w-[400px] rounded-2xl p-6 shadow-2xl relative animate-pop border dark:border-darkBorder">
+             <div class="flex justify-between items-center mb-6">
+                <h2 class="font-bold text-xl">Create Bot</h2>
+                <button onclick="document.getElementById('create-bot-modal').classList.add('hidden')" class="text-gray-900 dark:text-white p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="bot-name" placeholder="Bot Name" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white">
+                <input type="text" id="bot-handle" placeholder="Bot Handle (no @)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white">
+                <input type="text" id="bot-avatar" placeholder="Avatar URL (optional)" class="w-full border p-2 rounded-md dark:bg-darkSec dark:border-darkBorder dark:text-white">
+                <button onclick="app.createBot()" class="w-full bg-rose-600 text-white font-bold py-2 rounded-full">Create</button>
             </div>
         </div>
     </div>
 
-    <!-- About Modal -->
-    <div id="about-modal" class="modal fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4">
-        <div class="modal-content bg-[#212121] w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border border-[#333]">
-            <div class="p-4 border-b border-[#333] flex justify-between items-center">
-                <h2 class="text-xl font-bold">About Artist</h2>
-                <button onclick="closeModal('about-modal')" class="text-gray-400 hover:text-white"><span class="material-icons-round">close</span></button>
-            </div>
-            <div class="p-8" id="about-modal-content">
-                <!-- Injected via JS -->
-            </div>
-        </div>
-    </div>
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-2 rounded-full shadow-lg z-[100] transition-opacity duration-300 opacity-0 pointer-events-none font-bold text-sm">Action Successful</div>
 
-    <script>
-        // --- STATE & STORAGE ---
-        let state = {
-            artists: [],
-            releases: [],
-            library: [],
-            lastSaveTime: Date.now()
+<script>
+/**
+ * Peyza App Logic v6.5 - Refined & Bug Free
+ */
+
+const BADGES = {
+    RED: `<svg viewBox="0 0 24 24" class="w-5 h-5 ml-1 inline-block text-rose-500 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
+    PURPLE: `<svg viewBox="0 0 24 24" class="w-5 h-5 ml-1 inline-block text-purple-600 fill-current align-text-bottom"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
+    PLATINUM: `<svg viewBox="0 0 24 24" class="w-5 h-5 ml-1 inline-block text-slate-400 fill-current align-text-bottom drop-shadow-sm"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.912-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.912 1.79-3.912 4 0 .495.084.965.238 1.4-1.272.65-2.147 2.02-2.147 3.6 0 1.417.705 2.674 1.774 3.426-.09.38-.138.775-.138 1.18 0 2.597 2.193 4.8 4.887 4.8.94 0 1.815-.28 2.546-.755.67.635 1.57.99 2.522.99.98 0 1.905-.373 2.585-1.036.65.385 1.393.595 2.164.595 2.553 0 4.708-2.02 4.908-4.502.04.017.08.03.123.03 1.252 0 2.373-.556 3.116-1.42.75-.873 1.096-2.03.96-3.18z"></path><path d="M9.707 15.293l-4-4 1.414-1.414L10 12.758l7.293-7.293 1.414 1.414-8 8a1 1 0 01-1.414 0z" fill="#fff"></path></g></svg>`,
+    OWNER: `<i class="fa-solid fa-crown w-5 h-5 ml-1 inline-block text-amber-400 align-text-bottom" title="Owner"></i>`
+};
+// Fallback for legacy calls to VERIFIED_ICON
+const VERIFIED_ICON = BADGES.RED;
+const ANALYTICS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" class="w-[18px] h-[18px] fill-current"><g><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></g></svg>`;
+
+const DEFAULT_BOTS = [
+    { handle: 'Peyza', name: 'Peyza', avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=P&backgroundColor=e11d48', bio: 'The Official Peyza Account. Updates & News.', followers: 50000000, following: 0, isVerified: true, isOwner: true, autoPost: true },
+    { handle: 'tech_guru', name: 'Tech Insider', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Felix', bio: 'Latest tech news.', followers: 450200, following: 152, isVerified: true, autoPost: true },
+    { handle: 'JuiceWorlddd', name: 'Juice WRLD', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juice', bio: '999 Forever 🕊️', followers: 12500000, following: 1, isVerified: true, autoPost: true },
+    { handle: 'elonmusk', name: 'Elon Musk', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elon', bio: 'Mars & Cars.', followers: 150000000, following: 140, isVerified: true, autoPost: true },
+    { handle: 'taylorswift13', name: 'Taylor Swift', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor', bio: 'I’m the problem, it’s me.', followers: 95000000, following: 0, isVerified: true, autoPost: true },
+    { handle: 'meme_lord', name: 'Daily Memes', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Meme', bio: 'I post memes.', followers: 12000, following: 50, isVerified: false, autoPost: true },
+    { handle: 'crypto_king', name: 'Crypto Chad', avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Chad', bio: 'HODL.', followers: 8900, following: 1200, isVerified: false, autoPost: true },
+    { handle: 'news_bot', name: 'Peyza News', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=News', bio: 'Breaking news.', followers: 1500000, following: 10, isVerified: true, autoPost: true },
+    { handle: 'kyliejenner', name: 'Kylie Jenner', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kylie', bio: 'Kylie Cosmetics.', followers: 40000000, following: 100, isVerified: true, autoPost: true }
+];
+const FAMOUS_CONTENT = { 'JuiceWorlddd': ["999"], 'elonmusk': ["Mars."], 'taylorswift13': ["Tour soon."], 'kyliejenner': ["New drop.", "Stormi 💗"] };
+const MOCK_POSTS_CONTENT = ["Hello World", "Peyza is cool", "Coding is fun", "Coffee time"];
+const MOCK_REPLIES_TEXT = ["Nice!", "Wow", "Cool", "First", "Ratio"];
+
+class PeyzaApp {
+    constructor() {
+        this.user = this.loadUser();
+        this.bots = this.loadBots();
+        this.posts = this.loadPosts();
+        this.notifications = this.loadNotifications();
+        this.currentView = 'home'; this.viewParam = null; this.feedFilter = 'foryou'; this.profileFilter = 'posts';
+        this.settings = this.loadSettings();
+        this.editingHandle = null; this.replyingTo = null; this.tempMedia = null; this.tempMediaType = 'image'; this.postingToCommunity = null;
+        this.init();
+    }
+    init() {
+        this.applyTheme(); this.renderSidebarUser(); this.renderWhoToFollow(); this.renderSidebarTrends(); this.renderView();
+        setTimeout(() => { if(this.currentView === 'home') this.setFeedFilter('foryou'); }, 100);
+        setInterval(() => this.simulateStats(), 1000);
+        setInterval(() => this.generateRandomBotPost(), 15000);
+    }
+    loadUser() { const s=localStorage.getItem('peyza_user_v8'); if(s)return JSON.parse(s); return { handle: 'guest_user', name: 'Guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Guest', banner: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=60', bio: 'Just a guest.', location: 'Internet', joined: 'May 2023', followers: 42, following: 15, isVerified: false, isOwner: false, likedPosts: [], repostedPosts: [], bookmarks: [], likedComments: [], createdBots: [] }; }
+    loadBots() { const s=localStorage.getItem('peyza_bots_v8'); if(s)return JSON.parse(s); return [...DEFAULT_BOTS]; }
+    loadPosts() { const s=localStorage.getItem('peyza_posts_v8'); if(s){let p=JSON.parse(s); if(p.length>200)p=p.slice(0,100); return p;} const p=[]; for(let i=0;i<20;i++)p.push(this.createMockPost(i*1000*60*20)); return p; }
+    loadNotifications() { const s=localStorage.getItem('peyza_notes_v8'); if(s)return JSON.parse(s); return []; }
+    loadSettings() { const s=localStorage.getItem('peyza_settings'); if(s)return JSON.parse(s); return { viralitySpeed: 1.0, theme: 'light' }; }
+    saveUser() { localStorage.setItem('peyza_user_v8', JSON.stringify(this.user)); this.renderSidebarUser(); }
+    saveBots() { localStorage.setItem('peyza_bots_v8', JSON.stringify(this.bots)); }
+    savePosts() { localStorage.setItem('peyza_posts_v8', JSON.stringify(this.posts)); }
+    saveNotifications() { localStorage.setItem('peyza_notes_v8', JSON.stringify(this.notifications)); }
+    saveSettings() { localStorage.setItem('peyza_settings', JSON.stringify(this.settings)); }
+    
+    getProfile(handle) { if (handle === this.user.handle) return this.user; return this.bots.find(b => b.handle === handle); }
+    getBadgeHTML(u) { if (u.isOwner) return BADGES.OWNER; if (u.followers >= 10000000) return BADGES.PLATINUM; if (u.followers >= 500000) return BADGES.PURPLE; if (u.isVerified || u.followers >= 100000) return BADGES.RED; return ''; }
+    
+    createMockReply() {
+        const bot = this.bots[Math.floor(Math.random()*this.bots.length)];
+        return {
+            id: 'rep_' + Math.random().toString(36).substr(2, 9),
+            authorHandle: bot.handle, authorName: bot.name, avatar: bot.avatar,
+            content: MOCK_REPLIES_TEXT[Math.floor(Math.random() * MOCK_REPLIES_TEXT.length)],
+            time: 'Just now', likes: Math.floor(Math.random() * 50),
+            isVerified: bot.isVerified, followers: bot.followers, isOwner: bot.isOwner
         };
-
-        // Player State
-        let playerState = {
-            isPlaying: false,
-            currentReleaseId: null,
-            currentTrackIndex: 0,
-            audioUrl: null,
-            release: null,
-            track: null
+    }
+    createMockPost(off=0) {
+        const bot = this.bots[Math.floor(Math.random()*this.bots.length)];
+        let content = MOCK_POSTS_CONTENT[Math.floor(Math.random()*MOCK_POSTS_CONTENT.length)];
+        if(FAMOUS_CONTENT[bot.handle]) content = FAMOUS_CONTENT[bot.handle][Math.floor(Math.random()*FAMOUS_CONTENT[bot.handle].length)];
+        const hasImage = Math.random() > 0.8;
+        const replies = []; for(let i=0; i<Math.floor(Math.random()*3); i++) replies.push(this.createMockReply());
+        return {
+            id: 'post_' + Math.random().toString(36).substr(2, 9),
+            authorHandle: bot.handle, authorName: bot.name, authorAvatar: bot.avatar, isVerified: bot.isVerified, isOwner: bot.isOwner, followers: bot.followers,
+            content: content, image: hasImage ? `https://picsum.photos/seed/${Math.random()}/600/350` : null, video: null, poll: null, communityHandle: null, theme: 'default',
+            replies: replies, createdAt: Date.now() - off,
+            stats: { likes: Math.floor(Math.random()*50), reposts: 0, replies: replies.length, views: Math.floor(Math.random()*500) },
+            baseVelocity: Math.random()
         };
-
-        const audioElement = document.getElementById('audio-element');
-
-        const generateId = () => Math.random().toString(36).substr(2, 9);
+    }
+    createPost(c, a) {
+        let auth = this.user; if(a && a!==this.user.handle) auth = this.bots.find(b=>b.handle===a)||this.user;
+        let poll = null; const o1=document.getElementById('poll-opt-1').value, o2=document.getElementById('poll-opt-2').value;
+        if(o1&&o2&&!document.getElementById('poll-creator').classList.contains('hidden')) poll={options:[{text:o1,votes:0},{text:o2,votes:0}],totalVotes:0};
         
-        const formatNumber = (num) => {
-            if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
-            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-            return Math.floor(num).toString();
-        };
-
-        // --- HELPER: IMAGE UPLOAD ---
-        const getImageUrl = async (fileInputId, urlInputId) => {
-            const fileInput = document.getElementById(fileInputId);
-            const urlInput = document.getElementById(urlInputId);
-
-            if (fileInput.files && fileInput.files[0]) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result); // Base64
-                    reader.onerror = (e) => reject(e);
-                    reader.readAsDataURL(fileInput.files[0]);
-                });
+        if (this.replyingTo) {
+            const op = this.posts.find(p => p.id === this.replyingTo);
+            if(op) {
+                op.stats.replies++; if(!op.replies) op.replies=[];
+                op.replies.unshift({ id:'rep_'+Math.random(), authorHandle:auth.handle, authorName:auth.name, avatar:auth.avatar, content:c, time:'Just now', likes:0, isVerified:auth.isVerified, isOwner:auth.isOwner, followers:auth.followers });
+                this.savePosts();
             }
-            return urlInput.value || ''; 
-        }
-
-        // --- INIT ---
-        function init() {
-            loadFromLocal();
-            
-            if (state.artists.length === 0) {
-                createArtistInternal("The Midnight Echo", "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=300&auto=format&fit=crop", "An electronic synthwave duo from the future.", 250000, 15000);
-            }
-            
-            const now = Date.now();
-            const elapsedSeconds = (now - state.lastSaveTime) / 1000;
-            if (elapsedSeconds > 60) {
-                simulateOffline(elapsedSeconds);
-            }
-
-            renderHome();
-            updateSidebar();
-            
-            setInterval(() => {
-                simulateRealTime(2);
-                saveToLocal();
-                updateRealTimeUI(); 
-                updatePlayerUIStats();
-            }, 2000);
-
-            // Audio Listeners
-            audioElement.addEventListener('timeupdate', () => {
-                const current = audioElement.currentTime;
-                const duration = audioElement.duration || 0;
-                document.getElementById('player-seek').value = (current / duration) * 100 || 0;
-                document.getElementById('player-time-current').innerText = formatTime(current);
-                document.getElementById('player-time-total').innerText = formatTime(duration);
+            this.replyingTo=null; if(this.currentView==='post') this.renderPostDetail(op.id); else this.navigate('home');
+        } else {
+            this.posts.unshift({
+                id: 'post_'+Math.random().toString(36).substr(2,9), authorHandle: auth.handle, authorName: auth.name, authorAvatar: auth.avatar, isVerified: auth.isVerified, isOwner: auth.isOwner, followers: auth.followers,
+                content: c, image: this.tempMediaType==='image'?this.tempMedia:null, video: this.tempMediaType==='video'?this.tempMedia:null, poll: poll, communityHandle: this.postingToCommunity, theme: 'default', createdAt: Date.now(), replies: [], stats: {likes:0,reposts:0,replies:0,views:0}, baseVelocity: Math.random()
             });
-            audioElement.addEventListener('ended', playNext);
-            
-            document.getElementById('player-seek').addEventListener('input', (e) => {
-                const percent = e.target.value;
-                const duration = audioElement.duration;
-                if(duration) audioElement.currentTime = (percent / 100) * duration;
-            });
+            this.savePosts(); this.navigate('home');
         }
-
-        function formatTime(seconds) {
-            if(isNaN(seconds)) return "0:00";
-            const min = Math.floor(seconds / 60);
-            const sec = Math.floor(seconds % 60);
-            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-        }
-
-        // --- PLAYER LOGIC ---
-
-        function trackClicked(releaseId, trackIndex) {
-            // Trigger upload if no audio or just allow upload to overwrite
-            document.getElementById('mp3-upload').onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const url = URL.createObjectURL(file);
-                    loadAndPlay(releaseId, trackIndex, url);
+        this.clearMedia(); this.postingToCommunity=null;
+    }
+    generateRandomBotPost() {
+        if(this.posts.filter(p=>this.bots.some(b=>b.handle===p.authorHandle)).length>30)return;
+        this.bots.forEach(b=>{ if(b.autoPost!==false && Math.random()<0.0083) this.posts.unshift(this.createMockPost()); });
+        this.savePosts(); if(this.currentView==='home') this.renderFeed();
+    }
+    simulateStats() {
+        const now = Date.now(); let changed = false;
+        this.posts = this.posts.filter(p => !(this.bots.some(b=>b.handle===p.authorHandle) && (now-p.createdAt > 14400000))); 
+        this.posts.forEach(p => {
+            if ((now - p.createdAt)/1000 < 86400) {
+                let f = p.followers || 100; const scale = Math.max(1, Math.log10(f)); const g = this.settings.viralitySpeed * p.baseVelocity * scale * (1 + p.stats.reposts * 0.1);
+                const nv = Math.floor(p.stats.views + (g*5*Math.random()));
+                if(nv>p.stats.views) { p.stats.views=nv; changed=true; }
+                if(Math.random()<0.3) { p.stats.likes+=Math.floor(g*2); changed=true; }
+                if(Math.random()<0.05) { p.stats.reposts+=1; changed=true; }
+                if(p.replies && p.replies.length > 0 && Math.random() < 0.1) {
+                    const r = p.replies[Math.floor(Math.random() * p.replies.length)]; r.likes++; changed = true;
                 }
-            };
-            document.getElementById('mp3-upload').click();
-        }
-
-        function loadAndPlay(releaseId, trackIndex, url) {
-            const release = state.releases.find(r => r.id === releaseId);
-            if (!release) return;
-
-            playerState.currentReleaseId = releaseId;
-            playerState.currentTrackIndex = trackIndex;
-            playerState.release = release;
-            playerState.track = release.tracksData[trackIndex];
-            playerState.audioUrl = url;
-            playerState.isPlaying = true;
-
-            // Setup Audio
-            audioElement.src = url;
-            audioElement.play();
-
-            // Setup UI
-            openPlayer();
-            updatePlayerUI();
-        }
-
-        function updatePlayerUI() {
-            const { release, track } = playerState;
-            const artist = state.artists.find(a => a.id === release.artistId);
-            
-            // Handle Multiple Features
-            let featNames = "";
-            if(release.featuredArtistIds && release.featuredArtistIds.length > 0) {
-                const feats = state.artists.filter(a => release.featuredArtistIds.includes(a.id));
-                featNames = feats.length > 0 ? ` ft. ${feats.map(f => f.name).join(', ')}` : "";
-            } else if (release.featuredArtistId) {
-                // Backwards compat
-                const f = state.artists.find(a => a.id === release.featuredArtistId);
-                if(f) featNames = ` ft. ${f.name}`;
             }
-
-            document.getElementById('player-title').innerText = track.title;
-            document.getElementById('player-artist').innerText = artist.name + featNames;
-            document.getElementById('player-img').src = release.cover;
-            
-            updatePlayerUIStats();
-            updatePlayButton();
-        }
-
-        function updatePlayerUIStats() {
-            if(!playerState.release) return;
-            const likeRatio = 0.02 + (playerState.release.id.charCodeAt(0) % 4) * 0.01; 
-            const likes = Math.floor(playerState.release.totalViews * likeRatio);
-            
-            document.getElementById('player-views').innerText = formatNumber(playerState.release.totalViews);
-            document.getElementById('player-likes').innerText = formatNumber(likes);
-        }
-
-        function togglePlay() {
-            if (audioElement.paused) {
-                audioElement.play();
-                playerState.isPlaying = true;
-            } else {
-                audioElement.pause();
-                playerState.isPlaying = false;
+        });
+        if(changed) { this.savePosts(); this.updateVisibleStats(); }
+    }
+    updateVisibleStats() {
+        this.posts.forEach(p => {
+            const el = document.getElementById(`stats-${p.id}`);
+            if(el) {
+                const v=el.querySelector('.stat-views'), l=el.querySelector('.stat-likes'), r=el.querySelector('.stat-reposts'), c=el.querySelector('.stat-replies');
+                if(v) v.innerText = this.formatNumber(p.stats.views);
+                if(l) l.innerText = this.formatNumber(p.stats.likes);
+                if(r) r.innerText = this.formatNumber(p.stats.reposts);
+                if(c) c.innerText = this.formatNumber(p.stats.replies);
             }
-            updatePlayButton();
-        }
-
-        function updatePlayButton() {
-            const icon = document.getElementById('player-play-icon');
-            icon.innerText = playerState.isPlaying ? 'pause' : 'play_arrow';
-        }
-
-        function openPlayer() {
-            const p = document.getElementById('music-player');
-            p.classList.remove('hidden');
-            p.classList.add('animate-slide-up');
-            p.classList.remove('animate-slide-down');
-        }
-
-        function closePlayer() {
-            const p = document.getElementById('music-player');
-            p.classList.add('animate-slide-down');
-            p.classList.remove('animate-slide-up');
-            setTimeout(() => {
-                // Don't hide display none if playing, just minimize visually? 
-                // For now, full close implies stop or background play. 
-                // Let's keep it playing in bg but hide UI.
-                p.classList.add('hidden');
-            }, 300);
-        }
-
-        function playNext() {
-            // Simple loop for now
-            if (playerState.currentTrackIndex < playerState.release.tracksData.length - 1) {
-                // We need a file... simulated skip doesn't work well with "upload to play".
-                // We'll just reset or stop since we don't have the next file.
-                alert("Please click the next track to upload/play its file.");
-            }
-        }
-
-        // --- SIMULATION ENGINE ---
-
-        function simulateRealTime(seconds) {
-            let totalGained = 0;
-
-            state.releases.forEach(release => {
-                const ageHours = (Date.now() - release.releaseTimestamp) / (1000 * 60 * 60);
-                
-                let decayFactor = 1;
-                if (ageHours < 24) decayFactor = 1.0; 
-                else if (ageHours < 168) decayFactor = 0.5; 
-                else decayFactor = 0.5 / (ageHours / 24); 
-
-                const artist = state.artists.find(a => a.id === release.artistId);
-                const baseRate = Math.max(0.1, artist.subscribers * 0.0001); 
-                
-                let featureMult = 1;
-                // Handle Array Features
-                if(release.featuredArtistIds && release.featuredArtistIds.length > 0) {
-                    featureMult = 1 + (release.featuredArtistIds.length * 0.5);
-                } else if(release.featuredArtistId) {
-                    featureMult = 1.5;
-                }
-
-                const viewsPerSecond = baseRate * release.popularityScore * decayFactor * featureMult;
-                const actualViews = viewsPerSecond * seconds * (0.8 + Math.random() * 0.4);
-                
-                if (actualViews > 0) {
-                    release.totalViews += actualViews;
-                    totalGained += actualViews;
-                }
-            });
-
-            updateArtistStats();
-            state.lastSaveTime = Date.now();
-        }
-
-        function simulateOffline(seconds) {
-            simulateRealTime(seconds); 
-            const toast = document.getElementById('offline-toast');
-            const text = document.getElementById('offline-report-text');
-            text.innerText = `Simulated ${Math.floor(seconds / 60)} minutes of activity while you were away.`;
-            toast.classList.remove('toast-hidden');
-        }
-
-        function updateArtistStats() {
-            state.artists.forEach(artist => {
-                // Updated filter for multiple features
-                const relevantReleases = state.releases.filter(r => {
-                    const isMain = r.artistId === artist.id;
-                    const isFeatSingle = r.featuredArtistId === artist.id;
-                    const isFeatMulti = r.featuredArtistIds && r.featuredArtistIds.includes(artist.id);
-                    return isMain || isFeatSingle || isFeatMulti;
-                });
-
-                const totalViews = relevantReleases.reduce((sum, r) => sum + r.totalViews, 0);
-                
-                const prevViews = artist.totalViews;
-                artist.growthRate = totalViews - prevViews; 
-                artist.totalViews = totalViews;
-
-                if (artist.growthRate > 0) {
-                   artist.monthlyListeners += (artist.growthRate * 0.5); 
-                } else {
-                   artist.monthlyListeners *= 0.999; 
-                }
-                
-                if (artist.growthRate > 0) {
-                    artist.subscribers += (artist.growthRate * 0.005);
-                }
-            });
-        }
-
-        function updateRealTimeUI() {
-             const main = document.getElementById('main-content');
-             // Keeping it light
-        }
-
-        // --- DATA PERSISTENCE ---
-
-        function saveToLocal() {
-            try {
-                localStorage.setItem('yt_sim_save', JSON.stringify(state));
-            } catch (e) {
-                console.warn("Save failed");
-            }
-        }
-
-        function loadFromLocal() {
-            const data = localStorage.getItem('yt_sim_save');
-            if (data) {
-                const parsed = JSON.parse(data);
-                state = { ...state, ...parsed };
-            }
-        }
-
-        function downloadSave() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "peyza_music_save_" + new Date().toISOString().slice(0,10) + ".json");
-            document.body.appendChild(downloadAnchorNode); 
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-        }
-
-        function uploadSave(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const loadedState = JSON.parse(e.target.result);
-                    state = loadedState;
-                    saveToLocal();
-                    location.reload(); 
-                } catch (err) {
-                    alert("Invalid Save File");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function resetData() {
-            if(confirm("Are you sure? This deletes all artists.")) {
-                localStorage.removeItem('yt_sim_save');
-                location.reload();
-            }
-        }
-
-        // --- UI ACTIONS ---
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('collapsed');
-        }
-
-        function animateNav(id, callback) {
-            const btn = document.getElementById(id);
-            if (btn) {
-                btn.classList.remove('animating');
-                void btn.offsetWidth; 
-                btn.classList.add('animating');
-            }
-            callback();
-        }
-
-        function closeOfflineToast() {
-            document.getElementById('offline-toast').classList.add('toast-hidden');
-        }
+        });
+    }
+    toggleLike(id, b) {
+        event.stopPropagation();
+        const p = this.posts.find(x => x.id === id); if (!p) return;
+        if (!this.user.likedPosts) this.user.likedPosts = []; const idx = this.user.likedPosts.indexOf(id);
+        const icon = b.querySelector('i') || b; const isFire = icon.classList.contains('fa-fire') || (b.tagName === 'I' && b.classList.contains('fa-fire'));
+        if (idx === -1) { this.user.likedPosts.push(id); p.stats.likes++; if(isFire) { (b.tagName==='I'?b:icon).classList.add('text-amber-500','animate-pop'); } else { b.classList.add('liked'); if(icon.tagName==='I'){icon.classList.replace('fa-regular','fa-solid'); icon.classList.add('animate-pop');} } }
+        else { this.user.likedPosts.splice(idx, 1); p.stats.likes--; if(isFire) { (b.tagName==='I'?b:icon).classList.remove('text-amber-500','animate-pop'); } else { b.classList.remove('liked'); if(icon.tagName==='I'){icon.classList.replace('fa-solid','fa-regular'); icon.classList.remove('animate-pop');} } }
         
-        function updateNavState(view) {
-            ['nav-home', 'nav-explore', 'nav-library'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (id === 'nav-'+view) {
-                    btn.classList.add('bg-[#1f1f1f]', 'text-white');
-                    btn.classList.remove('text-yt-textSec');
-                } else {
-                    btn.classList.remove('bg-[#1f1f1f]', 'text-white');
-                    btn.classList.add('text-yt-textSec');
-                }
-            });
-             ['mob-nav-home', 'mob-nav-explore', 'mob-nav-library', 'mob-nav-create'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (id === 'mob-nav-'+view) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        }
-
-        // --- ARTIST & RELEASES LOGIC ---
-
-        function createArtistInternal(name, pfp, bio, monthly, subs) {
-            const newArtist = {
-                id: generateId(),
-                name: name,
-                pfp: pfp,
-                banner: "https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=1200&auto=format&fit=crop",
-                bio: bio || "New artist on the scene.",
-                subscribers: subs,
-                monthlyListeners: monthly,
-                totalViews: 0,
-                growthRate: 0
-            };
-            state.artists.push(newArtist);
-            updateSidebar();
-            saveToLocal();
-            return newArtist.id;
-        }
-
-        async function createArtist() {
-            const name = document.getElementById('new-artist-name').value;
-            const bio = document.getElementById('new-artist-bio').value;
-            let pfp = await getImageUrl('new-artist-pfp-file', 'new-artist-pfp');
-            if(!pfp) pfp = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-
-            if (!name) return alert("Name is required");
-            
-            const id = createArtistInternal(name, pfp, bio, 0, 0);
-            
-            document.getElementById('new-artist-name').value = '';
-            document.getElementById('new-artist-pfp').value = '';
-            document.getElementById('new-artist-pfp-file').value = '';
-            document.getElementById('new-artist-bio').value = '';
-
-            closeModal('create-artist-modal');
-            renderArtist(id);
-        }
-
-        async function confirmRelease() {
-            const artistId = document.getElementById('release-artist-id').value;
-            const title = document.getElementById('release-title').value;
-            const type = document.getElementById('release-type').value;
-            const trackCount = parseInt(document.getElementById('release-tracks').value);
-            
-            // Multiple Features
-            const feat1 = document.getElementById('release-feature-1').value;
-            const feat2 = document.getElementById('release-feature-2').value;
-            const feat3 = document.getElementById('release-feature-3').value;
-            const featuredArtistIds = [feat1, feat2, feat3].filter(id => id && id !== "");
-
-            let cover = await getImageUrl('release-cover-file', 'release-cover');
-            if(!cover) cover = `https://ui-avatars.com/api/?name=${encodeURIComponent(title)}&size=300&background=222&color=fff`;
-
-            if (!title) return alert("Title required");
-
-            const tracksData = [];
-            for (let i = 0; i < trackCount; i++) {
-                let trackTitle = type === 'Single' ? title : (i === 0 ? title : `${title} - Part ${i+1}`);
-                let weight = 0;
-                if (i === 0) weight = 0.4;
-                else if (i === 1) weight = 0.2;
-                else weight = 0.4 / (trackCount - 2 || 1); 
-
-                tracksData.push({
-                    title: trackTitle,
-                    weight: weight,
-                    duration: `${Math.floor(Math.random()*3)+2}:${Math.floor(Math.random()*50)+10}`
-                });
-            }
-
-            const newRelease = {
-                id: generateId(),
-                artistId: artistId,
-                featuredArtistIds: featuredArtistIds, // Updated
-                title: title,
-                type: type,
-                cover: cover,
-                tracks: trackCount,
-                tracksData: tracksData,
-                releaseTimestamp: Date.now(), 
-                totalViews: 0,
-                popularityScore: Math.random() * 0.5 + 0.5 
-            };
-
-            state.releases.unshift(newRelease);
-            
-            document.getElementById('release-title').value = '';
-            document.getElementById('release-cover').value = '';
-            document.getElementById('release-cover-file').value = '';
-            document.getElementById('release-tracks').value = 1;
-            document.getElementById('release-feature-1').value = "";
-            document.getElementById('release-feature-2').value = "";
-            document.getElementById('release-feature-3').value = "";
-
-            closeModal('release-music-modal');
-            saveToLocal();
-            renderArtist(artistId);
-        }
-
-         function toggleSubscribe(artistId) {
-            const index = state.library.indexOf(artistId);
-            const artist = state.artists.find(a => a.id === artistId);
-            
-            if (index === -1) {
-                state.library.push(artistId);
-                if(artist) artist.subscribers++;
-            } else {
-                state.library.splice(index, 1);
-                if(artist && artist.subscribers > 0) artist.subscribers--;
-            }
-            saveToLocal();
-            
-            const content = document.getElementById('main-content');
-            if (content.dataset.view === 'artist' && content.dataset.viewId === artistId) {
-                renderArtist(artistId);
-            } else if (content.dataset.view === 'library') {
-                renderLibrary();
-            }
-        }
-
-        // --- RENDERERS ---
-
-        function renderHome() {
-            const main = document.getElementById('main-content');
-            main.dataset.view = 'home';
-            main.dataset.viewId = '';
-            updateNavState('home');
-
-            const sortedReleases = [...state.releases].sort((a, b) => b.totalViews - a.totalViews);
-
-            main.innerHTML = `
-                <div class="space-y-8 pb-20 animate-fade-in">
-                    <!-- Filters -->
-                    <div class="flex gap-2 sticky top-0 bg-[#030303] z-10 py-2">
-                        <button class="px-3 py-1 bg-white text-black rounded-lg text-sm font-medium">All</button>
-                        <button class="px-3 py-1 bg-[#212121] border border-[#333] hover:bg-[#333] rounded-lg text-sm font-medium transition">Energize</button>
-                        <button class="px-3 py-1 bg-[#212121] border border-[#333] hover:bg-[#333] rounded-lg text-sm font-medium transition">Relax</button>
-                    </div>
-
-                    <section>
-                        <div class="flex items-end justify-between mb-4">
-                            <h2 class="text-2xl font-bold">Your Favorites</h2>
-                        </div>
-                        <div class="artist-grid">
-                            ${state.artists.map(artist => `
-                                <div onclick="renderArtist('${artist.id}')" class="group cursor-pointer p-4 rounded-md hover:bg-[#1f1f1f] transition">
-                                    <div class="relative mb-4">
-                                        <img src="${artist.pfp}" class="w-full aspect-square object-cover rounded-full shadow-lg group-hover:scale-105 transition duration-300">
-                                        <div class="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-xl">
-                                            <span class="material-icons-round text-black">play_arrow</span>
-                                        </div>
-                                    </div>
-                                    <h3 class="font-bold text-white truncate">${artist.name}</h3>
-                                    <p class="text-sm text-yt-textSec">Artist • ${formatNumber(artist.subscribers)} subs</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </section>
-                </div>
-            `;
-        }
-
-        function renderExplore() {
-            const main = document.getElementById('main-content');
-            main.dataset.view = 'explore';
-            updateNavState('explore');
-
-            const newReleases = [...state.releases].sort((a, b) => b.releaseTimestamp - a.releaseTimestamp).slice(0, 8);
-            const trendingArtists = [...state.artists].sort((a, b) => b.growthRate - a.growthRate).slice(0, 8);
-
-            main.innerHTML = `
-                <div class="space-y-8 pb-20 animate-fade-in">
-                    <h1 class="text-4xl font-bold mb-6">Explore</h1>
-
-                    <section>
-                        <h2 class="text-2xl font-bold mb-4">New Releases</h2>
-                        <div class="discography-grid">
-                            ${newReleases.map(r => getReleaseCard(r)).join('')}
-                        </div>
-                    </section>
-
-                    <section>
-                        <h2 class="text-2xl font-bold mb-4">Trending Artists <span class="text-sm font-normal text-gray-500 ml-2">(High Velocity)</span></h2>
-                        <div class="artist-grid">
-                            ${trendingArtists.map(artist => `
-                                <div onclick="renderArtist('${artist.id}')" class="group cursor-pointer p-4 rounded-md hover:bg-[#1f1f1f] transition">
-                                    <img src="${artist.pfp}" class="w-full aspect-square object-cover rounded-full mb-4 shadow-lg">
-                                    <h3 class="font-bold text-white truncate">${artist.name}</h3>
-                                    <p class="text-sm text-green-400">Trending Now</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </section>
-                </div>
-            `;
-        }
-
-        function renderLibrary() {
-            const main = document.getElementById('main-content');
-            main.dataset.view = 'library';
-            updateNavState('library');
-
-            const libraryArtists = state.artists.filter(a => state.library.includes(a.id));
-
-            main.innerHTML = `
-                <div class="space-y-8 pb-20 animate-fade-in">
-                    <h1 class="text-4xl font-bold mb-6">Your Library</h1>
-
-                    ${libraryArtists.length === 0 ? 
-                        `<div class="text-center text-gray-500 py-20">
-                            <span class="material-icons-round text-6xl mb-4">library_music</span>
-                            <p>You haven't subscribed to any artists yet.</p>
-                        </div>` 
-                    : 
-                        `<div class="artist-grid">
-                            ${libraryArtists.map(artist => `
-                                <div onclick="renderArtist('${artist.id}')" class="group cursor-pointer p-4 rounded-md hover:bg-[#1f1f1f] transition">
-                                    <img src="${artist.pfp}" class="w-full aspect-square object-cover rounded-full mb-4 shadow-lg">
-                                    <h3 class="font-bold text-white truncate">${artist.name}</h3>
-                                    <p class="text-sm text-yt-textSec">Subscribed</p>
-                                </div>
-                            `).join('')}
-                        </div>`
-                    }
-                </div>
-            `;
-        }
-
-        function renderArtist(id) {
-            const artist = state.artists.find(a => a.id === id);
-            if (!artist) return;
-
-            const main = document.getElementById('main-content');
-            main.dataset.view = 'artist';
-            main.dataset.viewId = id;
-            updateNavState('');
-            
-            const isSubscribed = state.library.includes(id);
-            const artistReleases = state.releases.filter(r => r.artistId === id || (r.featuredArtistIds && r.featuredArtistIds.includes(id)) || r.featuredArtistId === id).sort((a,b) => b.releaseTimestamp - a.releaseTimestamp);
-            const topSongs = [...artistReleases].sort((a,b) => b.totalViews - a.totalViews).slice(0, 5);
-
-            main.innerHTML = `
-                <div class="pb-20 animate-fade-in">
-                    <!-- Banner -->
-                    <div class="relative w-full h-64 md:h-80 rounded-t-xl overflow-hidden mb-6 group">
-                        <img src="${artist.banner}" class="w-full h-full object-cover brightness-75">
-                        <div class="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-transparent"></div>
-                        
-                        <div class="absolute bottom-8 left-8">
-                            <h1 class="text-4xl md:text-7xl font-black tracking-tighter mb-4 shadow-xl">${artist.name}</h1>
-                            <div class="flex items-center gap-4 text-xs md:text-sm font-medium text-gray-200">
-                                <span>${formatNumber(artist.subscribers)} subs</span>
-                                <span class="w-1 h-1 bg-gray-400 rounded-full"></span>
-                                <span>${formatNumber(artist.monthlyListeners)} monthly</span>
-                            </div>
-                            <div class="flex items-center gap-4 mt-6">
-                                <button onclick="toggleSubscribe('${artist.id}')" class="${isSubscribed ? 'bg-[#212121] text-white border border-[#333]' : 'bg-white text-black'} px-6 md:px-8 py-2 md:py-3 rounded-full font-bold uppercase tracking-wide hover:bg-gray-200 hover:text-black transition text-sm">
-                                    ${isSubscribed ? 'Subscribed' : 'Subscribe'}
-                                </button>
-                                <button class="bg-[#212121]/80 backdrop-blur-md border border-white/20 text-white px-4 py-2 md:py-3 rounded-full font-bold hover:bg-[#333] transition flex items-center gap-2 text-sm">
-                                    <span class="material-icons-round">radio</span> Radio
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Management Buttons -->
-                        <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                             <button onclick="openReleaseModal('${artist.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg hover:bg-blue-700">Release Music</button>
-                             <button onclick="openEditModal('${artist.id}')" class="bg-white text-black px-4 py-2 rounded-full font-bold text-sm shadow-lg hover:bg-gray-200">Edit Profile</button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="lg:col-span-2 space-y-8">
-                            <section>
-                                <h2 class="text-2xl font-bold mb-4">Top Songs</h2>
-                                <div class="flex flex-col">
-                                    ${topSongs.length > 0 ? topSongs.map((song, index) => `
-                                        <div onclick="trackClicked('${song.id}', 0)" class="flex items-center gap-4 p-3 rounded hover:bg-[#1f1f1f] group cursor-pointer transition">
-                                            <span class="text-gray-400 w-4 text-center font-medium">${index + 1}</span>
-                                            <img src="${song.cover}" class="w-12 h-12 rounded object-cover">
-                                            <div class="flex-1 min-w-0">
-                                                <div class="font-medium text-white truncate">${song.title}</div>
-                                                <div class="text-sm text-gray-400">${formatNumber(song.totalViews)} views</div>
-                                            </div>
-                                            <div class="text-sm text-gray-400 mr-4">Play</div>
-                                        </div>
-                                    `).join('') : '<div class="text-gray-500 italic">No releases yet.</div>'}
-                                </div>
-                            </section>
-
-                            <section>
-                                <h2 class="text-2xl font-bold mb-4">Discography</h2>
-                                <div class="discography-grid">
-                                    ${artistReleases.map(r => getReleaseCard(r)).join('')}
-                                </div>
-                            </section>
-                        </div>
-
-                        <div class="lg:col-span-1 space-y-8">
-                            <section>
-                                <h2 class="text-2xl font-bold mb-4">About</h2>
-                                <div onclick="openAboutModal('${artist.id}')" class="relative rounded-lg overflow-hidden group cursor-pointer hover:ring-2 ring-white/20 transition">
-                                    <div class="bg-[#1f1f1f] p-6 min-h-[200px] flex flex-col justify-end">
-                                        <p class="text-white line-clamp-3 mb-4 font-serif italic">"${artist.bio}"</p>
-                                        <div class="text-sm text-gray-400 flex justify-between items-end">
-                                             <div>
-                                                <div class="text-white font-bold text-lg">${formatNumber(artist.totalViews)}</div>
-                                                <div>Total Career Views</div>
-                                             </div>
-                                             <div class="bg-gray-800 p-2 rounded-full hover:bg-gray-700 transition">
-                                                <span class="material-icons-round text-white">arrow_forward</span>
-                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderRelease(releaseId) {
-            const release = state.releases.find(r => r.id === releaseId);
-            if (!release) return;
-
-            const main = document.getElementById('main-content');
-            main.dataset.view = 'release';
-            main.dataset.viewId = releaseId;
-            updateNavState('');
-
-            const artist = state.artists.find(a => a.id === release.artistId);
-            
-            // Handle Feature display on page
-            let featNames = "";
-            if(release.featuredArtistIds && release.featuredArtistIds.length > 0) {
-                const feats = state.artists.filter(a => release.featuredArtistIds.includes(a.id));
-                featNames = feats.length > 0 ? ` & ${feats.map(f => f.name).join(', ')}` : "";
-            } else if (release.featuredArtistId) {
-                 const f = state.artists.find(a => a.id === release.featuredArtistId);
-                 if(f) featNames = ` & ${f.name}`;
-            }
-
-            const likeRatio = 0.02 + (release.id.charCodeAt(0) % 4) * 0.01; 
-            const likes = Math.floor(release.totalViews * likeRatio);
-
-            main.innerHTML = `
-                 <div class="pb-20 max-w-7xl mx-auto animate-fade-in">
-                    <div class="flex flex-col md:flex-row gap-8 mb-8">
-                        <div class="w-full md:w-72 flex-shrink-0">
-                            <img src="${release.cover}" class="w-full aspect-square object-cover rounded shadow-2xl">
-                        </div>
-                        <div class="flex flex-col justify-end">
-                            <h2 class="text-4xl md:text-5xl font-black mb-4">${release.title}</h2>
-                            <div class="flex items-center gap-2 mb-4">
-                                <img src="${artist.pfp}" class="w-6 h-6 rounded-full">
-                                <span class="font-bold text-white hover:underline cursor-pointer" onclick="renderArtist('${artist.id}')">${artist.name}${featNames}</span>
-                            </div>
-                            <div class="text-gray-400 text-sm flex gap-4 items-center">
-                                <span>${release.type}</span>
-                                <span>•</span>
-                                <span class="flex items-center gap-1"><span class="material-icons-round text-sm">visibility</span> ${formatNumber(release.totalViews)}</span>
-                                <span>•</span>
-                                <span class="flex items-center gap-1"><span class="material-icons-round text-sm">thumb_up</span> ${formatNumber(likes)}</span>
-                            </div>
-                            <div class="flex gap-4 mt-6">
-                                <button class="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:scale-105 transition">
-                                    <span class="material-icons-round text-black text-2xl">play_arrow</span>
-                                </button>
-                                <button class="w-12 h-12 bg-[#212121] rounded-full flex items-center justify-center hover:bg-[#333] transition">
-                                    <span class="material-icons-round text-white text-2xl">library_add</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#030303]">
-                         <div class="border-b border-[#1f1f1f] text-gray-400 text-sm py-2 px-4 grid grid-cols-[auto_1fr_auto] gap-4 mb-2">
-                            <span>#</span>
-                            <span>Title</span>
-                            <span class="flex items-center gap-2"><span class="material-icons-round text-sm">visibility</span> Views</span>
-                        </div>
-                        <div class="flex flex-col">
-                            ${release.tracksData.map((track, i) => {
-                                const trackViews = Math.floor(release.totalViews * track.weight);
-                                return `
-                                <div onclick="trackClicked('${release.id}', ${i})" class="grid grid-cols-[auto_1fr_auto] gap-4 py-3 px-4 hover:bg-[#1f1f1f] rounded group items-center cursor-pointer transition">
-                                    <div class="w-6 text-center text-gray-400 group-hover:hidden">${i + 1}</div>
-                                    <div class="w-6 text-center hidden group-hover:block"><span class="material-icons-round text-white text-sm">play_arrow</span></div>
-                                    <div class="flex flex-col">
-                                        <span class="text-white font-medium">${track.title}</span>
-                                        <span class="text-gray-500 text-xs">${artist.name}${featNames}</span>
-                                    </div>
-                                    <div class="text-gray-400 text-sm flex items-center gap-8">
-                                        <span>${formatNumber(trackViews)}</span>
-                                        <span>${track.duration}</span>
-                                    </div>
-                                </div>
-                            `}).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // --- HELPER COMPONENTS ---
-
-        function getReleaseCard(release) {
-             const artist = state.artists.find(a => a.id === release.artistId);
-             
-             let featureLabel = "";
-             if (release.featuredArtistIds && release.featuredArtistIds.length > 0) {
-                 featureLabel = `<span class="text-xs text-blue-400 block mt-1">+${release.featuredArtistIds.length} Features</span>`;
-             } else if (release.featuredArtistId) {
-                 const f = state.artists.find(a => a.id === release.featuredArtistId);
-                 if(f) featureLabel = `<span class="text-xs text-blue-400 block mt-1">Feat. ${f.name}</span>`;
-             }
-             
-             return `
-                <div onclick="renderRelease('${release.id}')" class="cursor-pointer group">
-                    <div class="relative mb-3 overflow-hidden rounded-md">
-                        <img src="${release.cover}" class="w-full aspect-square object-cover group-hover:opacity-80 transition">
-                    </div>
-                    <h3 class="font-medium text-white truncate">${release.title}</h3>
-                    <p class="text-sm text-yt-textSec truncate">${artist.name} • ${release.type}</p>
-                    <p class="text-xs text-gray-500 mt-1">${formatNumber(release.totalViews)} views</p>
-                    ${featureLabel}
-                </div>
-            `;
-        }
-
-        function openAboutModal(id) {
-            const artist = state.artists.find(a => a.id === id);
-            const content = document.getElementById('about-modal-content');
-            
-            content.innerHTML = `
-                <div class="flex gap-4 mb-6">
-                    <img src="${artist.pfp}" class="w-24 h-24 rounded-full object-cover">
-                    <div>
-                        <h3 class="text-2xl font-bold">${artist.name}</h3>
-                        <div class="text-gray-400">${formatNumber(artist.subscribers)} Subscribers</div>
-                    </div>
-                </div>
-                <div class="bg-[#121212] p-4 rounded mb-4 text-sm leading-relaxed text-gray-300">
-                    ${artist.bio}
-                </div>
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div class="bg-[#121212] p-4 rounded">
-                        <div class="text-2xl font-bold text-white">${formatNumber(artist.totalViews)}</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest">Total Views</div>
-                    </div>
-                    <div class="bg-[#121212] p-4 rounded">
-                        <div class="text-2xl font-bold text-white">${formatNumber(artist.monthlyListeners)}</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest">Monthly Listeners</div>
-                    </div>
-                </div>
-            `;
-            
-            openModal('about-modal');
-        }
-
-        function updateSidebar() {
-            const list = document.getElementById('sidebar-artist-list');
-            list.innerHTML = state.artists.map(a => `
-                <div onclick="renderArtist('${a.id}')" class="flex items-center gap-3 p-2 rounded-md hover:bg-[#1f1f1f] cursor-pointer transition">
-                    <img src="${a.pfp}" class="w-8 h-8 rounded-full object-cover">
-                    <div class="flex-1 min-w-0 nav-text">
-                        <div class="text-sm font-medium text-white truncate">${a.name}</div>
-                        <div class="text-xs text-yt-textSec">Artist</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function openModal(id) {
-            const modal = document.getElementById(id);
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.add('active'), 10);
-        }
-
-        function closeModal(id) {
-            const modal = document.getElementById(id);
-            modal.classList.remove('active');
-            setTimeout(() => modal.classList.add('hidden'), 250);
-        }
-
-        function openEditModal(artistId) {
-            const artist = state.artists.find(a => a.id === artistId);
-            if (!artist) return;
-            document.getElementById('edit-artist-id').value = artistId;
-            document.getElementById('edit-artist-name').value = artist.name;
-            document.getElementById('edit-artist-subs').value = artist.subscribers;
-            document.getElementById('edit-artist-monthly').value = artist.monthlyListeners;
-            document.getElementById('edit-artist-pfp').value = artist.pfp.startsWith('data:') ? '' : artist.pfp;
-            document.getElementById('edit-artist-banner').value = artist.banner.startsWith('data:') ? '' : artist.banner;
-            document.getElementById('edit-artist-bio').value = artist.bio;
-            openModal('edit-profile-modal');
-        }
-
-        function openReleaseModal(artistId) {
-            document.getElementById('release-artist-id').value = artistId;
-            document.getElementById('release-title').value = '';
-            document.getElementById('release-tracks').value = 1;
-            document.getElementById('release-cover').value = '';
-            document.getElementById('release-cover-file').value = '';
-            
-            // Populate multiple features
-            ['release-feature-1', 'release-feature-2', 'release-feature-3'].forEach(id => {
-                const select = document.getElementById(id);
-                select.innerHTML = '<option value="">None</option>';
-                state.artists.forEach(a => {
-                    if (a.id !== artistId) {
-                        const option = document.createElement('option');
-                        option.value = a.id;
-                        option.text = a.name + ` (${formatNumber(a.subscribers)} subs)`;
-                        select.appendChild(option);
-                    }
-                });
-            });
-
-            openModal('release-music-modal');
-        }
+        const cSpan = b.parentElement ? b.parentElement.querySelector('.stat-likes') : null; 
+        if(cSpan) cSpan.innerText = this.formatNumber(p.stats.likes);
         
-        async function saveArtistProfile() {
-            const id = document.getElementById('edit-artist-id').value;
-            const artist = state.artists.find(a => a.id === id);
-            
-            if (artist) {
-                artist.name = document.getElementById('edit-artist-name').value;
-                artist.subscribers = parseInt(document.getElementById('edit-artist-subs').value);
-                artist.monthlyListeners = parseInt(document.getElementById('edit-artist-monthly').value);
-                
-                // PFP
-                const newPfp = await getImageUrl('edit-artist-pfp-file', 'edit-artist-pfp');
-                if (newPfp) artist.pfp = newPfp;
+        const pvCount = b.querySelector ? b.querySelector('.stat-likes') : null;
+        if(pvCount) pvCount.innerText = this.formatNumber(p.stats.likes);
 
-                // Banner
-                const newBanner = await getImageUrl('edit-artist-banner-file', 'edit-artist-banner');
-                if (newBanner) artist.banner = newBanner;
+        this.saveUser(); this.savePosts();
+    }
+    toggleRepost(id,b){event.stopPropagation();const p=this.posts.find(x=>x.id===id);if(!p)return;if(!this.user.repostedPosts)this.user.repostedPosts=[];const i=this.user.repostedPosts.indexOf(id);if(i===-1){this.user.repostedPosts.push(id);p.stats.reposts++;b.classList.add('reposted');}else{this.user.repostedPosts.splice(i,1);p.stats.reposts--;b.classList.remove('reposted');}const c=b.parentElement.querySelector('.stat-reposts');if(c)c.innerText=this.formatNumber(p.stats.reposts);this.saveUser();this.savePosts();}
+    toggleBookmark(id,b){event.stopPropagation();if(!this.user.bookmarks)this.user.bookmarks=[];const i=this.user.bookmarks.indexOf(id);const icon=b.querySelector('i');if(i===-1){this.user.bookmarks.push(id);b.classList.add('bookmarked');if(icon)icon.classList.replace('fa-regular','fa-solid');this.showToast('Saved');}else{this.user.bookmarks.splice(i,1);b.classList.remove('bookmarked');if(icon)icon.classList.replace('fa-solid','fa-regular');this.showToast('Removed');}this.saveUser();}
+    likeComment(cId, pId, btn) {if(!this.user.likedComments)this.user.likedComments=[];if(!this.user.likedComments.includes(cId)){this.user.likedComments.push(cId);const p=this.posts.find(x=>x.id===pId);const c=p.replies.find(x=>x.id===cId);if(c){c.likes++;btn.classList.add('text-rose-500');btn.querySelector('i').classList.replace('fa-regular','fa-solid');const cnt=document.getElementById(`reply-likes-${cId}`);if(cnt)cnt.innerText=c.likes;}this.saveUser();this.savePosts();}}
+    shareApp(){event.stopPropagation();navigator.clipboard.writeText("Peyza App").then(()=>this.showToast('Link Copied'));}
+    toggleFollow(h,b){event.stopPropagation();if(b.innerText==='Follow'){b.innerText='Following';b.classList.replace('bg-black','bg-white');b.classList.replace('text-white','text-black');b.classList.add('border','border-gray-300');this.user.following++;}else{b.innerText='Follow';b.classList.replace('bg-white','bg-black');b.classList.replace('text-black','text-white');b.classList.remove('border','border-gray-300');this.user.following--;}this.saveUser();}
+    showToast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.remove('opacity-0');setTimeout(()=>t.classList.add('opacity-0'),2000);}
+    formatNumber(n){if(n==null)return'0';if(n>=1000000)return(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1000)return(n/1000).toFixed(1).replace(/\.0$/,'')+'K';return n.toString();}
+    timeAgo(d){const s=Math.floor((new Date()-d)/1000);if(s>31536000)return Math.floor(s/31536000)+'y';if(s>2592000)return Math.floor(s/2592000)+'mo';if(s>86400)return Math.floor(s/86400)+'d';if(s>3600)return Math.floor(s/3600)+'h';if(s>60)return Math.floor(s/60)+'m';return s+'s';}
+    navigate(v,p){this.currentView=v;this.viewParam=p;window.scrollTo(0,0);this.renderView();}
+    setFeedFilter(f){this.feedFilter=f;this.renderView();}
+    setProfileFilter(f){this.profileFilter=f;this.renderProfile(this.viewParam);}
+    handleSearch(q){if(this.currentView==='explore')this.renderExplore(q);}
+    openComposeModal(){document.getElementById('compose-modal').classList.remove('hidden');}
+    closeComposeModal(){document.getElementById('compose-modal').classList.add('hidden');}
+    publishPost(){const c=document.getElementById('compose-input').value;if(c)this.createPost(c);this.closeComposeModal();}
+    openReplyModal(id){this.replyingTo=id;this.openComposeModal();}
+    toggleTheme(){this.settings.theme=this.settings.theme==='light'?'dark':'light';this.applyTheme();this.saveSettings();}
+    applyTheme(){document.querySelector('html').classList.toggle('dark',this.settings.theme==='dark');}
+    openSettings(){this.openEditProfile();}
+    openEditProfile(h){this.editingHandle=h||this.user.handle;const p=this.getProfile(this.editingHandle);document.getElementById('edit-profile-modal').classList.remove('hidden');document.getElementById('edit-modal-title').innerText=`Edit ${p.name}`;document.getElementById('edit-name').value=p.name;document.getElementById('edit-bio').value=p.bio;document.getElementById('edit-location').value=p.location||'';document.getElementById('edit-followers').value=p.followers;document.getElementById('edit-banner-preview').src=p.banner||'';document.getElementById('edit-avatar-preview').src=p.avatar||'';if(this.editingHandle===this.user.handle){document.getElementById('edit-virality').value=this.settings.viralitySpeed;document.getElementById('secret-pin').parentNode.classList.remove('hidden');document.getElementById('theme-btn').parentNode.classList.remove('hidden');document.getElementById('bot-control-panel').classList.add('hidden');}else{document.getElementById('secret-pin').parentNode.classList.add('hidden');document.getElementById('theme-btn').parentNode.classList.add('hidden');if(this.user.createdBots.includes(this.editingHandle)){const bc=document.getElementById('bot-control-panel');bc.classList.remove('hidden');document.getElementById('bot-auto-post').checked=p.autoPost!==false;}}if(this.user.isPremium&&this.editingHandle===this.user.handle)document.getElementById('god-mode-panel').classList.remove('hidden');else document.getElementById('god-mode-panel').classList.add('hidden');const btn=document.getElementById('btn-verify');if(p.isVerified){btn.innerText="Verified";btn.disabled=true;btn.className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-sm font-bold";}else if(p.followers>=100000||this.user.isPremium){btn.disabled=false;btn.innerText=this.user.isPremium?"Force Verify":"Request";btn.className="bg-black dark:bg-white dark:text-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition";}else{btn.disabled=true;btn.className="bg-gray-200 text-gray-500 px-3 py-1.5 rounded-full text-sm font-bold cursor-not-allowed";}}
+    closeEditProfile(){document.getElementById('edit-profile-modal').classList.add('hidden');this.editingHandle=null;}
+    saveProfile(){const p=this.editingHandle===this.user.handle?this.user:this.bots.find(b=>b.handle===this.editingHandle);p.name=document.getElementById('edit-name').value;p.bio=document.getElementById('edit-bio').value;p.location=document.getElementById('edit-location').value;p.followers=parseInt(document.getElementById('edit-followers').value);p.banner=document.getElementById('edit-banner-preview').src;p.avatar=document.getElementById('edit-avatar-preview').src;if(this.editingHandle===this.user.handle){this.settings.viralitySpeed=parseFloat(document.getElementById('edit-virality').value);this.saveUser();this.saveSettings();}else{if(this.user.createdBots.includes(this.editingHandle))p.autoPost=document.getElementById('bot-auto-post').checked;this.saveBots();}this.closeEditProfile();this.renderProfile(this.editingHandle);this.showToast('Saved');}
+    checkPin(){if(document.getElementById('secret-pin').value==='568300'){this.user.isPremium=true;this.saveUser();document.getElementById('god-mode-panel').classList.remove('hidden');this.showToast("God Mode Unlocked");document.getElementById('btn-verify').disabled=false;document.getElementById('btn-verify').innerText="Force Verify";document.getElementById('btn-verify').className="bg-black text-white px-3 py-1.5 rounded-full text-sm font-bold transition";}}
+    requestVerification(f=false){const p=this.editingHandle===this.user.handle?this.user:this.bots.find(b=>b.handle===this.editingHandle);if(f||p.followers>=100000){p.isVerified=true;if(this.editingHandle===this.user.handle)this.saveUser();else this.saveBots();document.getElementById('btn-verify').innerText="Verified!";this.showToast('Badge Acquired!');}}
+    openCreateBotModal(){document.getElementById('edit-profile-modal').classList.add('hidden');document.getElementById('create-bot-modal').classList.remove('hidden');}
+    createBot(){const n=document.getElementById('bot-name').value,h=document.getElementById('bot-handle').value,a=document.getElementById('bot-avatar').value||'https://api.dicebear.com/7.x/avataaars/svg?seed='+h;if(!n||!h)return alert("Req");const nb={name:n,handle:h,avatar:a,bio:'Bot by '+this.user.name,followers:0,following:0,isVerified:false,autoPost:true,banner:'https://picsum.photos/seed/'+h+'/800/300'};this.bots.push(nb);this.user.createdBots.push(h);this.saveBots();this.saveUser();document.getElementById('create-bot-modal').classList.add('hidden');this.showToast('Bot Created!');this.navigate('profile',h);}
+    handleImageUpload(e,t){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{const i=new Image();i.src=ev.target.result;i.onload=()=>{const c=document.createElement('canvas'),x=c.getContext('2d'),M=500;let w=i.width,h=i.height;if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}}c.width=w;c.height=h;x.drawImage(i,0,0,w,h);const d=c.toDataURL('image/jpeg',0.8);document.getElementById(`edit-${t}-preview`).src=d;};};r.readAsDataURL(f);}
+    handlePostMedia(e,t){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{this.tempMedia=ev.target.result;this.tempMediaType=t;const p=document.getElementById('media-preview'),i=document.getElementById('media-preview-img'),v=document.getElementById('media-preview-video');p.classList.remove('hidden');if(t==='image'){i.src=this.tempMedia;i.classList.remove('hidden');v.classList.add('hidden');}else{v.src=this.tempMedia;v.classList.remove('hidden');i.classList.add('hidden');}};r.readAsDataURL(f);}
+    clearMedia(){this.tempMedia=null;document.getElementById('media-preview').classList.add('hidden');document.getElementById('post-image-upload').value='';document.getElementById('post-video-upload').value='';}
+    closePeyVids(){this.navigate('home');}
+    openComposeModalForCommunity(h){this.postingToCommunity=h;this.openComposeModal();document.getElementById('community-indicator').classList.remove('hidden');document.getElementById('community-name-target').innerText='@'+h;}
+    deletePost(id){if(confirm("Delete?")){this.posts=this.posts.filter(p=>p.id!==id);this.savePosts();this.renderView();this.showToast('Deleted');}}
+    togglePostTheme(id){const p=this.posts.find(x=>x.id===id);if(p){p.theme=p.theme==='default'?'highlight':'default';this.savePosts();this.renderView();}}
 
-                artist.bio = document.getElementById('edit-artist-bio').value;
-                
-                closeModal('edit-profile-modal');
-                saveToLocal();
-                renderArtist(id);
-                updateSidebar();
-            }
-        }
+    renderSidebarUser(){const e=document.getElementById('sidebar-user');if(e)e.innerHTML=`<div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200"><img src="${this.user.avatar}" class="w-full h-full object-cover"></div><div class="hidden xl:block"><p class="font-bold text-sm truncate w-[140px] flex items-center dark:text-white">${this.user.name} ${this.getBadgeHTML(this.user)}</p><p class="text-gray-500 text-sm truncate w-[140px]">@${this.user.handle}</p></div>`;}
+    renderWhoToFollow(){const c=document.getElementById('who-to-follow');if(c){let h='';this.bots.slice(0,3).forEach(b=>{h+=`<div class="flex items-center justify-between"><div class="flex items-center gap-3"><img src="${b.avatar}" class="w-10 h-10 rounded-full bg-gray-200"><div><p class="font-bold text-sm hover:underline cursor-pointer flex items-center dark:text-white" onclick="app.navigate('profile','${b.handle}')">${b.name} ${this.getBadgeHTML(b)}</p><p class="text-gray-500 text-sm">@${b.handle}</p></div></div><button class="bg-black dark:bg-white dark:text-black text-white text-sm font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition" onclick="app.toggleFollow('${b.handle}',this)">Follow</button></div>`});c.innerHTML=h;}}
+    renderSidebarTrends(){const e=document.getElementById('sidebar-trends');if(!e)return;const t=[...this.bots].sort((a,b)=>b.followers-a.followers).slice(0,3);let h='';t.forEach(b=>{h+=`<div class="cursor-pointer hover:bg-gray-200/50 dark:hover:bg-gray-800 -mx-4 px-4 py-2 transition" onclick="app.navigate('profile','${b.handle}')"><div class="flex items-center justify-between"><div><p class="text-xs text-gray-500">Trending in Profiles</p><p class="font-bold text-sm dark:text-white">${b.name}</p><p class="text-xs text-gray-500">${this.formatNumber(b.followers)} followers</p></div><img src="${b.avatar}" class="w-8 h-8 rounded-full bg-gray-200"></div></div>`;});e.innerHTML=h;}
 
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                closeModal(event.target.id);
-            }
-        }
-
-        init();
-    </script>
+    renderView() { const main = document.getElementById('main-view'); const header = document.getElementById('sticky-header'); const overlay = document.getElementById('peyvids-overlay'); main.innerHTML = ''; overlay.classList.add('hidden'); header.classList.remove('hidden'); const mNav = document.getElementById('mobile-nav-bar'); if(mNav) { mNav.innerHTML = `<div onclick="app.navigate('home')" class="nav-icon cursor-pointer text-2xl ${this.currentView==='home'?'active text-black dark:text-white':'text-gray-400'}"><i class="fa-solid fa-house"></i></div><div onclick="app.navigate('explore')" class="nav-icon cursor-pointer text-2xl ${this.currentView==='explore'?'active text-black dark:text-white':'text-gray-400'}"><i class="fa-solid fa-magnifying-glass"></i></div><div onclick="app.navigate('peyvids')" class="nav-icon cursor-pointer text-2xl ${this.currentView==='peyvids'?'active text-rose-500':'text-gray-400'}"><i class="fa-solid fa-play"></i></div><div onclick="app.navigate('notifications')" class="nav-icon cursor-pointer text-2xl ${this.currentView==='notifications'?'active text-black dark:text-white':'text-gray-400'}"><i class="fa-regular fa-bell"></i></div><div onclick="app.navigate('profile', app.user.handle)" class="nav-icon cursor-pointer text-2xl ${this.currentView==='profile'&&this.viewParam===this.user.handle?'active text-black dark:text-white':'text-gray-400'}"><i class="fa-regular fa-user"></i></div>`; } if (this.currentView === 'home') { header.innerHTML = `<div class="px-4 h-[53px] flex items-center justify-between cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})"><h2 class="text-lg font-bold">Home</h2><i class="fa-solid fa-wand-magic-sparkles text-rose-500 hover:rotate-12 transition"></i></div><div id="feed-filters" class="flex border-b border-gray-100 dark:border-darkBorder"><div onclick="app.setFeedFilter('foryou')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${this.feedFilter==='foryou'?'active':''}" data-filter="foryou"><span class="font-medium text-sm ${this.feedFilter==='foryou'?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">For You</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.feedFilter==='foryou'?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div><div onclick="app.setFeedFilter('following')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${this.feedFilter==='following'?'active':''}" data-filter="following"><span class="font-medium text-sm ${this.feedFilter==='following'?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">Following</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.feedFilter==='following'?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div><div onclick="app.setFeedFilter('media')" class="flex-1 hover:bg-gray-100 dark:hover:bg-darkSec cursor-pointer transition text-center py-3 relative feed-filter group ${this.feedFilter==='media'?'active':''}" data-filter="media"><span class="font-medium text-sm ${this.feedFilter==='media'?'font-bold text-gray-900 dark:text-white':'text-gray-500 dark:text-gray-400'}">Media</span><div class="absolute bottom-0 left-0 w-full flex justify-center h-[4px] ${this.feedFilter==='media'?'':'hidden'}"><div class="bg-rose-500 w-14 rounded-full indicator"></div></div></div></div>`; this.renderFeed(); } else if (this.currentView === 'explore') { header.innerHTML = `<div class="px-4 py-2"><input type="text" placeholder="Search Peyza" oninput="app.handleSearch(this.value)" value="${this.viewParam||''}" class="w-full bg-gray-100 dark:bg-darkSec dark:text-white rounded-full py-2 px-4 outline-none"></div>`; this.renderExplore(this.viewParam); } else if (this.currentView === 'notifications') { header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white">Notifications</div>`; this.renderNotifications(); } else if (this.currentView === 'profile') { header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-4 cursor-pointer" onclick="app.navigate('home')"></i> ${this.viewParam}</div>`; this.renderProfile(this.viewParam); } else if (this.currentView === 'post') { header.innerHTML = `<div class="px-4 h-[53px] flex items-center font-bold text-lg dark:text-white"><i class="fa-solid fa-arrow-left mr-4 cursor-pointer" onclick="app.navigate('home')"></i> Post</div>`; this.renderPostDetail(this.viewParam); } else if (this.currentView === 'peyvids') { header.classList.add('hidden'); overlay.classList.remove('hidden'); this.renderPeyVids(); } }
+    renderFeed() { const c=document.getElementById('main-view'); let fps=[...this.posts]; if(this.feedFilter==='media')fps=fps.filter(p=>p.image||p.video); else if(this.feedFilter==='following')fps=fps.filter(p=>p.authorHandle!=='guest_user'); if(this.feedFilter==='foryou')fps=fps.filter(p=>!p.communityHandle); fps.sort((a,b)=>b.createdAt-a.createdAt); let h=''; fps.forEach(p=>h+=this.buildPostHTML(p)); c.innerHTML=h||'<div class="p-10 text-center text-gray-500">No posts found</div>'; }
+    renderExplore(q) { const c=document.getElementById('main-view'); if(!q){c.innerHTML=`<div class="p-4"><h2 class="font-bold text-xl mb-4 dark:text-white">Trends</h2><div class="space-y-4">${['#PeyzaV6','PlatinumBadge','Juice WRLD'].map(t=>`<div class="font-bold dark:text-white">${t}<br><span class="text-xs text-gray-500 font-normal">Trending</span></div>`).join('')}</div></div>`;}else{const ql=q.toLowerCase(); const rU=this.bots.filter(b=>b.name.toLowerCase().includes(ql)||b.handle.toLowerCase().includes(ql)); const rP=this.posts.filter(p=>p.content.toLowerCase().includes(ql)); let h='<div class="p-4"><h3 class="font-bold mb-2 dark:text-white">People</h3>'; if(rU.length===0)h+='<p class="text-gray-500">No users found</p>'; rU.forEach(u=>h+=this.buildUserListHTML(u)); h+='<h3 class="font-bold mt-4 mb-2 dark:text-white">Posts</h3>'; if(rP.length===0)h+='<p class="text-gray-500">No posts found</p>'; rP.forEach(p=>h+=this.buildPostHTML(p)); h+='</div>'; c.innerHTML=h;} }
+    renderNotifications() { const c=document.getElementById('main-view'); let h=''; this.notifications.forEach(n=>{h+=`<div class="p-4 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec"><p class="font-bold dark:text-white">${n.title}</p><p class="text-sm text-gray-500">${n.body}</p></div>`;}); c.innerHTML=h||'<div class="p-10 text-center text-gray-500">No notifications</div>'; }
+    renderProfile(h) { const c=document.getElementById('main-view'); const p=this.getProfile(h)||{name:'Unknown',handle:h,followers:0,following:0,bio:'',avatar:'',isVerified:false,isOwner:false}; const b=this.getBadgeHTML(p); const me=h===this.user.handle; c.innerHTML=`<div><div class="h-32 bg-gray-200 dark:bg-darkSec"><img src="${p.banner||''}" class="w-full h-full object-cover"></div><div class="px-4 relative mb-4"><div class="flex justify-between"><div class="-mt-10 w-24 h-24 rounded-full border-4 border-white dark:border-dark overflow-hidden"><img src="${p.avatar}" class="w-full h-full object-cover"></div><div class="mt-3">${me||this.user.isPremium?`<button onclick="app.openEditProfile('${h}')" class="border border-gray-300 dark:border-darkBorder px-4 py-1 rounded-full font-bold text-sm dark:text-white">Edit</button>`:`<button onclick="app.toggleFollow('${h}',this)" class="bg-black text-white px-4 py-1 rounded-full font-bold text-sm">Follow</button>`}</div></div><div class="mt-2"><h1 class="font-bold text-xl dark:text-white">${p.name} ${b}</h1><p class="text-gray-500 text-sm">@${p.handle}</p></div><p class="mt-2 dark:text-white">${p.bio}</p><div class="flex gap-4 mt-2 text-sm dark:text-gray-400"><span><b>${this.formatNumber(p.following)}</b> Following</span><span><b>${this.formatNumber(p.followers)}</b> Followers</span></div></div><div class="flex border-b border-gray-100 dark:border-darkBorder"><div onclick="app.setProfileFilter('posts')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='posts'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Posts</div><div onclick="app.setProfileFilter('media')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='media'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Media</div><div onclick="app.setProfileFilter('likes')" class="flex-1 text-center py-3 cursor-pointer ${this.profileFilter==='likes'?'font-bold border-b-2 border-rose-500 dark:text-white':'text-gray-500'}">Likes</div></div><div id="profile-feed">${this.profileFilter==='media'?this.renderMediaGrid(h):this.getPostsByHandle(h)}</div></div>`; }
+    renderMediaGrid(h) { const p=this.posts.filter(x=>x.authorHandle===h&&(x.image||x.video)); if(p.length===0)return'<div class="p-8 text-center text-gray-500">No media</div>'; let html='<div class="grid grid-cols-3 gap-1">'; p.forEach(x=>{html+=`<div class="aspect-square bg-gray-100 relative cursor-pointer group" onclick="app.navigate('post','${x.id}')">${x.video?`<video src="${x.video}" class="w-full h-full object-cover"></video><i class="fa-solid fa-play absolute top-1 right-1 text-white drop-shadow-md"></i>`:`<img src="${x.image}" class="w-full h-full object-cover">`}<div class="absolute bottom-0 left-0 w-full bg-black/50 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-eye"></i> ${this.formatNumber(x.stats.views)}</div></div>`;}); html+='</div>'; return html; }
+    getPostsByHandle(h) { let ps; if(this.profileFilter==='likes'){if(h!==this.user.handle)return'<div class="p-8 text-center">Likes Private</div>';ps=this.posts.filter(p=>this.user.likedPosts.includes(p.id));}else if(this.profileFilter==='community')ps=this.posts.filter(p=>p.communityHandle===h); else ps=this.posts.filter(p=>p.authorHandle===h&&!p.communityHandle); ps.sort((a,b)=>b.createdAt-a.createdAt); if(ps.length===0)return'<div class="p-8 text-center text-gray-500">No posts</div>'; let t=''; ps.forEach(p=>t+=this.buildPostHTML(p)); return t; }
+    renderPostDetail(id) { const p=this.posts.find(x=>x.id===id); if(!p)return; const c=document.getElementById('main-view'); const b=this.getBadgeHTML({isOwner:p.isOwner,followers:p.followers,isVerified:p.isVerified}); let rh=''; if(p.replies)p.replies.forEach(r=>{const rb=this.getBadgeHTML({isOwner:r.isOwner,followers:r.followers,isVerified:r.isVerified});const il=this.user.likedComments.includes(r.id);rh+=`<div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder bg-white dark:bg-dark"><div class="shrink-0 w-10 h-10 rounded-full overflow-hidden"><img src="${r.avatar}" class="w-full h-full object-cover"></div><div class="w-full"><div class="flex justify-between"><div class="font-bold dark:text-white">${r.authorName} ${rb} <span class="text-gray-500 font-normal">@${r.authorHandle} · ${r.time}</span></div></div><div class="text-gray-900 dark:text-white mt-1">${r.content}</div><div class="mt-2 flex items-center gap-4 text-gray-500 text-sm"><div class="cursor-pointer hover:text-rose-500 ${il?'text-rose-500':''}" onclick="app.likeComment('${r.id}','${p.id}',this)"><i class="${il?'fa-solid':'fa-regular'} fa-heart"></i> <span id="reply-likes-${r.id}">${r.likes>0?r.likes:''}</span></div></div></div></div>`;}); c.innerHTML=`<div class="px-4 py-3 border-b border-gray-100 dark:border-darkBorder animate-fade-in"><div class="flex gap-3 items-center mb-3"><img src="${p.authorAvatar}" class="w-10 h-10 rounded-full cursor-pointer" onclick="app.navigate('profile','${p.authorHandle}')"><div><div class="font-bold dark:text-white">${p.authorName} ${b}</div><div class="text-gray-500">@${p.authorHandle}</div></div></div><div class="text-xl dark:text-white mb-3">${p.content}</div>${p.image?`<img src="${p.image}" class="rounded-xl border dark:border-darkBorder w-full mb-3">`:''}${p.video?`<video src="${p.video}" controls class="rounded-xl w-full mb-3"></video>`:''}${this.buildPollHTML(p,true)}<div class="text-gray-500 text-sm py-2 border-b border-gray-100 dark:border-darkBorder">${new Date(p.createdAt).toLocaleDateString()} · <b>${this.formatNumber(p.stats.views)}</b> Views</div><div class="flex justify-between py-2 text-gray-500 text-xl px-2" id="stats-${p.id}"><div onclick="app.openReplyModal('${p.id}')"><i class="fa-regular fa-comment cursor-pointer hover:text-blue-500"></i></div><div onclick="app.toggleRepost('${p.id}',this)"><i class="fa-solid fa-retweet cursor-pointer hover:text-green-500"></i></div><div onclick="app.toggleLike('${p.id}',this)" class="${this.user.likedPosts.includes(p.id)?'liked':''}"><i class="${this.user.likedPosts.includes(p.id)?'fa-solid':'fa-regular'} fa-heart cursor-pointer hover:text-rose-500"></i></div><div onclick="app.toggleBookmark('${p.id}',this)" class="${this.user.bookmarks.includes(p.id)?'bookmarked':''}"><i class="${this.user.bookmarks.includes(p.id)?'fa-solid':'fa-regular'} fa-bookmark cursor-pointer hover:text-blue-500"></i></div></div></div><div class="pb-20">${rh}</div>`; }
+    renderPeyVids() { const c=document.getElementById('peyvids-overlay'); c.innerHTML=`<div id="peyvids-feed" class="w-full max-w-[500px] h-full mx-auto bg-black relative shadow-2xl overflow-y-scroll snap-y snap-mandatory hide-scrollbar"></div><div class="absolute top-4 left-4 z-50 text-white text-3xl cursor-pointer drop-shadow-md" onclick="app.navigate('home')"><i class="fa-solid fa-arrow-left"></i></div>`; const f=document.getElementById('peyvids-feed'); const vs=this.posts.filter(p=>p.video||p.image).sort(()=>0.5-Math.random()).slice(0,10); let h=''; vs.forEach(p=>{const b=this.getBadgeHTML({isOwner:p.isOwner,followers:p.followers,isVerified:p.isVerified});const il=this.user.likedPosts.includes(p.id);h+=`<div class="peyvid-item w-full h-full relative snap-start bg-gray-900 flex items-center justify-center">${p.video?`<video src="${p.video}" class="w-full h-full object-cover" autoplay muted loop></video>`:`<img src="${p.image}" class="w-full h-full object-cover">`}<div class="absolute right-2 bottom-20 flex flex-col gap-4 text-white items-center"><div class="flex flex-col items-center" onclick="app.toggleLike('${p.id}',this)"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-fire text-2xl ${il?'text-amber-500 animate-pop':''}"></i></div><span class="text-xs font-bold stat-likes">${this.formatNumber(p.stats.likes)}</span></div><div class="flex flex-col items-center" onclick="app.openReplyModal('${p.id}')"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-comment-dots text-2xl"></i></div><span class="text-xs font-bold">${this.formatNumber(p.stats.replies)}</span></div><div class="flex flex-col items-center" onclick="app.shareApp()"><div class="bg-gray-800/50 p-3 rounded-full mb-1"><i class="fa-solid fa-share text-2xl"></i></div><span class="text-xs font-bold">Share</span></div><div class="flex flex-col items-center" onclick="app.toggleFollow('${p.authorHandle}',this)"><div class="bg-rose-500 p-3 rounded-full mb-1"><i class="fa-solid fa-plus text-xl"></i></div></div></div><div class="absolute left-0 bottom-0 w-full p-4 peyvid-overlay"><div class="font-bold text-white mb-1 flex items-center gap-1" onclick="app.navigate('profile','${p.authorHandle}')">${p.authorName} ${b}</div><div class="text-white text-sm line-clamp-2">${p.content}</div></div></div>`;}); f.innerHTML=h; }
+    buildPostHTML(p) { const b=this.getBadgeHTML({isOwner:p.isOwner,followers:p.followers,isVerified:p.isVerified}); const il=this.user.likedPosts.includes(p.id); const ir=this.user.repostedPosts.includes(p.id); return `<div class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-darkBorder hover:bg-gray-50 dark:hover:bg-darkSec/50 cursor-pointer transition duration-200 ${p.theme==='highlight'?'post-highlight':''}" onclick="app.navigate('post','${p.id}')"><img src="${p.authorAvatar}" class="w-10 h-10 rounded-full object-cover" onclick="event.stopPropagation();app.navigate('profile','${p.authorHandle}')"><div class="w-full"><div class="flex justify-between"><div class="font-bold dark:text-white flex items-center" onclick="event.stopPropagation();app.navigate('profile','${p.authorHandle}')">${p.authorName} ${b} <span class="text-gray-500 font-normal ml-1">@${p.authorHandle} · ${this.timeAgo(p.createdAt)}</span></div>${p.authorHandle===this.user.handle||this.user.createdBots.includes(p.authorHandle)?`<div class="relative group" onclick="event.stopPropagation()"><div class="text-gray-400 p-2"><i class="fa-solid fa-ellipsis"></i></div><div class="absolute right-0 top-6 bg-white dark:bg-black border dark:border-darkBorder shadow-lg rounded-md z-10 hidden group-hover:block w-32 overflow-hidden"><button onclick="app.deletePost('${p.id}')" class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800">Delete</button><button onclick="app.togglePostTheme('${p.id}')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">Highlight</button></div></div>`:''}</div><div class="dark:text-white mb-2">${p.content}</div>${p.image?`<img src="${p.image}" class="rounded-xl border dark:border-darkBorder max-h-[300px] w-full object-cover">`:''}${p.video?`<div class="relative"><video src="${p.video}" class="rounded-xl max-h-[300px] w-full object-cover"></video><div class="absolute inset-0 flex items-center justify-center text-white text-4xl"><i class="fa-solid fa-play-circle opacity-80"></i></div></div>`:''}${this.buildPollHTML(p)}<div class="flex justify-between mt-2 text-gray-500 text-sm max-w-[400px]" id="stats-${p.id}"><div class="flex items-center gap-1 hover:text-blue-500" onclick="event.stopPropagation();app.openReplyModal('${p.id}')"><i class="fa-regular fa-comment"></i> <span class="stat-replies">${this.formatNumber(p.stats.replies)}</span></div><div class="flex items-center gap-1 hover:text-green-500 ${ir?'reposted':''}" onclick="event.stopPropagation();app.toggleRepost('${p.id}',this)"><i class="fa-solid fa-retweet"></i> <span class="stat-reposts">${this.formatNumber(p.stats.reposts)}</span></div><div class="flex items-center gap-1 hover:text-rose-500 ${il?'liked':''}" onclick="event.stopPropagation();app.toggleLike('${p.id}',this)"><i class="${il?'fa-solid':'fa-regular'} fa-heart"></i> <span class="stat-likes">${this.formatNumber(p.stats.likes)}</span></div><div class="flex items-center gap-1 whitespace-nowrap">${ANALYTICS_ICON} <span class="stat-views">${this.formatNumber(p.stats.views)}</span></div></div></div></div>`; }
+    buildUserListHTML(u){ return `<div class="flex items-center justify-between py-3 hover:bg-gray-50 dark:hover:bg-darkSec px-4 -mx-4 transition cursor-pointer" onclick="app.navigate('profile', '${u.handle}')"><div class="flex items-center gap-3"><img src="${u.avatar}" class="w-10 h-10 rounded-full bg-gray-200 object-cover"><div><p class="font-bold text-sm dark:text-white">${u.name} ${this.getBadgeHTML(u)}</p><p class="text-gray-500 text-sm">@${u.handle}</p></div></div></div>`; }
+    buildPollHTML(p,d) { if (!p.poll) return ''; let h=`<div class="mt-3 space-y-2 max-w-[400px]" onclick="event.stopPropagation()">`; p.poll.options.forEach((o,i)=>{const pct=p.poll.totalVotes===0?0:Math.round((o.votes/p.poll.totalVotes)*100);h+=`<div class="relative h-8 rounded-md overflow-hidden bg-gray-100 dark:bg-darkSec cursor-pointer hover:opacity-90 transition"><div id="poll-bar-${p.id}-${i}" class="absolute top-0 left-0 h-full bg-rose-200 dark:bg-rose-900/40 transition-all duration-500" style="width: ${pct}%"></div><div class="absolute inset-0 flex items-center justify-between px-3 text-sm font-bold dark:text-white"><span>${o.text}</span><span id="poll-text-${p.id}-${i}">${pct}%</span></div></div>`;}); h+=`<div class="text-gray-500 text-xs mt-1"><span id="poll-total-${p.id}">${this.formatNumber(p.poll.totalVotes)} votes</span> · 1 day left</div></div>`; return h; }
+}
+const app = new PeyzaApp();
+</script>
 </body>
 </html>
